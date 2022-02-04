@@ -46,7 +46,6 @@
 // Set parameters
 
 
-// Include application, user and local libraries
 
 
 // Define structures and classes
@@ -182,6 +181,8 @@ void servopaketfunktion(void) // start Abschnitt
 { 
    servostatus &= ~(1<<PAUSE);
    servostatus |= (1<<PAKET);// neues Paket starten
+   servostatus |= (1<<IMPULS);
+   servostatus |= (1<<IMPULS);
    OSZI_B_LO();
    
  //  microcounter = 0;
@@ -196,7 +197,7 @@ void microtimerfunktion(void)
    {
       
       //servostatus |= (1<<PAKET);
-      servostatus |= (1<<IMPULS);
+      //servostatus |= (1<<IMPULS);
       digitalWriteFast(IMPULSPIN,LOW);
       servoindex = 0;
    }
@@ -383,5 +384,6 @@ void loop()
       
       servostatus &= ~(1<<ADC_OK);
       OSZI_C_HI();
+      servostatus |= (1<<USB_OK);
    }
 }
