@@ -1,0 +1,9 @@
+/_includes/*
+*/Configurations/*
+Doxyfile
+schematic32*
+teensy*
+/Transfer/*
+digi*
+*.xcodeproj*
+
