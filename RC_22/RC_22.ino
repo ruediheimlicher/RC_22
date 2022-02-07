@@ -112,7 +112,7 @@ uint16_t impulsdauer = 0;
 IntervalTimer microTimer; 
 uint16_t microcounter = 0;
 
-#define IMPULSPIN  2
+#define IMPULSPIN  1
 
 IntervalTimer              delayTimer;
 
@@ -147,6 +147,31 @@ float ppmlo = PPMLO; // min ppm
 float ppmhi = PPMHI; // max ppm
 
 volatile float quot = (ppmhi - ppmlo)/(pothi - potlo);
+
+// display
+volatile uint16_t                posregister[8][8]={}; // Aktueller screen: werte fuer page und daraufliegende col fuer Menueintraege (hex). geladen aus progmem
+volatile uint16_t                cursorpos[8][8]={}; // Aktueller screen: werte fuer page und darauf liegende col fuer den cursor
+volatile uint16_t                blink_cursorpos=0xFFFF;
+
+
+volatile uint16_t stopsekunde=0;
+volatile uint16_t stopminute=0;
+volatile uint16_t motorsekunde=0;
+volatile uint16_t motorminute=0;
+
+volatile uint8_t                 curr_model=0; // aktuelles modell
+uint8_t                     speichermodel=0;
+volatile uint8_t                 curr_kanal=0; // aktueller kanal
+volatile uint8_t                 curr_richtung=0; // aktuelle richtung
+volatile uint8_t                 curr_impuls=0; // aktueller impuls
+
+volatile uint8_t                 curr_setting=0; // aktuelles Setting fuer Modell
+uint8_t                     speichersetting=0;
+
+volatile uint8_t                 curr_trimmkanal=0; // aktueller  Kanal fuerTrimmung
+volatile uint8_t                 curr_trimmung=0; // aktuelle  Trimmung fuer Trimmkanal
+
+
 
 // Functions
 
@@ -296,6 +321,7 @@ void servotimerfunction(void) // 1us ohne ramp
 
 void displayinit()
 {
+   /*
 #define A0_HI        SOFT_SPI_PORT |= (1<<DOG_A0)
 #define A0_LO        SOFT_SPI_PORT &= ~(1<<DOG_A0)
 
@@ -311,7 +337,7 @@ void displayinit()
 
 #define DATA_HI      SOFT_SPI_PORT |= (1<<DOG_DATA)
 #define DATA_LO      SOFT_SPI_PORT &= ~(1<<DOG_DATA)
-
+*/
    pinMode(DOG_CS, OUTPUT);
    digitalWriteFast(DOG_CS, 1);
    
@@ -384,7 +410,7 @@ void setup()
    pinMode(IMPULSPIN, OUTPUT);
    digitalWriteFast(IMPULSPIN,LOW);
    
-   servoTimer.begin(servopaketfunktion, 60000);
+   servoTimer.begin(servopaketfunktion, 80000);
    microTimer.begin(microtimerfunktion,2);
    
   //   pinMode(END_C1_PIN, INPUT_PULLUP); // 
@@ -407,9 +433,9 @@ void setup()
   lcd_initialize(LCD_FUNCTION_8x2, LCD_CMD_ENTRY_INC, LCD_CMD_ON);
 
     
-   display_soft_init();
-   display_clear();
-   
+ //  display_soft_init();
+ //  display_clear();
+   //sethomescreen();
    _delay_us(50);
 }
 
@@ -421,7 +447,7 @@ void loop()
    {   
       //digitalWrite(OSZI_PULS_A, !digitalRead(OSZI_PULS_A));
       
-
+      //sethomescreen();
       sinceblink = 0;
       
        if (digitalRead(LOOPLED) == 1)

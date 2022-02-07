@@ -58,31 +58,12 @@
 #define MAXSPANNUNG  756
 #define MINSPANNUNG  500
 
-#define MOTOR_ON     1
-#define STOP_ON     2
 
 
 // SOFT-SPI defines
 
 //#define SOFT_SPI_PORT   PORTC
 //#define SOFT_SPI_DDR    DDRC
-/*
-#define A0_HI        SOFT_SPI_PORT |= (1<<DOG_A0)
-#define A0_LO        SOFT_SPI_PORT &= ~(1<<DOG_A0)
-
-#define RST_HI        SOFT_SPI_PORT |= (1<<DOG_RST)
-#define RST_LO        SOFT_SPI_PORT &= ~(1<<DOG_RST)
-
-
-#define CS_HI        SOFT_SPI_PORT |= (1<<DOG_CS)
-#define CS_LO        SOFT_SPI_PORT &= ~(1<<DOG_CS)
-
-#define SCL_HI       SOFT_SPI_PORT |= (1<<DOG_SCL)
-#define SCL_LO       SOFT_SPI_PORT &= ~(1<<DOG_SCL)
-
-#define DATA_HI      SOFT_SPI_PORT |= (1<<DOG_DATA)
-#define DATA_LO      SOFT_SPI_PORT &= ~(1<<DOG_DATA)
-*/
 
 
 // http://www.cczwei-forum.de/cc2/thread.php?postid=49733#post49733
@@ -126,6 +107,7 @@ const uint8_t   expoarray25[3][26] ={
 {0x00,0x00,0x00,0x00,0x00,0x01,0x01,0x01,0x01,0x01,0x02,0x02,0x03,0x03,0x04,0x05,0x06,0x07,0x09,0x0B,0x0D,0x0F,0x12,0x16,0x1B,0x20}
 };
 
+void sethomescreen(void);
 void display_init(void);
 void display_soft_init(void);
 void display_mem(char* pointer);
