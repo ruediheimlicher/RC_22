@@ -109,7 +109,7 @@ uint16_t impulsdauer = 0;
 IntervalTimer microTimer; 
 uint16_t microcounter = 0;
 
-#define IMPULSPIN  2
+#define IMPULSPIN  1
 
 IntervalTimer              delayTimer;
 
@@ -317,7 +317,7 @@ void setup()
    pinMode(IMPULSPIN, OUTPUT);
    digitalWriteFast(IMPULSPIN,LOW);
    
-   servoTimer.begin(servopaketfunktion, 60000);
+   servoTimer.begin(servopaketfunktion, 80000);
    microTimer.begin(microtimerfunktion,2);
    
   //   pinMode(END_C1_PIN, INPUT_PULLUP); // 
