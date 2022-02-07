@@ -18,7 +18,7 @@
 #include "display.h"
 #include "font.h"
 #include "text.h"
-
+#include "Arduino.h"
 extern volatile uint8_t levelwert;
 extern volatile uint8_t levelb;
 
@@ -105,6 +105,10 @@ extern volatile uint16_t              updatecounter; // Zaehler fuer Einschalten
  write_dogm(0xAF,A0);  // Display on/off
 
  */
+
+#define DATEN     0
+#define CMD      1
+
 #define HOMESCREEN      0
 #define SETTINGSCREEN   1
 #define KANALSCREEN     2
@@ -164,13 +168,16 @@ const volatile char DISPLAY_INIT[] =
 //const char DISPLAY_INIT[] = {0xC8,0xA1,0xA6,0xA2,0x2F,0x26,0x81,0x25,0xAC,0x00,0xAF};
 
 //char_height_mul 1, 2 or 4
-/*
+
 volatile unsigned char char_x=0;
-volatile unsigned char;
 volatile unsigned char char_y=1;
 volatile unsigned char char_height_mul=1;
 volatile unsigned char char_width_mul=1;
-*/
+
+char menubuffer[20];
+char titelbuffer[20];
+
+
 void resetRegister(void)
 {
    uint8_t i=0,k=0;
@@ -210,13 +217,13 @@ void sethomescreen(void)
   
    // positionen lesen
    // titel setzen
-   strcpy_P(titelbuffer, (&(TitelTable[0])));
+   strcpy(titelbuffer, &((TitelTable[0])));
    char_x=OFFSET_6_UHR;
    char_y = 1;
    char_height_mul = 1;
    char_width_mul = 1;
    display_go_to(char_x+1,0);
-   display_write_byte(DATA,0xFF);
+   display_write_byte(DATEN,0xFF);
    //char_x++;
 
    display_inverse(1);
@@ -227,7 +234,7 @@ void sethomescreen(void)
    char_width_mul = 1;
    
    // Stoppuhrtext schreiben
-   strcpy_P(titelbuffer, (&(TitelTable[2]))); // Text Stoppuhr
+   strcpy(titelbuffer, (&(TitelTable[2]))); // Text Stoppuhr
    char_x = (posregister[2][0] & 0x00FF);
    char_y= (posregister[2][0] & 0xFF00)>>8;
    display_write_str(titelbuffer,2);
@@ -243,7 +250,7 @@ void sethomescreen(void)
 
    
    // Motorzeittext schreiben
-   strcpy_P(titelbuffer, (&(TitelTable[3]))); // Text Motorzeit
+   strcpy(titelbuffer, (&(TitelTable[3]))); // Text Motorzeit
    char_x = (posregister[1][0] & 0x00FF);
    char_y= ((posregister[1][0] & 0xFF00)>>8);
    char_height_mul = 1;
@@ -261,7 +268,7 @@ void sethomescreen(void)
 
    
    // Modell schreiben
-   strcpy_P(titelbuffer, (&(ModelTable[curr_model])));
+   strcpy(titelbuffer, (&(ModelTable[curr_model])));
    char_y= (posregister[4][0] & 0xFF00)>>8;
    char_x = posregister[4][0] & 0x00FF;
    //display_write_prop_str(char_y,char_x,0,titelbuffer,2);
@@ -269,7 +276,7 @@ void sethomescreen(void)
    display_write_str(titelbuffer,1);
 
    char_height_mul = 1;
-   strcpy_P(titelbuffer, (&(TitelTable[5])));
+   strcpy(titelbuffer, (&(TitelTable[5])));
    char_y= (posregister[4][1] & 0xFF00)>>8;
    char_x = posregister[4][1] & 0x00FF;
    display_write_str(titelbuffer,2);
@@ -285,7 +292,7 @@ void sethomescreen(void)
    // Batteriespannung
    char_y= ((posregister[3][0] & 0xFF00)>>8)+1;
    char_x = posregister[3][0] & 0x00FF;
-   strcpy_P(titelbuffer, (&(TitelTable[6]))); // Akku
+   strcpy(titelbuffer, (&(TitelTable[6]))); // Akku
    char_height_mul = 1;
    display_write_str(titelbuffer,2);
    
@@ -298,7 +305,7 @@ void sethomescreen(void)
    char_y = 8;
    display_write_symbol(pfeilvollrechts);
    char_x += 2;
-   strcpy_P(titelbuffer, (&(TitelTable[4])));
+   strcpy(titelbuffer, (&(TitelTable[4])));
    display_write_str(titelbuffer,2);
    
 }// sethomescreen
@@ -335,7 +342,7 @@ void setsettingscreen(void)
    cursorpos[4][0] = cursortab[0] |    (7 << 8);  // cursorpos fuer zuteilung
   
    
-   strcpy_P(menubuffer, (&(SettingTable[0]))); // "Settings"
+   strcpy(menubuffer, (&(SettingTable[0]))); // "Settings"
    char_x=itemtab[0];
    char_y = 1;
    char_height_mul = 1;
@@ -356,7 +363,7 @@ void setsettingscreen(void)
    display_write_symbol(pfeilvollrechts);
    
    // 2. Zeile Set mit Nummer
-   strcpy_P(menubuffer, (&(SettingTable[2])));
+   strcpy(menubuffer, (&(SettingTable[2])));
    char_y= (posregister[0][2] & 0xFF00)>>8;
    char_x = posregister[0][2] & 0x00FF;
    
@@ -365,7 +372,7 @@ void setsettingscreen(void)
    
 
    // Kanal-Zeile
-   strcpy_P(menubuffer, (&(SettingTable[3])));
+   strcpy(menubuffer, (&(SettingTable[3])));
    char_y= (posregister[1][0] & 0xFF00)>>8;
    char_x = posregister[1][0] & 0x00FF;
    //char_x=0;
@@ -377,21 +384,21 @@ void setsettingscreen(void)
 
    
    // Mix-Zeile
-   strcpy_P(menubuffer, (&(SettingTable[4])));
+   strcpy(menubuffer, (&(SettingTable[4])));
    char_y= (posregister[2][0] & 0xFF00)>>8;
    char_x = posregister[2][0] & 0x00FF;
    //char_x=0;
    display_write_str(menubuffer,2);
    
    // Zuteilung-Zeile
-   strcpy_P(menubuffer, (&(SettingTable[5])));
+   strcpy(menubuffer, (&(SettingTable[5])));
    char_y= (posregister[3][0] & 0xFF00)>>8;
    char_x = posregister[3][0] & 0x00FF;
    //char_x=0;
    display_write_str(menubuffer,2);
  
    // Output-Zeile
-   strcpy_P(menubuffer, (&(SettingTable[6])));
+   strcpy(menubuffer, (&(SettingTable[6])));
    char_y= (posregister[4][0] & 0xFF00)>>8;
    char_x = posregister[4][0] & 0x00FF;
    //char_x=0;
@@ -462,7 +469,7 @@ void setcanalscreen(void)
    cursorpos[4][0] =cursortab[0] |   (1 << 8); // cursorpos fuer Art
    
    
-   strcpy_P(menubuffer, (&(KanalTable[0]))); // Kanalname
+   strcpy(menubuffer, (&(KanalTable[0]))); // Kanalname
    char_y= (posregister[0][0] & 0xFF00)>>8;
    char_x = posregister[0][0] & 0x00FF;
    char_height_mul = 1;
@@ -471,7 +478,7 @@ void setcanalscreen(void)
    char_height_mul = 1;
    
 // Richtung anzeigen
-   strcpy_P(menubuffer,(&(KanalTable[1]))); // Richtung
+   strcpy(menubuffer,(&(KanalTable[1]))); // Richtung
    char_y= (posregister[0][2] & 0xFF00)>>8;
    char_x = posregister[0][2] & 0x00FF;
    display_write_str(menubuffer,2);
@@ -479,7 +486,7 @@ void setcanalscreen(void)
    char_height_mul = 1;
 
    // Funktion anzeigen
-   strcpy_P(menubuffer, (&(FunktionTable[curr_kanal]))); // Richtung
+   strcpy(menubuffer, (&(FunktionTable[curr_kanal]))); // Richtung
    char_y= (posregister[0][4] & 0xFF00)>>8;
    char_x = posregister[0][4] & 0x00FF;
    display_write_str(menubuffer,2);
@@ -490,7 +497,7 @@ void setcanalscreen(void)
    
    
    // Level anzeigen
-   strcpy_P(menubuffer, (&(KanalTable[2]))); // Leveltext
+   strcpy(menubuffer, (&(KanalTable[2]))); // Leveltext
    char_y= (posregister[1][0] & 0xFF00)>>8;
    char_x = posregister[1][0] & 0x00FF;
    
@@ -499,13 +506,13 @@ void setcanalscreen(void)
    char_height_mul = 1;
  
    // Level A text
-   strcpy_P(menubuffer, (&(KanalTable[4]))); // Leveltext
+   strcpy(menubuffer, (&(KanalTable[4]))); // Leveltext
    char_y= (posregister[1][1] & 0xFF00)>>8;
    char_x = posregister[1][1] & 0x00FF;
    //display_write_str(menubuffer,1);
  
    // Level A wert
-   //strcpy_P(menubuffer, (&(KanalTable[2]))); // Level wert A
+   //strcpy(menubuffer, (&(KanalTable[2]))); // Level wert A
    char_y= (posregister[1][2] & 0xFF00)>>8;
    char_x = posregister[1][2] & 0x00FF;
    char_width_mul = 1;
@@ -517,13 +524,13 @@ void setcanalscreen(void)
    char_width_mul = 1;
    char_height_mul = 1;
    // Level B text
-   strcpy_P(menubuffer, (&(KanalTable[5]))); // Leveltext
+   strcpy(menubuffer, (&(KanalTable[5]))); // Leveltext
    char_y= (posregister[1][3] & 0xFF00)>>8;
    char_x = posregister[1][3] & 0x00FF;
    //display_write_str(menubuffer,2);
    
    // Level B wert
-   //strcpy_P(menubuffer, (&(KanalTable[2]))); // Level wert B
+   //strcpy(menubuffer, (&(KanalTable[2]))); // Level wert B
    char_width_mul = 1;
    char_y= (posregister[1][4] & 0xFF00)>>8;
    char_x = posregister[1][4] & 0x00FF;
@@ -534,7 +541,7 @@ void setcanalscreen(void)
   
    // Expo anzeigen
    
-   strcpy_P(menubuffer, (&(KanalTable[3]))); // Expotext
+   strcpy(menubuffer, (&(KanalTable[3]))); // Expotext
    char_y= (posregister[2][0] & 0xFF00)>>8;
    char_x = posregister[2][0] & 0x00FF;
    char_width_mul = 1;
@@ -542,13 +549,13 @@ void setcanalscreen(void)
 
    
    // expo A text
-   strcpy_P(menubuffer, (&(KanalTable[4]))); //expo text
+   strcpy(menubuffer, (&(KanalTable[4]))); //expo text
    char_y= (posregister[2][1] & 0xFF00)>>8;
    char_x = posregister[2][1] & 0x00FF;
    //display_write_str(menubuffer,2);
    
    // expo A wert
-   //strcpy_P(menubuffer, (&(KanalTable[2]))); // expo wert
+   //strcpy(menubuffer, (&(KanalTable[2]))); // expo wert
    char_y= (posregister[2][2] & 0xFF00)>>8;
    char_x = posregister[2][2] & 0x00FF;
    char_width_mul = 1;
@@ -556,14 +563,14 @@ void setcanalscreen(void)
    
    
    // expo B text
-   strcpy_P(menubuffer, (&(KanalTable[5]))); // expo text
+   strcpy(menubuffer, (&(KanalTable[5]))); // expo text
    char_y= (posregister[2][3] & 0xFF00)>>8;
    char_x = posregister[2][3] & 0x00FF;
    char_width_mul = 1;
   // display_write_str(menubuffer,2);
    
    // expo B wert
-   //strcpy_P(menubuffer, (&(KanalTable[2]))); // expo wert
+   //strcpy(menubuffer, (&(KanalTable[2]))); // expo wert
    char_y= (posregister[2][4] & 0xFF00)>>8;
    char_x = posregister[2][4] & 0x00FF;
    char_width_mul = 1;
@@ -575,7 +582,7 @@ void setcanalscreen(void)
    // Typ anzeigen nur symbol
    
    /*
-   strcpy_P(menubuffer, (&(KanalTable[6]))); // Arttext
+   strcpy(menubuffer, (&(KanalTable[6]))); // Arttext
    char_y= (posregister[3][0] & 0xFF00)>>8;
    char_x = posregister[3][0] & 0x00FF;
    char_width_mul = 1;
@@ -586,7 +593,7 @@ void setcanalscreen(void)
    // Art wert > updatescreen
  /*
    uint8_t kanaltyp =(expowert & 0x0C)>>2;
-   //strcpy_P(menubuffer, (&(KanalTable[2]))); // Art wert
+   //strcpy(menubuffer, (&(KanalTable[2]))); // Art wert
    char_y= (posregister[3][1] & 0xFF00)>>8;
    char_x = posregister[3][1] & 0x00FF;
    char_width_mul = 1;
@@ -595,7 +602,7 @@ void setcanalscreen(void)
    // Art Name
   
 
-   strcpy_P(menubuffer, (&(KanalTypTable[kanaltyp]))); // Art wert
+   strcpy(menubuffer, (&(KanalTypTable[kanaltyp]))); // Art wert
    
    char_y= (posregister[3][3] & 0xFF00)>>8;
    char_x = posregister[3][3] & 0x00FF;
@@ -665,7 +672,7 @@ void setausgangscreen(void)
   // cursorpos[5][1] =cursortab[1] |   (8 << 8); // cursorpos fuer
 
    
-   strcpy_P(menubuffer,(&(SettingTable[6]))); // Ausgang
+   strcpy(menubuffer,(&(SettingTable[6]))); // Ausgang
    char_y= 1;
    char_x = 10+OFFSET_6_UHR;
    char_height_mul = 1;
@@ -675,22 +682,22 @@ void setausgangscreen(void)
    uint8_t spaltenarray[4] = {itemtab[0],itemtab[1]-delta,itemtab[2],itemtab[4]};
    
    //
-   strcpy_P(menubuffer,(&(AusgangTable[0]))); // Impuls
+   strcpy(menubuffer,(&(AusgangTable[0]))); // Impuls
    char_y= 2;
    char_x = spaltenarray[0];
    display_write_str(menubuffer,1);
  
-   strcpy_P(menubuffer, (&(AusgangTable[1]))); // Kanal
+   strcpy(menubuffer, (&(AusgangTable[1]))); // Kanal
    char_y= 2;
    char_x = spaltenarray[1];
    display_write_str(menubuffer,1);
 
-   strcpy_P(menubuffer, (&(AusgangTable[2]))); // Device
+   strcpy(menubuffer, (&(AusgangTable[2]))); // Device
    char_y= 2;
    char_x = spaltenarray[2];
    display_write_str(menubuffer,1);
   
-   strcpy_P(menubuffer, (&(AusgangTable[3]))); // Funktion
+   strcpy(menubuffer, (&(AusgangTable[3]))); // Funktion
    char_y= 2;
    char_x = spaltenarray[3];
    display_write_str(menubuffer,1);
@@ -740,7 +747,7 @@ void setmixscreen(void)
    cursorpos[2][2] =(cursortab[5]+delta) |   (5 << 8); // cursorpos fuer Mix 0
 
  
-   strcpy_P(menubuffer, (&(MixTable[0]))); // titel
+   strcpy(menubuffer, (&(MixTable[0]))); // titel
    char_y= 1;
    char_x = itemtab[0] ;
    char_height_mul = 1;
@@ -829,7 +836,7 @@ void setzuteilungscreen(void)
    cursorpos[2][1] = 70 |  (8 << 8); //
 
    
-   strcpy_P(menubuffer, (&(ZuteilungTable[0]))); // titel
+   strcpy(menubuffer, (&(ZuteilungTable[0]))); // titel
    char_y= 1;
    char_x = itemtab[0] ;
    char_height_mul = 1;
@@ -846,11 +853,11 @@ void setzuteilungscreen(void)
             display_go_to(col,page);
             if ((col == 40)|| (col==41))
             {
-               display_write_byte(DATA,0xFF);
+               display_write_byte(DATEN,0xFF);
             }
             else
             {
-               display_write_byte(DATA,0xC0);
+               display_write_byte(DATEN,0xC0);
             }
          }
          for (col=90; col< 112; col++)
@@ -858,74 +865,74 @@ void setzuteilungscreen(void)
             display_go_to(col,page);
             if ((col == 100)|| (col==101))
             {
-               display_write_byte(DATA,0xFF);
+               display_write_byte(DATEN,0xFF);
             }
             else
             {
-               display_write_byte(DATA,0xC0);
+               display_write_byte(DATEN,0xC0);
             }
          }
 
       }
       display_go_to(40,page);
-      display_write_byte(DATA,0xFF);
+      display_write_byte(DATEN,0xFF);
       char_x++;
-      display_write_byte(DATA,0xFF);
+      display_write_byte(DATEN,0xFF);
       display_go_to(100,page);
       char_x++;
-      display_write_byte(DATA,0xFF);
-      display_write_byte(DATA,0xFF);
+      display_write_byte(DATEN,0xFF);
+      display_write_byte(DATEN,0xFF);
       
    }
    for(page=6;page < 8;page++)
    {
       display_go_to(60,page);
-      display_write_byte(DATA,0xFF);
+      display_write_byte(DATEN,0xFF);
       char_x++;
-      display_write_byte(DATA,0xFF);
+      display_write_byte(DATEN,0xFF);
       display_go_to(70,page);
       char_x++;
-      display_write_byte(DATA,0xFF);
-      display_write_byte(DATA,0xFF);
+      display_write_byte(DATEN,0xFF);
+      display_write_byte(DATEN,0xFF);
 
    }
    /*
-   strcpy_P(menubuffer, (&(DeviceTable[1]))); // L_V
+   strcpy(menubuffer, (&(DeviceTable[1]))); // L_V
    char_y= (posregister[0][0] & 0xFF00)>>8;;
    char_x = posregister[0][0] & 0x00FF ;
    char_height_mul = 1;
    char_width_mul = 1;
    display_write_str(menubuffer,1);
 
-   strcpy_P(menubuffer, (&(DeviceTable[3]))); // R_V
+   strcpy(menubuffer, (&(DeviceTable[3]))); // R_V
    char_y= (posregister[0][2] & 0xFF00)>>8;;
    char_x = posregister[0][2] & 0x00FF ;
    char_height_mul = 1;
    char_width_mul = 1;
    display_write_str(menubuffer,1);
   
-   strcpy_P(menubuffer, (&(DeviceTable[2]))); // L_H
+   strcpy(menubuffer, (&(DeviceTable[2]))); // L_H
    char_y= (posregister[1][0] & 0xFF00)>>8;;
    char_x = posregister[1][0] & 0x00FF ;
    char_height_mul = 1;
    char_width_mul = 1;
    display_write_str(menubuffer,1);
 
-   strcpy_P(menubuffer, (&(DeviceTable[0]))); // L_R
+   strcpy(menubuffer, (&(DeviceTable[0]))); // L_R
    char_y= (posregister[1][2] & 0xFF00)>>8;;
    char_x = posregister[1][2] & 0x00FF ;
    char_height_mul = 1;
    char_width_mul = 1;
    display_write_str(menubuffer,1);
  
-   strcpy_P(menubuffer, (&(DeviceTable[4]))); // S_L
+   strcpy(menubuffer, (&(DeviceTable[4]))); // S_L
    char_y= (posregister[2][0] & 0xFF00)>>8;;
    char_x = posregister[2][0] & 0x00FF ;
    char_height_mul = 1;
    char_width_mul = 1;
    display_write_str(menubuffer,1);
 
-   strcpy_P(menubuffer, (&(DeviceTable[5]))); // S_R
+   strcpy(menubuffer, (&(DeviceTable[5]))); // S_R
    char_y= (posregister[2][2] & 0xFF00)>>8;;
    char_x = posregister[2][2] & 0x00FF ;
    char_height_mul = 1;
@@ -955,7 +962,7 @@ void setsavescreen(void)
    cursorpos[0][0] = cursortab[0] |    (4 << 8); // sichern
    cursorpos[0][1] = cursortab[3] |    (4 << 8); //  abbrechen
   
-   strcpy_P(menubuffer, (&(SichernTable[0]))); // titel
+   strcpy(menubuffer, ((SichernTable[0]))); // titel
    char_y= 1;
    char_x = itemtab[0] ;
    char_height_mul = 2;
@@ -968,14 +975,14 @@ void setsavescreen(void)
 
    char_y= (posregister[0][0] & 0xFF00)>>8;
    char_x = posregister[0][0] & 0x00FF;
-   strcpy_P(menubuffer, (&(SichernTable[1]))); // sichern
+   strcpy(menubuffer, ((SichernTable[1]))); // sichern
    char_height_mul = 1;
    display_write_str(menubuffer,2);
    
    
    char_y= (posregister[0][1] & 0xFF00)>>8;
    char_x = posregister[0][1] & 0x00FF;
-   strcpy_P(menubuffer, (&(SichernTable[2]))); // Abbrechen
+   strcpy(menubuffer, ((SichernTable[2]))); // Abbrechen
    display_write_str(menubuffer,2);
 
    blink_cursorpos = cursorpos[0][0];
@@ -1154,7 +1161,7 @@ uint8_t update_screen(void)
             
             
             // Modellname
-            strcpy_P(menubuffer, (&(ModelTable[curr_model])));
+            strcpy(menubuffer, (&(ModelTable[curr_model])));
             char_y= (posregister[0][0] & 0xFF00)>>8;
             char_x = posregister[0][0] & 0x00FF;
             char_height_mul = 2;
@@ -1268,7 +1275,7 @@ uint8_t update_screen(void)
             
             // Funktion anzeigen // Bit 0-2 !!
             // !! Funktion ist bit 0-2 , Steuerdevice ist bit 4-6!!
-            strcpy_P(menubuffer, (&(FunktionTable[(curr_funktionarray[curr_kanal]&0x07)])));
+            strcpy(menubuffer, (&(FunktionTable[(curr_funktionarray[curr_kanal]&0x07)])));
             
             
             char_y= (posregister[0][4] & 0xFF00)>>8;
@@ -1346,11 +1353,11 @@ uint8_t update_screen(void)
             // PGM_P typsymbol = (&(steuertyp[curr_funktionarray[curr_kanal]]));
             
             uint8_t kanaltyp =(curr_expoarray[curr_kanal] & 0x0C)>>2;
-            PGM_P typsymbol = steuertyp[kanaltyp];
+            char typsymbol = steuertyp[kanaltyp];
             //typsymbol=pitch;
             
             display_write_propsymbol(typsymbol);
-            //strcpy_P(menubuffer, (&(KanalTypTable[kanaltyp]))); // Art wert
+            //strcpy(menubuffer, (&(KanalTypTable[kanaltyp]))); // Art wert
             //display_write_propsymbol(pitch);
             
             char_height_mul = 1;
@@ -1437,7 +1444,7 @@ uint8_t update_screen(void)
             uint8_t mixtyp = curr_mixarray[1]& 0x03; // von ungeradem Index
             mixtyp &= 0x03; // nur 4 Typen
             
-            strcpy_P(menubuffer, (&(MixTypTable[mixtyp]))); // Typtext
+            strcpy(menubuffer, (&(MixTypTable[mixtyp]))); // Typtext
             
             char_y= (posregister[0][0] & 0xFF00)>>8;
             char_x = posregister[0][0] & 0x00FF;
@@ -1460,7 +1467,7 @@ uint8_t update_screen(void)
                   display_write_int(canalnummera,2); // Kanalnummer A, von geradem Index
                   display_write_str(": \0",2);
                
-                  strcpy_P(menubuffer, (&(FunktionTable[canalnummera]))); // Funktion
+                  strcpy(menubuffer, (&(FunktionTable[canalnummera]))); // Funktion
                   display_write_str(menubuffer,1);
                }
                else
@@ -1483,7 +1490,7 @@ uint8_t update_screen(void)
                   display_write_int((curr_mixarray[0] & 0x0F),2);// Kanalnummer B, von geradem Index
                   display_write_str(": \0",2);
 
-                  strcpy_P(menubuffer, (&(FunktionTable[canalnummerb]))); // Funktion
+                  strcpy(menubuffer, (&(FunktionTable[canalnummerb]))); // Funktion
                   display_write_str(menubuffer,1);
                }
                else
@@ -1510,7 +1517,7 @@ uint8_t update_screen(void)
             // Mix 1
             mixtyp = curr_mixarray[3]& 0x03; // von ungeradem Index
             mixtyp &= 0x03; // nur 4 Typen
-            strcpy_P(menubuffer, (&(MixTypTable[mixtyp]))); // Leveltext
+            strcpy(menubuffer, (&(MixTypTable[mixtyp]))); // Leveltext
             char_y= (posregister[1][0] & 0xFF00)>>8;
             char_x = posregister[1][0] & 0x00FF;
             display_write_str(menubuffer,2); // Mix-Typ
@@ -1531,7 +1538,7 @@ uint8_t update_screen(void)
                   display_write_str(": ",2);
                   
                // index in curr_funktionarray: Kanalnummer von Seite A: (curr_mixarray[0] & 0x70)>>4]], Bit 4,5
-                  strcpy_P(menubuffer, (&(FunktionTable[canalnummera]))); // Funktion
+                  strcpy(menubuffer, (&(FunktionTable[canalnummera]))); // Funktion
                   display_write_str(menubuffer,1);
                }
                else
@@ -1555,7 +1562,7 @@ uint8_t update_screen(void)
                   display_write_int((curr_mixarray[2] & 0x0F),2);// Kanalnummer B, von geradem Index
                   display_write_str(": ",2);
 
-                  strcpy_P(menubuffer, (&(FunktionTable[canalnummerb]))); // Funktion
+                  strcpy(menubuffer, (&(FunktionTable[canalnummerb]))); // Funktion
                   display_write_str(menubuffer,1);
                }
                else
@@ -1652,7 +1659,7 @@ uint8_t update_screen(void)
             curr_funktionarray[canalnummer] = 0x10 | (curr_funktionarray[canalnummer]&0x0F);
             
             // Name der Funktion schreiben
-            strcpy_P(menubuffer, (&(FunktionTable[funktionnummer]))); // L_V
+            strcpy(menubuffer, (&(FunktionTable[funktionnummer]))); // L_V
             display_write_str(menubuffer,1);
             
             
@@ -1674,7 +1681,7 @@ uint8_t update_screen(void)
             curr_funktionarray[canalnummer] = 0x30 | (curr_funktionarray[canalnummer]&0x0F);
 
             // Name der Funktion schreiben
-            strcpy_P(menubuffer, (&(FunktionTable[funktionnummer]))); // R_V
+            strcpy(menubuffer, (&(FunktionTable[funktionnummer]))); // R_V
             display_write_str(menubuffer,1);
             
             
@@ -1693,7 +1700,7 @@ uint8_t update_screen(void)
             
             char_y = (posregister[1][1] & 0xFF00)>>8;
             char_x = (posregister[1][1] & 0x00FF);
-            strcpy_P(menubuffer, (&(FunktionTable[funktionnummer]))); // L_H
+            strcpy(menubuffer, (&(FunktionTable[funktionnummer]))); // L_H
             display_write_str(menubuffer,1);
             
             
@@ -1710,7 +1717,7 @@ uint8_t update_screen(void)
             
             char_y = (posregister[1][3] & 0xFF00)>>8;
             char_x = (posregister[1][3] & 0x00FF);
-            strcpy_P(menubuffer, (&(FunktionTable[funktionnummer]))); // R_H
+            strcpy(menubuffer, (&(FunktionTable[funktionnummer]))); // R_H
             display_write_str(menubuffer,1);
             
             
@@ -1725,7 +1732,7 @@ uint8_t update_screen(void)
             // Position Funktion
             char_y = (posregister[2][1] & 0xFF00)>>8;
             char_x = (posregister[2][1] & 0x00FF);
-            strcpy_P(menubuffer, (&(FunktionTable[funktionnummer]))); // S_L
+            strcpy(menubuffer, (&(FunktionTable[funktionnummer]))); // S_L
             display_write_str(menubuffer,1);
             
             // Device 5: Schieber R
@@ -1741,7 +1748,7 @@ uint8_t update_screen(void)
             // Position Funktion
             char_y = (posregister[2][3] & 0xFF00)>>8;
             char_x = (posregister[2][3] & 0x00FF);
-            strcpy_P(menubuffer, (&(FunktionTable[funktionnummer]))); // S_R
+            strcpy(menubuffer, (&(FunktionTable[funktionnummer]))); // S_R
             display_write_str(menubuffer,1);
             
          }
@@ -1840,7 +1847,7 @@ uint8_t update_screen(void)
                
                //display_write_int(devicenummer,1);
  
-               strcpy_P(menubuffer, (&(DeviceTable[devicenummer])));
+               strcpy(menubuffer, (&(DeviceTable[devicenummer])));
                display_write_str(menubuffer,1);
                
                // Funktion
@@ -1848,7 +1855,7 @@ uint8_t update_screen(void)
                uint8_t funktionnummer =(curr_funktionarray[canalnummer]&0x07);
                //display_write_int(funktionnummer,1);
                
-               strcpy_P(menubuffer, (&(FunktionTable[funktionnummer])));
+               strcpy(menubuffer, (&(FunktionTable[funktionnummer])));
                display_write_str(menubuffer,1);
                
                /*
@@ -2018,12 +2025,12 @@ void display_trimmanzeige_horizontal (uint8_t char_x0, uint8_t char_y0, uint8_t 
    {
       if ((i==0)||(i==breite-1) || (i==breite/2) || (i== breite/2+mitteposition)|| (i== breite/2+mitteposition-1)|| (i== breite/2+mitteposition+1))
       {
-         display_write_byte(DATA,0x7E);// Strich zeichnen
+         display_write_byte(DATEN,0x7E);// Strich zeichnen
       }
       
         else
       {
-         display_write_byte(DATA,0x42);// obere und untere linie  zeichnen
+         display_write_byte(DATEN,0x42);// obere und untere linie  zeichnen
       }
    }
 
@@ -2062,9 +2069,9 @@ void display_trimmanzeige_vertikal (uint8_t char_x0, uint8_t char_y0, uint8_t de
       if (page == char_y0-hoehe/2)// Mitte
       {
          display_go_to(char_x0-1,page);
-         display_write_byte(DATA,0x80);
+         display_write_byte(DATEN,0x80);
          display_go_to(char_x0+breite,page);
-         display_write_byte(DATA,0x80);
+         display_write_byte(DATEN,0x80);
 
          
       
@@ -2076,7 +2083,7 @@ void display_trimmanzeige_vertikal (uint8_t char_x0, uint8_t char_y0, uint8_t de
          
          if ((col==char_x0)||(col==char_x0+breite-1) )
          {
-            display_write_byte(DATA,0xFF);// senkrechte Begrenzung zeichnen
+            display_write_byte(DATEN,0xFF);// senkrechte Begrenzung zeichnen
          }
          
          else
@@ -2106,7 +2113,7 @@ void display_trimmanzeige_vertikal (uint8_t char_x0, uint8_t char_y0, uint8_t de
             }
             
             
-            display_write_byte(DATA,markenwert);
+            display_write_byte(DATEN,markenwert);
          }
          
       }
@@ -2137,9 +2144,9 @@ void display_akkuanzeige (uint16_t spannung)
    {
       /*
       display_go_to(char_x+1,page);
-      display_write_byte(DATA,0xAA);
+      display_write_byte(DATEN,0xAA);
       display_go_to(char_x+balkenbreite,page);
-      display_write_byte(DATA,0xAA);
+      display_write_byte(DATEN,0xAA);
        */
       col=0;
       while(col++ < balkenbreite)
@@ -2150,33 +2157,33 @@ void display_akkuanzeige (uint16_t spannung)
          {
             if (page == grenze) // Strich zeichnen
             {
-               display_write_byte(DATA,0x80);
+               display_write_byte(DATEN,0x80);
             }
             else // leer lassen
             {
-               display_write_byte(DATA,00);
+               display_write_byte(DATEN,00);
             }
          }
          else if (page == (7-full)) // grenzwertig
          {
             if ((full<grenze-1) && (laufsekunde%2)) // Blinken
             {
-               display_write_byte(DATA,0x00);
+               display_write_byte(DATEN,0x00);
             }
             else
             {
                if (page == grenze) // Strich zeichnen wenn unter Grenze, sonst luecke zeichnen
                {
-                  //display_write_byte(DATA,(balken[part] | 0x08));
-                  display_write_byte(DATA,(balken[part] ^ 0x80)); // war 0x80 fuer duenneren Strich
+                  //display_write_byte(DATEN,(balken[part] | 0x08));
+                  display_write_byte(DATEN,(balken[part] ^ 0x80)); // war 0x80 fuer duenneren Strich
                }
                else if (page > grenze) // kein
                {
-                  display_write_byte(DATA,(balken[part] ));
+                  display_write_byte(DATEN,(balken[part] ));
                }
                else
                {
-                  display_write_byte(DATA,(balken[part] ));
+                  display_write_byte(DATEN,(balken[part] ));
                }
             }
             
@@ -2185,17 +2192,17 @@ void display_akkuanzeige (uint16_t spannung)
          {
             if (page == grenze) // grenzwertig
             {
-               display_write_byte(DATA,0x7F); // Strich zeichnen
+               display_write_byte(DATEN,0x7F); // Strich zeichnen
             }
             else
             {
                if ((full<grenze-1) && (laufsekunde%2)) // Blinken
                {
-                  display_write_byte(DATA,0x00);
+                  display_write_byte(DATEN,0x00);
                }
                else
                {
-                  display_write_byte(DATA,0xFF); // voller Balken
+                  display_write_byte(DATEN,0xFF); // voller Balken
                }
             } // else if (page == grenze)
             
@@ -2223,12 +2230,12 @@ uint8_t display_diagramm (uint8_t char_x, uint8_t char_y, uint8_t stufea, uint8_
    for (page=char_y;page>3;page--) //Ordinate
    {
       display_go_to(char_x-maxX,page);
-      display_write_byte(DATA,0xDB); // Strich zeichnen
+      display_write_byte(DATEN,0xDB); // Strich zeichnen
 
       display_go_to(char_x,page);
-      display_write_byte(DATA,0xFF); // Strich zeichnen
+      display_write_byte(DATEN,0xFF); // Strich zeichnen
       display_go_to(char_x+maxX,page);
-      display_write_byte(DATA,0xDB); // Strich zeichnen
+      display_write_byte(DATEN,0xDB); // Strich zeichnen
 
    }
    //uint16_t steigung= 0xFF*maxY*(4-stufe)/4/maxX; // punkte, nicht page
@@ -2249,18 +2256,18 @@ uint8_t display_diagramm (uint8_t char_x, uint8_t char_y, uint8_t stufea, uint8_
          {
             if (col%3==0)
             {
-               display_write_byte(DATA,(1<<(7-wertYB%8))|0x80); //Punkt zeichnen
+               display_write_byte(DATEN,(1<<(7-wertYB%8))|0x80); //Punkt zeichnen
             }
             else
             {
-               display_write_byte(DATA,(1<<(7-wertYB%8)));
+               display_write_byte(DATEN,(1<<(7-wertYB%8)));
             }
             
             
          }
          else if (col%3==0)
          {
-            display_write_byte(DATA,0x80); //Punkt zeichnen
+            display_write_byte(DATEN,0x80); //Punkt zeichnen
          }
          
          // Seite A (links)
@@ -2270,18 +2277,18 @@ uint8_t display_diagramm (uint8_t char_x, uint8_t char_y, uint8_t stufea, uint8_
          {
             if (col%3==0)
             {
-               display_write_byte(DATA,(1<<(7-wertYA%8))|0x80); //Punkt zeichnen
+               display_write_byte(DATEN,(1<<(7-wertYA%8))|0x80); //Punkt zeichnen
             }
             else
             {
-               display_write_byte(DATA,(1<<(7-wertYA%8)));
+               display_write_byte(DATEN,(1<<(7-wertYA%8)));
             }
             
             
          }
          else if (col%3==0)
          {
-            display_write_byte(DATA,0x80); //Punkt zeichnen
+            display_write_byte(DATEN,0x80); //Punkt zeichnen
          }
        
 
@@ -2291,7 +2298,7 @@ uint8_t display_diagramm (uint8_t char_x, uint8_t char_y, uint8_t stufea, uint8_
       
       
       //display_go_to(char_x+col,page);
-      //display_write_byte(DATA,(1<<(7-wertY%8))); //Punkt zeichnen
+      //display_write_byte(DATEN,(1<<(7-wertY%8))); //Punkt zeichnen
    }
    
    
@@ -2311,12 +2318,12 @@ uint8_t display_kanaldiagramm (uint8_t char_x0, uint8_t char_y0, uint8_t level, 
    for (page=char_y0;page>3;page--) //Ordinate
    {
       display_go_to(char_x0-maxX,page);
-      display_write_byte(DATA,0xDB); // Strich zeichnen
+      display_write_byte(DATEN,0xDB); // Strich zeichnen
       
       display_go_to(char_x0,page);
-      display_write_byte(DATA,0xFF); // Strich zeichnen
+      display_write_byte(DATEN,0xFF); // Strich zeichnen
       display_go_to(char_x0+maxX,page);
-      display_write_byte(DATA,0xDB); // Strich zeichnen
+      display_write_byte(DATEN,0xDB); // Strich zeichnen
       
    }
    //uint16_t steigung= 0xFF*maxY*(4-stufe)/4/maxX; // punkte, nicht page
@@ -2335,11 +2342,11 @@ uint8_t display_kanaldiagramm (uint8_t char_x0, uint8_t char_y0, uint8_t level, 
          if (col%2) // ungerade, interpolieren mit naechstem Wert
          {
             // expoa wirkt erst ab wert 1, array der Werte ist 0-basiert: Wert an expoa-1 lesen
-            wertYA = pgm_read_byte(&(expoarray25[expoa-1][col/2]))/2 +pgm_read_byte(&(expoarray25[expoa-1][col/2+1]))/2;
+            wertYA = ((expoarray25[expoa-1][col/2]))/2 +((expoarray25[expoa-1][col/2+1]))/2;
          }
          else // gerade, Wert aus Array
          {
-            wertYA = pgm_read_byte(&(expoarray25[expoa-1][col/2]));
+            wertYA = ((expoarray25[expoa-1][col/2]));
          }
          wertYA =(8-((level & 0x70)>>4))*wertYA/8; // Level
       }
@@ -2355,11 +2362,11 @@ uint8_t display_kanaldiagramm (uint8_t char_x0, uint8_t char_y0, uint8_t level, 
       {
          if (col%2) // ungerade, interpolieren mit naechstem Wert
          {
-            wertYB = pgm_read_byte(&(expoarray25[expob-1][col/2]))/2 +pgm_read_byte(&(expoarray25[expob-1][col/2+1]))/2;
+            wertYB = ((expoarray25[expob-1][col/2]))/2 + ((expoarray25[expob-1][col/2+1]))/2;
          }
          else // gerade, Wert aus Array
          {
-            wertYB = pgm_read_byte(&(expoarray25[expob-1][col/2]));
+            wertYB = ((expoarray25[expob-1][col/2]));
          }
          wertYB =(8-(level & 0x07))*wertYB/8; // Level
       }
@@ -2374,22 +2381,22 @@ uint8_t display_kanaldiagramm (uint8_t char_x0, uint8_t char_y0, uint8_t level, 
          {
             if (col%3==0)
             {
-               display_write_byte(DATA,(1<<(7-wertYB%8))|0x80); //Punkt zeichnen
+               display_write_byte(DATEN,(1<<(7-wertYB%8))|0x80); //Punkt zeichnen
             }
             else
             {
-               display_write_byte(DATA,(1<<(7-wertYB%8)));
+               display_write_byte(DATEN,(1<<(7-wertYB%8)));
             }
             
             
          }
          else if (col%3==0)
          {
-            display_write_byte(DATA,0x80); //Punkt zeichnen
+            display_write_byte(DATEN,0x80); //Punkt zeichnen
          }
          else
          {
-            display_write_byte(DATA,0x00); //Punkte entfernen
+            display_write_byte(DATEN,0x00); //Punkte entfernen
          }
          
          // Seite A (links)
@@ -2399,22 +2406,22 @@ uint8_t display_kanaldiagramm (uint8_t char_x0, uint8_t char_y0, uint8_t level, 
          {
             if (col%3==0)
             {
-               display_write_byte(DATA,(1<<(7-wertYA%8))|0x80); //Punkt zeichnen
+               display_write_byte(DATEN,(1<<(7-wertYA%8))|0x80); //Punkt zeichnen
             }
             else
             {
-               display_write_byte(DATA,(1<<(7-wertYA%8)));
+               display_write_byte(DATEN,(1<<(7-wertYA%8)));
             }
             
             
          }
          else if (col%3==0)
          {
-            display_write_byte(DATA,0x80); //Punkt zeichnen
+            display_write_byte(DATEN,0x80); //Punkt zeichnen
          }
          else
          {
-            display_write_byte(DATA,0x00); //Punkte entfernen
+            display_write_byte(DATEN,0x00); //Punkte entfernen
          }
          
          
@@ -2424,7 +2431,7 @@ uint8_t display_kanaldiagramm (uint8_t char_x0, uint8_t char_y0, uint8_t level, 
       
       
       //display_go_to(char_x+col,page);
-      //display_write_byte(DATA,(1<<(7-wertY%8))); //Punkt zeichnen
+      //display_write_byte(DATEN,(1<<(7-wertY%8))); //Punkt zeichnen
    }
    
    
@@ -2443,12 +2450,12 @@ uint8_t display_kanaldiagramm_var (uint8_t char_x0, uint8_t char_y0, uint8_t lev
    for (page=char_y0;page>char_y0-4;page--) //Ordinate
    {
       display_go_to(char_x0-maxX,page);
-      display_write_byte(DATA,0xDB); // Strich zeichnen
+      display_write_byte(DATEN,0xDB); // Strich zeichnen
       
       display_go_to(char_x0,page);
-      display_write_byte(DATA,0xFF); // Strich zeichnen
+      display_write_byte(DATEN,0xFF); // Strich zeichnen
       display_go_to(char_x0+maxX,page);
-      display_write_byte(DATA,0xDB); // Strich zeichnen
+      display_write_byte(DATEN,0xDB); // Strich zeichnen
       
    }
    //uint16_t steigung= 0xFF*maxY*(4-stufe)/4/maxX; // punkte, nicht page
@@ -2467,11 +2474,11 @@ uint8_t display_kanaldiagramm_var (uint8_t char_x0, uint8_t char_y0, uint8_t lev
          if (col%2) // ungerade, interpolieren mit naechstem Wert
          {
             // expoa wirkt erst ab wert 1, array der Werte ist 0-basiert: Wert an expoa-1 lesen
-            wertYA = pgm_read_byte(&(expoarray25[expoa-1][col/2]))/2 +pgm_read_byte(&(expoarray25[expoa-1][col/2+1]))/2;
+            wertYA = ((expoarray25[expoa-1][col/2]))/2 + ((expoarray25[expoa-1][col/2+1]))/2;
          }
          else // gerade, Wert aus Array
          {
-            wertYA = pgm_read_byte(&(expoarray25[expoa-1][col/2]));
+            wertYA = ((expoarray25[expoa-1][col/2]));
          }
          wertYA =(8-((level & 0x70)>>4))*wertYA/8; // Level
       }
@@ -2486,11 +2493,11 @@ uint8_t display_kanaldiagramm_var (uint8_t char_x0, uint8_t char_y0, uint8_t lev
       {
          if (col%2) // ungerade, interpolieren mit naechstem Wert
          {
-            wertYB = pgm_read_byte(&(expoarray25[expob-1][col/2]))/2 +pgm_read_byte(&(expoarray25[expob-1][col/2+1]))/2;
+            wertYB = ((expoarray25[expob-1][col/2]))/2 +pgm_read_byte(&(expoarray25[expob-1][col/2+1]))/2;
          }
          else // gerade, Wert aus Array
          {
-            wertYB = pgm_read_byte(&(expoarray25[expob-1][col/2]));
+            wertYB = ((expoarray25[expob-1][col/2]));
          }
          wertYB =(8-(level & 0x07))*wertYB/8; // Level
       }
@@ -2505,22 +2512,22 @@ uint8_t display_kanaldiagramm_var (uint8_t char_x0, uint8_t char_y0, uint8_t lev
          {
             if (col%3==0)
             {
-               display_write_byte(DATA,(1<<(char_y0-wertYB%8))|0x80); //Punkt zeichnen
+               display_write_byte(DATEN,(1<<(char_y0-wertYB%8))|0x80); //Punkt zeichnen
             }
             else
             {
-               display_write_byte(DATA,(1<<(char_y0-wertYB%8)));
+               display_write_byte(DATEN,(1<<(char_y0-wertYB%8)));
             }
             
             
          }
          else if (col%3==0)
          {
-            display_write_byte(DATA,0x80); //Punkt zeichnen
+            display_write_byte(DATEN,0x80); //Punkt zeichnen
          }
          else
          {
-            display_write_byte(DATA,0x00); //Punkte entfernen
+            display_write_byte(DATEN,0x00); //Punkte entfernen
          }
          
          // Seite A (links)
@@ -2530,22 +2537,22 @@ uint8_t display_kanaldiagramm_var (uint8_t char_x0, uint8_t char_y0, uint8_t lev
          {
             if (col%3==0)
             {
-               display_write_byte(DATA,(1<<(7-wertYA%8))|0x80); //Punkt zeichnen
+               display_write_byte(DATEN,(1<<(7-wertYA%8))|0x80); //Punkt zeichnen
             }
             else
             {
-               display_write_byte(DATA,(1<<(7-wertYA%8)));
+               display_write_byte(DATEN,(1<<(7-wertYA%8)));
             }
             
             
          }
          else if (col%3==0)
          {
-            display_write_byte(DATA,0x80); //Punkt zeichnen
+            display_write_byte(DATEN,0x80); //Punkt zeichnen
          }
          else
          {
-            display_write_byte(DATA,0x00); //Punkte entfernen
+            display_write_byte(DATEN,0x00); //Punkte entfernen
          }
       
          
@@ -2555,7 +2562,7 @@ uint8_t display_kanaldiagramm_var (uint8_t char_x0, uint8_t char_y0, uint8_t lev
       
       
       //display_go_to(char_x+col,page);
-      //display_write_byte(DATA,(1<<(7-wertY%8))); //Punkt zeichnen
+      //display_write_byte(DATEN,(1<<(7-wertY%8))); //Punkt zeichnen
    }
    
    
@@ -2570,7 +2577,7 @@ uint8_t display_kanaldiagramm_var (uint8_t char_x0, uint8_t char_y0, uint8_t lev
 
 
 //##############################################################################################
-//Writes one byte to data or cmd register
+//Writes one byte to DATEN or cmd register
 //
 //##############################################################################################
 void display_back_char (void)
@@ -2580,12 +2587,12 @@ void display_back_char (void)
 }
 
 //##############################################################################################
-//Writes one byte to data or cmd register
+//Writes one byte to DATEN or cmd register
 //
 //##############################################################################################
-void display_write_byte(unsigned cmd_data, unsigned char data) 
+void display_write_byte(unsigned cmd_DATEN, unsigned char data) 
 {
-   if(cmd_data == 0)
+   if(cmd_DATEN == 0)
 	{
 		//A0_HI;
       digitalWriteFast(DOG_A0,1);
@@ -2601,7 +2608,7 @@ void display_write_byte(unsigned cmd_data, unsigned char data)
   
    /*
 	DOG_PORT &= ~(1<<SPI_SS);
-	if(cmd_data == 0)
+	if(cmd_DATEN == 0)
 	{
 		PORT_A0 |= (1<<PIN_A0);
 	}
@@ -2663,9 +2670,8 @@ void display_init()
     */
 }
 
-void display_soft_init(void)
+void display_soft_init()
 {
-	//Set TIMER0 (PWM OC2 Pin)
    /*
 	TCCR2A |= (1<<WGM21|1<<WGM20|1<<COM2A1|1<<CS20);
 	OCR2A = 50;
@@ -2682,8 +2688,8 @@ void display_soft_init(void)
    SOFT_SPI_DDR |= (1<<DOG_SCL);
    SOFT_SPI_PORT &= ~(1<<DOG_SCL);
    
-   SOFT_SPI_DDR |= (1<<DOG_DATA);
-   SOFT_SPI_PORT &= ~(1<<DOG_DATA);
+   SOFT_SPI_DDR |= (1<<DOG_DATEN);
+   SOFT_SPI_PORT &= ~(1<<DOG_DATEN);
 
    SOFT_SPI_DDR |= (1<<DOG_PWM);
    //SOFT_SPI_PORT &= ~(1<<DOG_PWM);
@@ -2749,7 +2755,7 @@ void display_clear()
 		{
          if (col%4)
          {
-            display_write_byte(DATA,0x00);
+            display_write_byte(DATEN,0x00);
          }
          else
          {
@@ -2847,14 +2853,14 @@ void display_write_char(unsigned char c)
 				
 				for(counter = 0;counter<char_width_mul;counter++)
 				{
-					display_write_byte(DATA,tmp2);
+					display_write_byte(DATEN,tmp2);
 				}
 			}
 			
 			display_go_to(col,page-1);
 			for(counter = 0;counter<char_width_mul;counter++)
 			{	
-				display_write_byte(DATA,tmp1);
+				display_write_byte(DATEN,tmp1);
 			}
 		}
 	}
@@ -2922,14 +2928,14 @@ void  display_write_inv_char(unsigned char c)
 				
 				for(counter = 0;counter<char_width_mul;counter++)
 				{
-					display_write_byte(DATA,~tmp2);
+					display_write_byte(DATEN,~tmp2);
 				}
 			}
 			
 			display_go_to(col,page-1);
 			for(counter = 0;counter<char_width_mul;counter++)
 			{
-				display_write_byte(DATA,~tmp1);
+				display_write_byte(DATEN,~tmp1);
 			}
 		}
 	}
@@ -3020,14 +3026,14 @@ void display_write_propchar(unsigned char c, uint8_t prop)
 				
 				for(counter = 0;counter<char_width_mul;counter++)
 				{
-					display_write_byte(DATA,tmp2);
+					display_write_byte(DATEN,tmp2);
 				}
 			}
 			
 			display_go_to(col,page-1);
 			for(counter = 0;counter<char_width_mul;counter++)
 			{
-				display_write_byte(DATA,tmp1);
+				display_write_byte(DATEN,tmp1);
 			}
 		}
 	}
@@ -3035,11 +3041,11 @@ void display_write_propchar(unsigned char c, uint8_t prop)
 	if (char_x < (128 + DISPLAY_OFFSET))
 	{
       char_x++;
-      display_write_byte(DATA,0x00);
+      display_write_byte(DATEN,0x00);
       if (char_height_mul > 1)
       {
          display_go_to(char_x,char_y);
-         display_write_byte(DATA,0x00);
+         display_write_byte(DATEN,0x00);
       }
       //char_x++;
 		char_x = char_x + (charbreite*char_width_mul);
@@ -3122,25 +3128,25 @@ void display_write_inv_propchar(unsigned char c, uint8_t prop)
 				
 				for(counter = 0;counter<char_width_mul;counter++)
 				{
-					display_write_byte(DATA,~tmp2);
+					display_write_byte(DATEN,~tmp2);
 				}
 			}
 			
 			display_go_to(col,page-1);
 			for(counter = 0;counter<char_width_mul;counter++)
 			{
-				display_write_byte(DATA,~tmp1);
+				display_write_byte(DATEN,~tmp1);
 			}
 		}
 	}
 	
 	if (char_x < (128 + DISPLAY_OFFSET))
 	{
-      display_write_byte(DATA,0xFF);
+      display_write_byte(DATEN,0xFF);
       if (char_height_mul > 1)
       {
          display_go_to(col,page-1);
-         display_write_byte(DATA,0xFF);
+         display_write_byte(DATEN,0xFF);
       }
       char_x++;
 		char_x = char_x + (charbreite*char_width_mul);
@@ -3166,7 +3172,7 @@ void display_write_simplechar(unsigned char c)
 			tmp1 = pgm_read_byte(pointer++);
 			
 			display_go_to(col,char_y);
-         display_write_byte(DATA,tmp1);
+         display_write_byte(DATEN,tmp1);
 		}
 	}
 	
@@ -3210,13 +3216,13 @@ void display_write_simple_propchar(unsigned char c, uint8_t prop, uint8_t offset
          uint8_t tmp3 = (tmp1&0xFF00)>>8; // obere 8 bit, 8 bit nach unten, ergibt lo
          uint8_t tmp4 = (tmp1&0x00FF);//>>4; // obere 8 bit,  ergibt hi
          display_go_to(col,char_y);
-         display_write_byte(DATA,tmp3);
+         display_write_byte(DATEN,tmp3);
 
          display_go_to(col,char_y-1);
-         display_write_byte(DATA,tmp4);
+         display_write_byte(DATEN,tmp4);
 
          
-         //display_write_byte(DATA,(tmp1 & 0xFF00)>>8);
+         //display_write_byte(DATEN,(tmp1 & 0xFF00)>>8);
 		}
 	}
    
@@ -3339,7 +3345,7 @@ void display_write_str(char *str, uint8_t prop)
 void display_write_inv_str(char *str,uint8_t prop)
 {
    display_go_to(char_y,char_x);
-   display_write_byte(DATA,0xFF);
+   display_write_byte(DATEN,0xFF);
    
    //char_x ++;
 	while (*str)
@@ -3771,14 +3777,14 @@ void display_write_symbol(const char symbol)
 				
 				for(counter = 0;counter<char_width_mul;counter++)
 				{
-					display_write_byte(DATA,tmp2);
+					display_write_byte(DATEN,tmp2);
 				}
 			}
 			
 			display_go_to(col,page-1);
 			for(counter = 0;counter<char_width_mul;counter++)
 			{
-				display_write_byte(DATA,tmp1);
+				display_write_byte(DATEN,tmp1);
 			}
 		}
 	}
@@ -3846,14 +3852,14 @@ void display_write_propsymbol(const char symbol)
 				
 				for(counter = 0;counter<char_width_mul;counter++)
 				{
-					display_write_byte(DATA,tmp2);
+					display_write_byte(DATEN,tmp2);
 				}
 			}
 			
 			display_go_to(col,page-1);
 			for(counter = 0;counter<char_width_mul;counter++)
 			{
-				display_write_byte(DATA,tmp1);
+				display_write_byte(DATEN,tmp1);
 			}
 		}
 	}
@@ -3868,11 +3874,11 @@ void display_write_propsymbol(const char symbol)
 
 /*
  http://www.mikrocontroller.net/attachment/5130/spi.c
- void write_spi (unsigned char data_out){       //msb first
+ void write_spi (unsigned char DATEN_out){       //msb first
  unsigned char loop, mask;
  for (loop=0,mask=0x80;loop<8;loop++, mask=mask>>1)
  {sclk=0;
- if (data_out & mask) mosi=1;
+ if (DATEN_out & mask) mosi=1;
  else mosi=0;
  sclk=1;
  }
@@ -3928,12 +3934,12 @@ void display_write_prop_str(uint8_t page, uint8_t column, uint8_t inverse, const
    /*
    if(inverse)
    {
-      display_write_byte(DATA,~propfont6[0][1]);
+      display_write_byte(DATEN,~propfont6[0][1]);
       column++;
    }
    else
    {
-      display_write_byte(DATA,propfont6[0][1]);
+      display_write_byte(DATEN,propfont6[0][1]);
       column++;
    }
    */
@@ -3966,11 +3972,11 @@ void display_write_prop_str(uint8_t page, uint8_t column, uint8_t inverse, const
          
          if(inverse)
          {
-            display_write_byte(DATA,~tmp1);
+            display_write_byte(DATEN,~tmp1);
          }
          else
          {
-            display_write_byte(DATA,tmp1);
+            display_write_byte(DATEN,tmp1);
          }
       }
       if( column > 127)
@@ -3981,12 +3987,12 @@ void display_write_prop_str(uint8_t page, uint8_t column, uint8_t inverse, const
       // Space schreiben
       if(inverse)
       {
-         display_write_byte(DATA,~0x00);
+         display_write_byte(DATEN,~0x00);
          column++;
       }
       else
       {
-         display_write_byte(DATA,0x00);
+         display_write_byte(DATEN,0x00);
          column++;
       }
       */
@@ -4023,34 +4029,34 @@ void r_uitoa8(int8_t zahl, char* string)
 //##############################################################################################
 
 
-uint8_t spi_out(uint8_t dataout)
+uint8_t spi_out(uint8_t DATENout)
 {
    cli();
   // OSZI_B_LO;
    digitalWriteFast(DOG_CS,0); ; // Chip enable
    
-   uint8_t datain=0xFF;
+   uint8_t DATENin=0xFF;
    uint8_t pos=0;
    //SCL_LO; // SCL LO
    digitalWriteFast(DOG_SCL,0); 
-   uint8_t tempdata=dataout;
+   uint8_t tempDATEN=DATENout;
 
    for (pos=8;pos>0;pos--)
    {
       
-      if (tempdata & 0x80)
+      if (tempDATEN & 0x80)
       {
-         //DATA_HI;
-         //SOFT_SPI_PORT |= (1<<DOG_DATA);
+         //DATEN_HI;
+         //SOFT_SPI_PORT |= (1<<DOG_DATEN);
          digitalWriteFast(DOG_DATA,1); 
       }
       else
       {
-         //DATA_LO;
-         //SOFT_SPI_PORT &= ~(1<<DOG_DATA);
+         //DATEN_LO;
+         //SOFT_SPI_PORT &= ~(1<<DOG_DATEN);
          digitalWriteFast(DOG_DATA,0); 
       }
-      tempdata<<= 1;
+      tempDATEN<<= 1;
      // _delay_us(10);
       //SCL_HI;
       //SOFT_SPI_PORT |= (1<<DOG_SCL);
@@ -4065,6 +4071,6 @@ uint8_t spi_out(uint8_t dataout)
    //CS_HI;// Chip disable
    digitalWriteFast(DOG_CS,1);
    sei();
-   return datain;
+   return DATENin;
 }
 

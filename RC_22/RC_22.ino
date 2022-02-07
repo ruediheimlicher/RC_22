@@ -407,7 +407,10 @@ void setup()
   lcd_initialize(LCD_FUNCTION_8x2, LCD_CMD_ENTRY_INC, LCD_CMD_ON);
 
     
+   display_soft_init();
+   display_clear();
    
+   _delay_us(50);
 }
 
 // Add loop code

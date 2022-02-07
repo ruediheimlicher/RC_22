@@ -3,7 +3,7 @@
 #define FONT_H
 
 	#include <inttypes.h>
-	#include <avr/pgmspace.h>
+//	#include <avr/pgmspace.h>
 
 //	#define FONT2
 

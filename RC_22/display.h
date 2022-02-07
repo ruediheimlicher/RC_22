@@ -107,12 +107,13 @@
 #define STATINDMODE  0xAC
 #define BOOSTERRATIO 0xF8
 
-char menubuffer[20];
-char titelbuffer[20];
 
 
 // Textausrichtung 12:00: 4 zu x-koord addieren
 #define OFFSET_6_UHR 4
+
+
+
 /*
 volatile uint8_t itemtab[10] = {8+OFFSET_6_UHR,32+OFFSET_6_UHR,48+OFFSET_6_UHR,60+OFFSET_6_UHR,72+OFFSET_6_UHR,84+OFFSET_6_UHR,96+OFFSET_6_UHR,108+OFFSET_6_UHR,116+OFFSET_6_UHR,0+OFFSET_6_UHR};
 */
@@ -126,7 +127,8 @@ const uint8_t   expoarray25[3][26] ={
 };
 
 void display_init(void);
-void display_mem(void* pointer);
+void display_soft_init(void);
+void display_mem(char* pointer);
 void display_clear(void);
 void display_go_to (unsigned char, unsigned char);
 void display_back_char (void);
@@ -178,13 +180,16 @@ void display_set_LED(uint8_t state);
 
 
 
-	#define display_write(format, args...)   display_write_P(PSTR(format) , ## args)
-
-	volatile unsigned char char_x,char_y,char_height_mul,char_width_mul;
-
-	//write to lc-display command or data register
-	#define CMD		1
-	#define DATA	0
+//	#define display_write(format, args...)   display_write_P(PSTR(format) , ## args)
+/*
+volatile unsigned char char_x;
+volatile unsigned char char_y;
+volatile unsigned char char_height_mul;
+volatile unsigned char char_width_mul;
+*/
+//write to lc-display command or data register
+	
+	
 	
 	//Befehlstabelle EA DOGM128-6 Seite 5
 	// (1) Display ON/OFF
