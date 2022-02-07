@@ -239,62 +239,63 @@ void servopaketfunktion(void) // start Abschnitt
 void microtimerfunktion(void)
 {
    OSZI_A_TOGG();
-   if (servostatus & (1<<PAUSE))
-   {
-      
-      //servostatus |= (1<<PAKET);
-      //servostatus |= (1<<IMPULS);
-      digitalWriteFast(IMPULSPIN,LOW);
-      servoindex = 0;
-   }
-   else 
-   {
-      // impulsdelaycounter
-      // impulsdauer
-      if (servostatus & (1<<PAKET))  // Anfang neue Serie
-      {
-         if (servostatus & (1<<IMPULS)) // Start neuer Impuls
-         {
-            microcounter = 0;
-            impulsdauer = impulstimearray[servoindex];
-            digitalWriteFast(IMPULSPIN,HIGH);
-            servostatus &= ~(1<<IMPULS);
-         }
-         
-         if (microcounter > 50) // Impulsbreite
-         {
-            digitalWriteFast(IMPULSPIN,LOW);
-            
-            if (microcounter > impulsdauer) // next impuls einstellen
-            {
-               if (servoindex < NUM_SERVOS)
-               {
-                  servoindex++;
-                  impulsdauer = impulstimearray[servoindex];
-                  microcounter = 0;
-                  servostatus |= (1<<IMPULS);
-               }
-               else 
-               {
-                  servostatus &= ~(1<<PAKET);
-                  servostatus |= (1<<PAUSE); // pause beginnt
-                  servostatus |= (1<<ADC_OK); // ADCFenster starten
-                  OSZI_B_HI();
-            //      OSZI_C_LO();
-                  microcounter = 0;
-                  servoindex = 0;
-               }
-               
-            }
-         }
-         microcounter++;
-         
-      } // PAKET
-      
- 
-   }
-   // digitalWrite(OSZI_PULS_A, !digitalRead(OSZI_PULS_A));
-   
+    if (servostatus & (1<<PAUSE))
+    {
+       
+       //servostatus |= (1<<PAKET);
+       //servostatus |= (1<<IMPULS);
+       digitalWriteFast(IMPULSPIN,LOW);
+       servoindex = 0;
+    }
+    else 
+    {
+       // impulsdelaycounter
+       // impulsdauer
+       if (servostatus & (1<<PAKET))  // Anfang neue Serie
+       {
+          if (servostatus & (1<<IMPULS)) // Start neuer Impuls
+          {
+             microcounter = 0;
+             impulsdauer = impulstimearray[servoindex];
+             digitalWriteFast(IMPULSPIN,HIGH);
+             servostatus &= ~(1<<IMPULS);
+          }
+          
+          if (microcounter > 50) // Impulsbreite
+          {
+             digitalWriteFast(IMPULSPIN,LOW);
+             
+             if (microcounter > impulsdauer) // next impuls einstellen
+             {
+                if (servoindex < NUM_SERVOS)
+                {
+                   servoindex++;
+                   impulsdauer = impulstimearray[servoindex];
+                   microcounter = 0;
+                   servostatus |= (1<<IMPULS);
+                }
+                else 
+                {
+                   servostatus &= ~(1<<PAKET);
+                   servostatus |= (1<<PAUSE); // pause beginnt
+                   servostatus |= (1<<ADC_OK); // ADCFenster starten
+                   OSZI_B_HI();
+                   OSZI_C_LO();
+                   microcounter = 0;
+                   servoindex = 0;
+                }
+                
+             }
+          }
+          microcounter++;
+          
+       } // PAKET
+       
+  
+    }
+    // digitalWrite(OSZI_PULS_A, !digitalRead(OSZI_PULS_A));
+    
+
 }
 
 void servotimerfunction(void) // 1us ohne ramp
@@ -338,6 +339,7 @@ void displayinit()
 #define DATA_HI      SOFT_SPI_PORT |= (1<<DOG_DATA)
 #define DATA_LO      SOFT_SPI_PORT &= ~(1<<DOG_DATA)
 */
+   
    pinMode(DOG_CS, OUTPUT);
    digitalWriteFast(DOG_CS, 1);
    
