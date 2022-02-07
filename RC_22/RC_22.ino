@@ -43,6 +43,9 @@
 #include <SPI.h>
 #include "lcd.h"
 #include "settings.h"
+
+#include "display.h"
+
 // Set parameters
 
 
@@ -124,8 +127,26 @@ volatile uint8_t adcpinarray[NUM_SERVOS] = {};
 // Prototypes
 ADC *adc = new ADC(); // adc object
 
-// Utilities
+#define POTLO  300
+#define POTHI  1000
+#define PPMLO  500
+#define PPMHI  1500
 
+#define SHIFT 0xFFFFF
+// Pot
+/*
+volatile uint16_t potlo = POTLO; // min pot
+volatile uint16_t pothi = POTHI; // max pot
+volatile uint16_t ppmlo = PPMLO; // min ppm
+volatile uint16_t ppmhi = PPMHI; // max ppm
+*/
+
+float potlo = POTLO; // min pot
+float pothi = POTHI; // max pot
+float ppmlo = PPMLO; // min ppm
+float ppmhi = PPMHI; // max ppm
+
+volatile float quot = (ppmhi - ppmlo)/(pothi - potlo);
 
 // Functions
 
@@ -234,7 +255,7 @@ void microtimerfunktion(void)
                   servostatus |= (1<<PAUSE); // pause beginnt
                   servostatus |= (1<<ADC_OK); // ADCFenster starten
                   OSZI_B_HI();
-                  OSZI_C_LO();
+            //      OSZI_C_LO();
                   microcounter = 0;
                   servoindex = 0;
                }
@@ -273,6 +294,46 @@ void servotimerfunction(void) // 1us ohne ramp
    
 }
 
+void displayinit()
+{
+#define A0_HI        SOFT_SPI_PORT |= (1<<DOG_A0)
+#define A0_LO        SOFT_SPI_PORT &= ~(1<<DOG_A0)
+
+#define RST_HI        SOFT_SPI_PORT |= (1<<DOG_RST)
+#define RST_LO        SOFT_SPI_PORT &= ~(1<<DOG_RST)
+
+
+#define CS_HI        SOFT_SPI_PORT |= (1<<DOG_CS)
+#define CS_LO        SOFT_SPI_PORT &= ~(1<<DOG_CS)
+
+#define SCL_HI       SOFT_SPI_PORT |= (1<<DOG_SCL)
+#define SCL_LO       SOFT_SPI_PORT &= ~(1<<DOG_SCL)
+
+#define DATA_HI      SOFT_SPI_PORT |= (1<<DOG_DATA)
+#define DATA_LO      SOFT_SPI_PORT &= ~(1<<DOG_DATA)
+
+   pinMode(DOG_CS, OUTPUT);
+   digitalWriteFast(DOG_CS, 1);
+   
+   pinMode(DOG_RST, OUTPUT);
+   digitalWriteFast(DOG_RST, 1);
+
+   pinMode(DOG_A0, OUTPUT);
+   digitalWriteFast(DOG_A0, 1);
+   
+   pinMode(DOG_SCL, OUTPUT);
+   digitalWriteFast(DOG_SCL, 0);
+   
+   pinMode(DOG_DATA, OUTPUT);
+   digitalWriteFast(DOG_DATA, 0);
+   
+   pinMode(DOG_PWM, OUTPUT);
+   digitalWriteFast(DOG_PWM, 1);
+
+
+
+   
+}
 
 // Add setup code
 void setup()
@@ -282,16 +343,22 @@ void setup()
   while (!Serial) {
     yield();
   }
-   pinMode(13, OUTPUT);
+  // pinMode(LOOPLED, OUTPUT);
    pinMode(LOOPLED, OUTPUT);
      
+   displayinit();
+   
    adc->adc0->setAveraging(4); // set number of averages 
    adc->adc0->setResolution(12); // set bits of resolution
    adc->adc0->setConversionSpeed(ADC_CONVERSION_SPEED::MED_SPEED);
    adc->adc0->setSamplingSpeed(ADC_SAMPLING_SPEED::MED_SPEED);
    adc->adc0->setReference(ADC_REFERENCE::REF_3V3);
 
-   
+   //volatile float quot = (ppmhi - ppmlo)/(pothi - potlo);
+   //volatile float quot = (PPMHI - PPMLO)/(POTHI - POTLO);
+   uint32_t shiftquot = uint32_t(quot * SHIFT);
+   Serial.printf("quot: %.6f shiftquot: %d\n",quot, shiftquot);
+                 
    for (int i=0;i<NUM_SERVOS;i++)
    {
     int wert = 500 + i * 50;
@@ -305,11 +372,11 @@ void setup()
    pinMode(pot0_PIN, INPUT);
    adcpinarray[0] = pot0_PIN;
    pinMode(pot1_PIN, INPUT);
-//   adcpinarray[1] = pot1_PIN;
+   adcpinarray[1] = pot1_PIN;
    pinMode(pot2_PIN, INPUT);
- //  adcpinarray[2] = pot2_PIN;
+   adcpinarray[2] = pot2_PIN;
    pinMode(pot3_PIN, INPUT);
- //  adcpinarray[3] = pot3_PIN;
+   adcpinarray[3] = pot3_PIN;
    
    
   
@@ -336,6 +403,9 @@ void setup()
    
    delay(100);
    
+   /* initialize the LCD */
+  lcd_initialize(LCD_FUNCTION_8x2, LCD_CMD_ENTRY_INC, LCD_CMD_ON);
+
     
    
 }
@@ -360,30 +430,99 @@ void loop()
       {
          digitalWriteFast(LOOPLED, 1);
       }
-      Serial.printf("servo potwert: %d\n", impulstimearray[0]); 
+      Serial.printf("servo potwert 0: %d 1: %d\n", impulstimearray[0],impulstimearray[1]); 
       
    }// sinceblink
    
    
-   if (servostatus & (1<<ADC_OK)) // 150us
+   if (servostatus & (1<<ADC_OK)) // 50us ohne printf
    {
       for (uint8_t i=0;i<NUM_SERVOS;i++)
       {
+         OSZI_C_LO();
          //Serial.printf("i: %d pin: %d\n",i,adcpinarray[i]);
          if (adcpinarray[i] < 0xFF) // PIN belegt
          {
             uint16_t potwert = adc->adc0->analogRead(adcpinarray[i]);
-            uint16_t val = map(potwert, 0, 2048, 500, 1500);
-            //uint16_t potwert = adc->adc0->analogRead(14);
-
-            //Serial.printf("servo %d potwert: %d\n",i,potwert);                                        
-            impulstimearray[i] = val;
+            float ppmfloat = PPMLO + quot *(float(potwert)-POTLO);
+            uint16_t ppmint = uint16_t(ppmfloat);
+            //uint16_t ppmval = PPMLO + (((potwert - POTLO)));
+            if (i == 0)
+            {
+              // Serial.printf("servo %d potwert: %d  ppmval: %d ppmfloat: %.6f\n",i,potwert,ppmval,ppmfloat);    
+               
+            }                                    
+            impulstimearray[i] = ppmint;
+            //impulstimearray[i] = potwert;
+            
          }
          
+         OSZI_C_HI();
       }
       
       servostatus &= ~(1<<ADC_OK);
-      OSZI_C_HI();
+      
       servostatus |= (1<<USB_OK);
    }
-}
+   
+   
+   if (servostatus & (1<<USB_OK))
+   {
+#pragma mark start_usb
+      if (sinceusb > 100)   
+      {
+         //Serial.printf("usb\n");
+         sinceusb = 0;
+         r = RawHID.recv(buffer, 0); 
+         
+         code = 0;
+         if (r > 0) // 
+         {
+            Serial.printf("usb r: %d\n",r);
+         //   noInterrupts();
+            
+            code = buffer[24];
+            
+            
+            Serial.printf("\n***************************************  --->    rawhid_recv start code HEX: %02X\n",code);
+            //Serial.printf("code: %d\n",code);
+            usb_recv_counter++;
+            //     lcd.setCursor(10,1);
+            //     lcd.print(String(usb_recv_counter));
+            //     lcd.setCursor(14,1);
+            //     lcd.print(String(code));
+            uint8_t device = buffer[32];
+            sendbuffer[24] =  buffer[32];
+            
+            switch (code)
+            {   
+               case 0xA4:
+               {
+                  Serial.printf("A4 clear\n");
+               }break;
+                  
+      #pragma mark A5  GO HOME         
+               case 0xA5: //  go home
+               {
+                  
+               }break;
+        
+      #pragma mark default
+               default:
+               {
+                  
+               }break; // default
+                  
+                  
+                  
+            } // switch code
+            interrupts();
+       //     code=0;
+         }// r > 0
+         /**   End USB-routinen   ***********************/
+       
+      } // since usb
+
+      servostatus &= ~(1<<USB_OK);
+   }// usb
+} // loop
