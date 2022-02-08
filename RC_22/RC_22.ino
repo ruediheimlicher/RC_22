@@ -76,6 +76,7 @@ volatile uint8_t           timerstatus=0;
 volatile uint8_t           code=0;
 volatile uint8_t           servostatus=0;
 
+#define RUN 0
 #define PAUSE        1
 #define PAKET   2
 #define IMPULS    3
@@ -103,18 +104,21 @@ static volatile uint8_t drillbuffer[USB_DATENBREITE]={};// Daten fuer Drill, bei
 
 #  pragma mark intervaltimer
 
-IntervalTimer servoTimer;
-IntervalTimer impulsTimer;
+IntervalTimer servopaketTimer;
+IntervalTimer servoimpulsTimer;
+IntervalTimer kanalimpulsTimer;
+
+
 uint16_t impulsdelaycounter = 0;
 uint16_t impulsdauer = 0;
-
+uint8_t impulscounter = 0;
 
 IntervalTimer microTimer; 
 uint16_t microcounter = 0;
 
 #define IMPULSPIN  1
 
-IntervalTimer              delayTimer;
+//IntervalTimer              delayTimer;
 
 volatile uint8_t           servoindex = 0;
 
@@ -127,12 +131,14 @@ volatile uint8_t adcpinarray[NUM_SERVOS] = {};
 // Prototypes
 ADC *adc = new ADC(); // adc object
 
-#define POTLO  300
-#define POTHI  1000
+#define POTLO  30
+#define POTHI  5900
 #define PPMLO  500
 #define PPMHI  1500
 
 #define SHIFT 0xFFFFF
+
+#define IMPULSBREITE 50
 // Pot
 /*
 volatile uint16_t potlo = POTLO; // min pot
@@ -220,26 +226,65 @@ void OSZI_C_HI(void)
       digitalWriteFast(OSZI_PULS_C,HIGH);
 }
 
-void servoimpulsfunction(void) // 
-{ 
-
+void kanalimpulsfunktion(void) // kurze HI-Impulse beenden
+{
+   digitalWriteFast(IMPULSPIN,LOW);
+   kanalimpulsTimer.end();
+   servoindex++;
+   // next impuls schon laden
+   servoimpulsTimer.update(impulstimearray[servoindex]);
 }
+
+void servoimpulsfunktion(void) // 
+{ 
+  // servoindex++; // Version B: end und neu begin 
+   if (servoindex <= NUM_SERVOS)
+   { 
+      //Version B:
+      //servoimpulsTimer.end();
+      //servoimpulsTimer.begin(servoimpulsfunktion,impulstimearray[servoindex]);
+      
+      // Version A
+      //servoimpulsTimer.update(impulstimearray[servoindex]); // zu spaet: timer ist schon in neuem Intervall
+      digitalWriteFast(IMPULSPIN,HIGH); // neuer impuls
+
+   }
+   else  // Paket beenden
+   {
+      servoimpulsTimer.end();
+      servostatus |= (1<<PAUSE);
+      servostatus |= (1<<ADC_OK); // ADCFenster starten
+      OSZI_B_HI();
+      OSZI_C_LO();
+
+   }
+   kanalimpulsTimer.begin(kanalimpulsfunktion,IMPULSBREITE); // neuer Kanalimpuls
+   
+}
+
+
 
 void servopaketfunktion(void) // start Abschnitt
 { 
    servostatus &= ~(1<<PAUSE);
    servostatus |= (1<<PAKET);// neues Paket starten
    servostatus |= (1<<IMPULS);
-   servostatus |= (1<<IMPULS);
+   servoindex = 0; // Index des aktuellen impulses
+   impulscounter = 0; // ereigniscounter, bestimmt HI oder LOW
+   servoimpulsTimer.begin(servoimpulsfunktion,impulstimearray[servoindex]);
+   
+   kanalimpulsTimer.begin(kanalimpulsfunktion, IMPULSBREITE); // neuer Kanalimpuls
+   digitalWriteFast(IMPULSPIN,HIGH);
    OSZI_B_LO();
    
- //  microcounter = 0;
-  // servoindex = 0; // neues Paket starten
    
 }
 
+
+
 void microtimerfunktion(void)
 {
+   return;
    OSZI_A_TOGG();
     if (servostatus & (1<<PAUSE))
     {
@@ -300,27 +345,6 @@ void microtimerfunktion(void)
 
 }
 
-void servotimerfunction(void) // 1us ohne ramp
-{ 
-//   digitalWrite(OSZI_PULS_A, !digitalRead(OSZI_PULS_A));
-   
-   
-  
-   
-   if (timerstatus & (1<<TIMER_ON))
-   {
-      //OSZI_A_LO();
-       
-      //OSZI_A_HI();
-      
-      
-      
-   } // if timerstatus
-   
-   //digitalWrite(OSZI_PULS_A, !digitalRead(OSZI_PULS_A));
-   // TCNT2 = 10;                     // ergibt 2 kHz fuer Timertakt
-   
-}
 
 void displayinit()
 {
@@ -408,19 +432,16 @@ void setup()
    adcpinarray[2] = pot2_PIN;
    pinMode(pot3_PIN, INPUT);
    adcpinarray[3] = pot3_PIN;
-   
+   adcpinarray[NUM_SERVOS-1] = 0xEF;// letzten Puls kennzeichnen
    
   
    
    pinMode(IMPULSPIN, OUTPUT);
    digitalWriteFast(IMPULSPIN,LOW);
    
-   servoTimer.begin(servopaketfunktion, 80000);
-   microTimer.begin(microtimerfunktion,2);
+   servopaketTimer.begin(servopaketfunktion, 50000);
    
-  //   pinMode(END_C1_PIN, INPUT_PULLUP); // 
    
-//   attachInterrupt(digitalPinToInterrupt(END_A0_PIN), A0_ISR, FALLING);
    {
       pinMode(OSZI_PULS_A, OUTPUT);
       digitalWriteFast(OSZI_PULS_A, HIGH); 
@@ -442,12 +463,19 @@ void setup()
  //  display_clear();
    //sethomescreen();
    _delay_us(50);
+   servostatus &= ~(1<<RUN);
 }
 
 // Add loop code
 void loop()
 {
 
+   if (!(servostatus & (1<<RUN))) // first run
+   {
+      Serial.printf("first run\n");
+      //servopaketTimer.begin(servopaketfunktion, 80000);
+      servostatus |= (1<<RUN);
+   }
    if (sinceblink > 500) 
    {   
       //digitalWrite(OSZI_PULS_A, !digitalRead(OSZI_PULS_A));
@@ -464,8 +492,13 @@ void loop()
       {
          digitalWriteFast(LOOPLED, 1);
       }
-      Serial.printf("servo potwert 0: %d 1: %d\n", impulstimearray[0],impulstimearray[1]); 
+      //Serial.printf("servo potwert 0: %d 1: %d\n", impulstimearray[0],impulstimearray[1]); 
       
+      for (uint8_t i=0;i<NUM_SERVOS;i++)
+      {
+         Serial.printf("\t%d\t%d",i,impulstimearray[i]);
+      }
+      Serial.printf("\n");
    }// sinceblink
    
    
@@ -477,6 +510,12 @@ void loop()
          //Serial.printf("i: %d pin: %d\n",i,adcpinarray[i]);
          if (adcpinarray[i] < 0xFF) // PIN belegt
          {
+            if (adcpinarray[i] == 0xEF) // last
+            {
+               impulstimearray[i] = 1000;
+            }
+            else 
+            {
             uint16_t potwert = adc->adc0->analogRead(adcpinarray[i]);
             float ppmfloat = PPMLO + quot *(float(potwert)-POTLO);
             uint16_t ppmint = uint16_t(ppmfloat);
@@ -488,7 +527,7 @@ void loop()
             }                                    
             impulstimearray[i] = ppmint;
             //impulstimearray[i] = potwert;
-            
+            }
          }
          
          OSZI_C_HI();
