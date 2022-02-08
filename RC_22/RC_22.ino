@@ -156,16 +156,16 @@ volatile float quot = (ppmhi - ppmlo)/(pothi - potlo);
 
 // display
 
-//volatile uint16_t                posregister[8][8]={}; // Aktueller screen: werte fuer page und daraufliegende col fuer Menueintraege (hex). geladen aus progmem
+volatile uint16_t                posregister[8][8]={}; // Aktueller screen: werte fuer page und daraufliegende col fuer Menueintraege (hex). geladen aus progmem
 
 //volatile uint16_t                cursorpos[8][8]={}; // Aktueller screen: werte fuer page und darauf liegende col fuer den cursor
 //volatile uint16_t                blink_cursorpos=0xFFF;
 
 
-//volatile uint16_t stopsekunde=0;
-//volatile uint16_t stopminute=0;
-//volatile uint16_t motorsekunde=0;
-//volatile uint16_t motorminute=0;
+volatile uint16_t stopsekunde=0;
+volatile uint16_t stopminute=0;
+volatile uint16_t motorsekunde=0;
+volatile uint16_t motorminute=0;
  
 volatile uint8_t                 curr_model=0; // aktuelles modell
 volatile uint8_t                 speichermodel=0;
@@ -340,8 +340,15 @@ void setup()
   }
   // pinMode(LOOPLED, OUTPUT);
    pinMode(LOOPLED, OUTPUT);
-     
-//   displayinit();
+//   dog_7565R DOG;
+   
+   
+   // void initialize (byte p_cs, byte p_si, byte p_clk, byte p_a0, byte p_res, byte type);
+   // CS-Pin; MOSI-Pin; SCK-PIN; A0-Pin (data or command), Reset-Pin, 1=EA
+   //DOGM128-6 2=EA DOGL128-6 3=EA DOGM132-5
+//   dog.initialize(
+
+   //displayinit();
    
    adc->adc0->setAveraging(4); // set number of averages 
    adc->adc0->setResolution(12); // set bits of resolution
@@ -380,7 +387,11 @@ void setup()
    digitalWriteFast(IMPULSPIN,LOW);
    
    // Servopakete starten
-   servopaketTimer.begin(servopaketfunktion, 50000);
+   servoimpulsTimer.priority(3);
+   kanalimpulsTimer.priority(2);
+   servopaketTimer.priority(1);
+   
+   servopaketTimer.begin(servopaketfunktion, 25000);
    
    if (TEST)
    {
@@ -415,6 +426,7 @@ void loop()
    {
       Serial.printf("first run\n");
       servostatus |= (1<<RUN);
+      sethomescreen();
    }
    
    if (sinceblink > 500) 

@@ -2701,7 +2701,7 @@ void display_soft_init()
 	for (unsigned char tmp = 0;tmp < 14;tmp++)
 	{
 		display_write_byte(CMD,DISPLAY_INIT[tmp]);
-      _delay_us(1);
+      _delay_us(10);
 	}
 	display_clear();
 	
