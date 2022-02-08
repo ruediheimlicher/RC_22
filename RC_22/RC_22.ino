@@ -44,7 +44,7 @@
 #include "lcd.h"
 #include "settings.h"
 
-#include "display.h"
+//#include "display.h"
 
 // Set parameters
 
@@ -149,18 +149,20 @@ float ppmhi = PPMHI; // max ppm
 volatile float quot = (ppmhi - ppmlo)/(pothi - potlo);
 
 // display
-volatile uint16_t                posregister[8][8]={}; // Aktueller screen: werte fuer page und daraufliegende col fuer Menueintraege (hex). geladen aus progmem
-volatile uint16_t                cursorpos[8][8]={}; // Aktueller screen: werte fuer page und darauf liegende col fuer den cursor
-volatile uint16_t                blink_cursorpos=0xFFFF;
+
+//volatile uint16_t                posregister[8][8]={}; // Aktueller screen: werte fuer page und daraufliegende col fuer Menueintraege (hex). geladen aus progmem
+
+//volatile uint16_t                cursorpos[8][8]={}; // Aktueller screen: werte fuer page und darauf liegende col fuer den cursor
+//volatile uint16_t                blink_cursorpos=0xFFF;
 
 
-volatile uint16_t stopsekunde=0;
-volatile uint16_t stopminute=0;
-volatile uint16_t motorsekunde=0;
-volatile uint16_t motorminute=0;
-
+//volatile uint16_t stopsekunde=0;
+//volatile uint16_t stopminute=0;
+//volatile uint16_t motorsekunde=0;
+//volatile uint16_t motorminute=0;
+ 
 volatile uint8_t                 curr_model=0; // aktuelles modell
-uint8_t                     speichermodel=0;
+volatile uint8_t                 speichermodel=0;
 volatile uint8_t                 curr_kanal=0; // aktueller kanal
 volatile uint8_t                 curr_richtung=0; // aktuelle richtung
 volatile uint8_t                 curr_impuls=0; // aktueller impuls
@@ -340,6 +342,7 @@ void displayinit()
 #define DATA_LO      SOFT_SPI_PORT &= ~(1<<DOG_DATA)
 */
    
+   /*
    pinMode(DOG_CS, OUTPUT);
    digitalWriteFast(DOG_CS, 1);
    
@@ -357,7 +360,7 @@ void displayinit()
    
    pinMode(DOG_PWM, OUTPUT);
    digitalWriteFast(DOG_PWM, 1);
-
+*/
 
 
    
@@ -374,7 +377,7 @@ void setup()
   // pinMode(LOOPLED, OUTPUT);
    pinMode(LOOPLED, OUTPUT);
      
-   displayinit();
+//   displayinit();
    
    adc->adc0->setAveraging(4); // set number of averages 
    adc->adc0->setResolution(12); // set bits of resolution
@@ -518,10 +521,6 @@ void loop()
             Serial.printf("\n***************************************  --->    rawhid_recv start code HEX: %02X\n",code);
             //Serial.printf("code: %d\n",code);
             usb_recv_counter++;
-            //     lcd.setCursor(10,1);
-            //     lcd.print(String(usb_recv_counter));
-            //     lcd.setCursor(14,1);
-            //     lcd.print(String(code));
             uint8_t device = buffer[32];
             sendbuffer[24] =  buffer[32];
             
