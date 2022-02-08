@@ -46,7 +46,7 @@
 
 //#include "display.h"
 
-// Set parameters
+// Display
 
 
 
@@ -426,7 +426,7 @@ void loop()
    {
       Serial.printf("first run\n");
       servostatus |= (1<<RUN);
-      sethomescreen();
+      //sethomescreen();
    }
    
    if (sinceblink > 500) 
