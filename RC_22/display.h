@@ -26,6 +26,8 @@
 	
 #define LINE2				1
 
+#define DATEN     0
+#define CMD      1
 
 
 /*

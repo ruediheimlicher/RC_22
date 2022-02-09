@@ -44,7 +44,7 @@
 #include "lcd.h"
 #include "settings.h"
 
-//#include "display.h"
+#include "display.h"
 
 // Display
 
@@ -155,7 +155,7 @@ float ppmhi = PPMHI; // max ppm
 volatile float quot = (ppmhi - ppmlo)/(pothi - potlo);
 
 // display
-
+uint8_t testdata = 0;
 volatile uint16_t                posregister[8][8]={}; // Aktueller screen: werte fuer page und daraufliegende col fuer Menueintraege (hex). geladen aus progmem
 
 //volatile uint16_t                cursorpos[8][8]={}; // Aktueller screen: werte fuer page und darauf liegende col fuer den cursor
@@ -411,10 +411,34 @@ void setup()
   lcd_initialize(LCD_FUNCTION_8x2, LCD_CMD_ENTRY_INC, LCD_CMD_ON);
 
     
- //  display_soft_init();
- //  display_clear();
-   //sethomescreen();
+   // Display
+   pinMode(DOG_CS, OUTPUT);
+   digitalWriteFast(DOG_CS, 1);
+   
+   pinMode(DOG_RST, OUTPUT);
+   digitalWriteFast(DOG_RST, 1);
+
+   pinMode(DOG_A0, OUTPUT);
+   digitalWriteFast(DOG_A0, 1);
+   
+   pinMode(DOG_SCL, OUTPUT);
+   digitalWriteFast(DOG_SCL, 0);
+   
+   pinMode(DOG_DATA, OUTPUT);
+   digitalWriteFast(DOG_DATA, 0);
+   
+   pinMode(DOG_PWM, OUTPUT);
+   digitalWriteFast(DOG_PWM, 1);
+   _delay_ms(50);
+   display_soft_init();
+   _delay_ms(50);
+   display_clear();
    _delay_us(50);
+   
+  
+   sethomescreen();
+   //display_write_str("abc",2);
+
    servostatus &= ~(1<<RUN);
 }
 
@@ -426,14 +450,12 @@ void loop()
    {
       Serial.printf("first run\n");
       servostatus |= (1<<RUN);
-      //sethomescreen();
    }
    
    if (sinceblink > 500) 
    {   
       //digitalWrite(OSZI_PULS_A, !digitalRead(OSZI_PULS_A));
       
-      //sethomescreen();
       sinceblink = 0;
       
       if (digitalRead(LOOPLED) == 1)
@@ -444,6 +466,14 @@ void loop()
       else
       {
          digitalWriteFast(LOOPLED, 1);
+         
+         Serial.printf("display_data %d\n",testdata);
+         /*
+         display_go_to(4,4);
+         _delay_us(50);
+         display_write_str("abc",2);
+         //display_write_byte(DATEN,testdata++);
+          */
       }
       //Serial.printf("servo potwert 0: %d 1: %d\n", impulstimearray[0],impulstimearray[1]); 
       impulscounter++;

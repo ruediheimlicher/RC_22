@@ -9,29 +9,30 @@
 #ifndef DOG_LCD_text_h
 #define DOG_LCD_text_h
 
-// Homescreen
-const char titel0[]  = "RC Home\0";
-const char titel1[]  = "ON-Zeit:\0";
-const char titel2[]  = "Stoppuhr\0";
-const char titel3[]  = "Motorzeit\0";
-const char titel4[]  = "Menu";
-const char titel5[]  = "Set";
-const char titel6[]  = "Akku\0";
-const char titel7[]  = "D\0";
 
-const char TitelTable[]  = {titel0, titel1, titel2, titel3, titel4, titel5, titel6, titel7};
+// Homescreen
+ const char titel0[]  = "RC Home";
+ const char titel1[]  = "ON-Zeit:";
+ const char titel2[]  = "Stoppuhr";
+ const char titel3[]  = "Motorzeit";
+ const char titel4[]  = "Menu";
+ const char titel5[]  = "Set";
+ const char titel6[]  = "Akku\0";
+ const char titel7[]  = "D\0";
+
+ const char *TitelTable[]  = {titel0, titel1, titel2, titel3, titel4, titel5, titel6, titel7};
 
 // Modelle
 const char model0[]  = "E-Segler A  ";
 const char model1[]  = "E-Segler B  ";
-const char model2[]  = "Hangsegler A\0";
-const char model3[]  = "Motor A     \0";
-const char model4[]  = "Motor B     \0";
+const char model2[]  = "Hangsegler A";
+const char model3[]  = "Motor A     ";
+const char model4[]  = "Motor B     ";
 const char model5[]  = "AA\0        ";
 const char model6[]  = "BB\0        ";
 const char model7[]  = "CC\0        ";
 
-const char ModelTable[]  = {model0, model1, model2, model3, model4, model5, model6, model7};
+char *ModelTable[]  = {model0, model1, model2, model3, model4, model5, model6, model7};
 
 
 
@@ -48,7 +49,7 @@ const char zuteilung[]  = "Zuteilung";
 const char ausgang[]  = "Ausgang";
 
 
-const char SettingTable[]  = {menutitel, model, setting, kanal,  mix, zuteilung,ausgang};
+const char *SettingTable[]  = {menutitel, model, setting, kanal,  mix, zuteilung,ausgang};
 
 
 // Kanalscreen
@@ -61,7 +62,7 @@ const char seitea[]  = "A:";
 const char seiteb[]  = "B:";
 const char kanaltyp[]  = "Typ:";
 
-const char KanalTable[]  = {kanaltitel, richtung, level, expo, seitea, seiteb,kanaltyp};
+const char *KanalTable[]  = {kanaltitel, richtung, level, expo, seitea, seiteb,kanaltyp};
 
 
 // Kanaltyp
@@ -69,7 +70,7 @@ const char pitchtyp[]  = "Pitch";
 const char schiebertyp[]  = "Schieber";
 const char schaltertyp[]  = "Schalter";
 
-const char KanalTypTable[]  = {pitchtyp,schiebertyp,schaltertyp};
+const char *KanalTypTable[]  = {pitchtyp,schiebertyp,schaltertyp};
 
 
 // Mix
@@ -82,7 +83,7 @@ const char vmix[]  = "V-Mix";
 const char butterfly[]  = "B-fly";
 const char A[]  = "A    ";
 
-const char MixTypTable[]  = {nada,vmix,butterfly,A};
+const char *MixTypTable[]  = {nada,vmix,butterfly,A};
 
 // Zuteilung
 const char zuteilungtitel[]  = "Zuteilung";
@@ -106,7 +107,7 @@ const char funktion5[]  = "Quer R\0";
 const char funktion6[]  = "Lande \0";
 const char funktion7[]  = "Aux    \0";
 
-const char FunktionTable[]  = {funktion0, funktion1, funktion2, funktion3, funktion4, funktion5, funktion6, funktion7};
+const char *FunktionTable[]  = {funktion0, funktion1, funktion2, funktion3, funktion4, funktion5, funktion6, funktion7};
 
 // Ausgang
 
@@ -119,7 +120,7 @@ const char ausgang5[]  = "Quer R\0";
 const char ausgang6[]  = "Lande \0";
 const char ausgang7[]  = "Aux    \0";
 
-const char AusgangTable[]  = {ausgang0, ausgang1, ausgang2, ausgang3, ausgang4, ausgang5, ausgang6, ausgang7};
+const char *AusgangTable[]  = {ausgang0, ausgang1, ausgang2, ausgang3, ausgang4, ausgang5, ausgang6, ausgang7};
 
 
 // Zuteilung an device auf dem Sender
@@ -132,7 +133,7 @@ const char device5[]  = "S-R\0"; // Schieber rechts
 const char device6[]  = "Sch\0"; // Schalter
 const char device7[]  = "Aux\0";
 
-const char DeviceTable[]  = {device0, device1, device2, device3, device4, device5, device6, device7};
+const char *DeviceTable[]  = {device0, device1, device2, device3, device4, device5, device6, device7};
 
 
 
