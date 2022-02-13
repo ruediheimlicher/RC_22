@@ -584,43 +584,48 @@ void loop()
       Tastenwert=(adc->adc0->analogRead(TASTATURPIN))>>2;
       if (Tastenwert>5)
       {
-         //Tastenindex = Tastenwahl(Tastenwert); // taste pressed
-         Tastenwertdiff = Tastenwert - lastTastenwert;
-         if (Tastenwert > lastTastenwert)
+         if (!(tastaturstatus & (1<<TASTEOK)))
          {
+            //Tastenindex = Tastenwahl(Tastenwert); // taste pressed
             Tastenwertdiff = Tastenwert - lastTastenwert;
-         }
-         else 
-         {
-            Tastenwertdiff = lastTastenwert - Tastenwert;
-         }
-         lastTastenwert = Tastenwert;
-         
-         //Tastenindex = Tastenwahl(Tastenwert);
-         if (Tastenwertdiff < 6)
-         {
-            if (tastaturcounter < ADCTIMEOUT)
+            if (Tastenwert > lastTastenwert)
             {
-               tastaturcounter++;
-               if (tastaturcounter == ADCTIMEOUT)
+               Tastenwertdiff = Tastenwert - lastTastenwert;
+            }
+            else 
+            {
+               Tastenwertdiff = lastTastenwert - Tastenwert;
+            }
+            lastTastenwert = Tastenwert;
+            
+            //Tastenindex = Tastenwahl(Tastenwert);
+            if (Tastenwertdiff < 6)
+            {
+               if (tastaturcounter < ADCTIMEOUT)
                {
-                 //Tastenindex = Tastenwahl(Tastenwert); // taste pressed
-                  programmstatus |= (1<< LEDON);
-                  display_set_LED(1);
+                  tastaturcounter++;
                   
+                  if (tastaturcounter == ADCTIMEOUT)
+                  {
+                     Tastenindex = Tastenwahl(Tastenwert); // taste pressed
+                     tastaturstatus |= (1<<TASTEOK);
+                     programmstatus |= (1<< LEDON);
+                     display_set_LED(1);
+                     
+                  }
                }
             }
-         }
-         else
-         {
-            tastaturcounter = 0;
-         }
+            else
+            {
+               tastaturcounter = 0;
+            }
+            
+         }   
          
-             
-          
       }
       else
       {
+         tastaturstatus &= ~(1<<TASTEOK);
          tastaturcounter = 0;
          Tastenindex = 0;
 //           Trimmtastenwert=adc_read(TRIMMTASTATURPIN)>>2;
