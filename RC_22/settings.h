@@ -37,7 +37,17 @@
 // Tastatur
 #define ANALOGTASTATUR     22
 
+#define TASTATURPIN            33
+#define TRIMMTASTATURPIN      3
 
+#define MANUELLTIMEOUT   32 // Loopled-counts bis Manuell zurueckgesetzt wird. 50: ca. 30s
+
+#define ADCTIMEOUT   200
+
+//#define MITTE_TASK         0x01 // Mitte lesen
+//#define KANAL_TASK         0x02 // Level und Expo lesen
+//#define MIX_TASK           0x03 // Mix lesen
+#define LEDON           3
 
 
 
@@ -83,7 +93,30 @@
 #define TASTE0     946
 #define TASTER     993
 
+// Tastatur2
+/*
+// Werte von Teensy2
+#define WERT1    19    // 1 oben  Taste 2
+#define WERT2    30    //  A links oben Taste  1
+#define WERT3    49    // 2 links  Taste 4
+#define WERT4    68    // 3 unten  Taste 8
+#define WERT6    110   // 4 rechts  Taste 6
+#define WERT9    215   // 5 Mitte  Taste 5
+#define WERT5    88       //    B links unten Taste 7
+#define WERT7    139      //   C rechts oben Taste 3
+#define WERT8    168      // D rechts unten Taste 9
+*/
 
+//Tastatur2 Teensy3.5
+#define    WERT1   76   //    1   oben      Taste   2
+#define    WERT2   124   //    A    links oben     Taste   1
+#define    WERT3   200   //    2   links      Taste   4
+#define    WERT4   276   //    3   unten      Taste   8
+#define    WERT6   442   //    4   rechts      Taste   6
+#define    WERT9   861   //    5   Mitte      Taste   5
+#define    WERT5   354   //    B    links unten     Taste   7
+#define    WERT7   557   //    C    rechts oben     Taste   3
+#define    WERT8   672   //    D    rechts unten     Taste   9
 // revision end
 
 #define DEVICE_MILL  1
@@ -91,5 +124,8 @@
 
 #define VORZEICHEN_X   0
 #define VORZEICHEN_Y   1
+
+
+
 
 #endif /* settings_h */

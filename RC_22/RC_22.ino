@@ -76,6 +76,8 @@ volatile uint8_t           timerstatus=0;
 volatile uint8_t           code=0;
 volatile uint8_t           servostatus=0;
 
+
+
 #define RUN 0
 #define PAUSE        1
 #define PAKET   2
@@ -84,6 +86,8 @@ volatile uint8_t           servostatus=0;
 #define USB_OK 5
 #define ENDEPAKET  7
 
+volatile uint8_t           tastaturstatus=0;
+#define TASTEOK   1
 elapsedMillis sinceblink;
 elapsedMillis sincelcd;
 elapsedMicros sinceusb;
@@ -108,6 +112,7 @@ IntervalTimer servopaketTimer;
 IntervalTimer servoimpulsTimer;
 IntervalTimer kanalimpulsTimer;
 
+volatile uint8_t                 programmstatus=0x00;
 
 uint16_t impulsdelaycounter = 0;
 uint16_t impulsdauer = 0;
@@ -179,6 +184,15 @@ uint8_t                     speichersetting=0;
 volatile uint8_t                 curr_trimmkanal=0; // aktueller  Kanal fuerTrimmung
 volatile uint8_t                 curr_trimmung=0; // aktuelle  Trimmung fuer Trimmkanal
 
+
+// Tastatur
+volatile uint8_t                 Tastenindex=0;
+volatile uint16_t                Tastenwert=0;
+volatile uint16_t                Trimmtastenwert=0;
+volatile uint8_t                 adcswitch=0;
+volatile uint16_t                lastTastenwert=0;
+volatile int16_t                 Tastenwertdiff=0;
+volatile uint16_t                tastaturcounter=0;
 
 
 // Functions
@@ -330,6 +344,41 @@ void displayinit()
    
 }
 
+uint8_t Tastenwahl(uint16_t Tastaturwert)
+{
+  
+   
+   
+   // Tastatur2 // Reihenfolge anders
+   /*
+    
+    */
+  
+   //   
+
+   if (Tastaturwert < WERT1) // 76
+      return 2;
+   if (Tastaturwert < WERT2) // 124
+      return 1;
+   if (Tastaturwert < WERT3) // 200
+      return 4;
+   if (Tastaturwert < WERT4) // 276
+      return 8;
+   if (Tastaturwert < WERT5) // 354
+      return 7;
+   if (Tastaturwert < WERT6) // 442
+      return 6;
+   if (Tastaturwert < WERT7) // 557
+      return 3;
+   if (Tastaturwert < WERT8) // 672
+      return 9;
+   if (Tastaturwert < WERT9) // 861
+      return 5;
+   
+   return -1;
+}
+
+
 // Add setup code
 void setup()
 {
@@ -440,6 +489,10 @@ void setup()
    //display_write_str("abc",2);
 
    servostatus &= ~(1<<RUN);
+   
+   // Tastatur
+   digitalWriteFast(TASTATURPIN, INPUT);
+   Serial.printf("W1: %d W2: %d W3: %d W4: %d W5: %d W6: %dW7: %d W8: %d W9: %d \n",WERT1, WERT2, WERT3, WERT4, WERT5, WERT6, WERT7, WERT8, WERT9);
 }
 
 // Add loop code
@@ -467,13 +520,15 @@ void loop()
       {
          digitalWriteFast(LOOPLED, 1);
          
-         Serial.printf("display_data %d\n",testdata);
+        // Serial.printf("display_data %d\n",testdata);
          /*
          display_go_to(4,4);
          _delay_us(50);
          display_write_str("abc",2);
          //display_write_byte(DATEN,testdata++);
           */
+         Tastenindex = Tastenwahl(Tastenwert); // taste pressed
+         Serial.printf("Tastenwert: %d Tastenindex: %d\n",Tastenwert,Tastenindex);
       }
       //Serial.printf("servo potwert 0: %d 1: %d\n", impulstimearray[0],impulstimearray[1]); 
       impulscounter++;
@@ -523,8 +578,58 @@ void loop()
          
          
       }
+      
+      
+      // MARK:  Tastatur ADC
+      Tastenwert=(adc->adc0->analogRead(TASTATURPIN))>>2;
+      if (Tastenwert>5)
+      {
+         //Tastenindex = Tastenwahl(Tastenwert); // taste pressed
+         Tastenwertdiff = Tastenwert - lastTastenwert;
+         if (Tastenwert > lastTastenwert)
+         {
+            Tastenwertdiff = Tastenwert - lastTastenwert;
+         }
+         else 
+         {
+            Tastenwertdiff = lastTastenwert - Tastenwert;
+         }
+         lastTastenwert = Tastenwert;
+         
+         //Tastenindex = Tastenwahl(Tastenwert);
+         if (Tastenwertdiff < 6)
+         {
+            if (tastaturcounter < ADCTIMEOUT)
+            {
+               tastaturcounter++;
+               if (tastaturcounter == ADCTIMEOUT)
+               {
+                 //Tastenindex = Tastenwahl(Tastenwert); // taste pressed
+                  programmstatus |= (1<< LEDON);
+                  display_set_LED(1);
+                  
+               }
+            }
+         }
+         else
+         {
+            tastaturcounter = 0;
+         }
+         
+             
+          
+      }
+      else
+      {
+         tastaturcounter = 0;
+         Tastenindex = 0;
+//           Trimmtastenwert=adc_read(TRIMMTASTATURPIN)>>2;
+      }
+      
+      // end Tastatur
       OSZI_C_HI();
       servostatus &= ~(1<<ADC_OK);
+      
       
       servostatus |= (1<<USB_OK);
    }

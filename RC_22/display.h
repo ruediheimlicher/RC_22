@@ -30,14 +30,6 @@
 #define CMD      1
 
 
-/*
-#define DOG_CS       5
-#define DOG_RST      4
-#define DOG_A0       3
-#define DOG_SCL      2
-#define DOG_DATA     1
-#define DOG_PWM      0
-*/
 
 // defines teensy3.5
 #define DOG_CS       7
