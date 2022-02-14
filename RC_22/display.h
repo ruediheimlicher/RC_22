@@ -52,6 +52,24 @@
 #define MAXSPANNUNG  756
 #define MINSPANNUNG  500
 
+#define HOMESCREEN      0
+#define SETTINGSCREEN   1
+#define KANALSCREEN     2
+#define LEVELSCREEN     3
+#define EXPOSCREEN      4
+#define MIXSCREEN       5
+#define ZUTEILUNGSCREEN 6
+#define AUSGANGSCREEN   7
+#define SAVESCREEN      8
+#define TRIMMSCREEN      9
+
+#define MODELLCURSOR 2
+#define SETCURSOR    4
+#define KANALCURSOR  6
+#define MIXCURSOR    7
+
+#define KANALTEXTCURSOR 1
+#define KANALNUMMERCURSOR  3
 
 
 // SOFT-SPI defines
@@ -101,7 +119,21 @@ const uint8_t   expoarray25[3][26] ={
 {0x00,0x00,0x00,0x00,0x00,0x01,0x01,0x01,0x01,0x01,0x02,0x02,0x03,0x03,0x04,0x05,0x06,0x07,0x09,0x0B,0x0D,0x0F,0x12,0x16,0x1B,0x20}
 };
 
+/*
+volatile unsigned char char_x = 0;
+volatile unsigned char char_y = 0;
+volatile unsigned char char_height_mul = 0;
+volatile unsigned char char_width_mul = 0;
+*/
+
 void sethomescreen(void);
+void setsettingscreen(void);
+void setausgangscreen(void);
+void setcanalscreen(void);
+void settrimmscreen(void);
+void setmixscreen(void);
+void setsavescreen(void);
+void setzuteilungscreen(void);
 void display_init(void);
 void display_soft_init(void);
 void display_mem(char* pointer);
@@ -144,7 +176,7 @@ void display_trimmanzeige_vertikal (uint8_t char_x0, uint8_t char_y0, uint8_t de
 void r_uitoa8(int8_t zahl, char* string);
 
 uint8_t update_screen(void);
-
+void update_time(void);
 uint8_t display_diagramm (uint8_t char_x, uint8_t char_y, uint8_t stufea,uint8_t stufeb, uint8_t typ);
 uint8_t display_kanaldiagramm (uint8_t char_x, uint8_t char_y, uint8_t level, uint8_t expo, uint8_t typ );
 uint8_t display_kanaldiagramm_var(uint8_t char_x0, uint8_t char_y0, uint8_t level, uint8_t expo, uint8_t typ );
@@ -157,12 +189,6 @@ void display_set_LED(uint8_t state);
 
 
 //	#define display_write(format, args...)   display_write_P(PSTR(format) , ## args)
-/*
-volatile unsigned char char_x;
-volatile unsigned char char_y;
-volatile unsigned char char_height_mul;
-volatile unsigned char char_width_mul;
-*/
 //write to lc-display command or data register
 	
 	

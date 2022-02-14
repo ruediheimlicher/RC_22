@@ -31,6 +31,28 @@
 // neu 3.5:
 #define CS1_PIN            24 // SPI 2
 
+// bits von programmstatus
+
+#define MOTOR_ON        1
+#define STOP_ON         2
+#define EEPROM_TASK     3  // Daten in EEPROM sichern
+#define USB_ATTACH_TASK  4  // USB initiieren
+
+
+
+// Bits von masterstatus
+#define  SUB_TASK_BIT             4 // Sub hat Aufgaben
+#define  SUB_READ_EEPROM_BIT      5 // Sub soll EEPROM lesen
+#define  DOGM_BIT                6 // Master soll EE lesen nach Aenderungen im DOGM
+#define  HALT_BIT                7 //Bit 7
+
+// Bits von eepromstatus
+#define READ_EEPROM_START        0  // Beim Start gesetzt. Soll einmaliges Lesen der Settings beim Update des Masters ausloesen
+
+
+// Bits von displaystatus
+#define UHR_UPDATE         0
+#define BATTERIE_UPDATE    1
 
 
 
@@ -42,19 +64,61 @@
 
 #define MANUELLTIMEOUT   32 // Loopled-counts bis Manuell zurueckgesetzt wird. 50: ca. 30s
 
-#define ADCTIMEOUT   200
+#define ADCTIMEOUT   1
 
 //#define MITTE_TASK         0x01 // Mitte lesen
 //#define KANAL_TASK         0x02 // Level und Expo lesen
 //#define MIX_TASK           0x03 // Mix lesen
+
+#define LOOPDELAY 5
+
 #define LEDON           3
 
+#define SAVE_LEVEL   0
+#define SAVE_MIX  2
+#define SAVE_EXPO 3
+#define SAVE_FUNKTION 4
+#define SAVE_DEVICE 5
+#define SAVE_AUSGANG 6
+
+// EEPROM Speicherorte
+
+#define TASK_OFFSET        0x2000 // Ort fuer Einstellungen
+
+#define SETTINGBREITE      0x100; // 256 Bytes, Breite des Settingblocks fuer ein model
+
+#define  MITTE_OFFSET      0x10 // 16
+#define  LEVEL_OFFSET      0x20 // 32
+#define  EXPO_OFFSET       0x30 // 48
+#define  MIX_OFFSET        0x40 // 64
+
+#define FUNKTION_OFFSET    0x60 // 96
+#define DEVICE_OFFSET      0x70 // 122
+#define AUSGANG_OFFSET     0x80 // 128
+
+
+#define SAVE_LEVEL   0
+#define SAVE_MIX  2
+#define SAVE_EXPO 3
+#define SAVE_FUNKTION 4
+#define SAVE_DEVICE 5
+#define SAVE_AUSGANG 6
 
 
 #define OSZI_PULS_A        25
 #define OSZI_PULS_B        26
 #define OSZI_PULS_C        27
 #define OSZI_PULS_D        28
+
+#define SPI_EE_CS_PIN                         10
+
+#define EEPROM_WRITE_BYTE_TASK     1
+#define EEPROM_WRITE_PAGE_TASK     2
+#define EEPROM_READ_BYTE_TASK      3
+#define EEPROM_READ_PAGE_TASK      4
+#define EEPROM_AUSGABE_TASK        5
+
+#define EEPROM_WRITE_START_OK    0xB0
 
 
 #define THREAD_COUNT_BIT   0
@@ -124,7 +188,6 @@
 
 #define VORZEICHEN_X   0
 #define VORZEICHEN_Y   1
-
 
 
 

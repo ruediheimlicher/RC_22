@@ -22,6 +22,11 @@
 extern volatile uint8_t levelwert;
 extern volatile uint8_t levelb;
 
+extern volatile unsigned char char_x;
+extern volatile unsigned char char_y;
+extern volatile unsigned char char_height_mul;
+extern volatile unsigned char char_width_mul;
+
 
 extern volatile uint8_t expowert;
 extern volatile uint8_t expob;
@@ -30,7 +35,7 @@ extern  volatile uint8_t cursortab[10] = {0+OFFSET_6_UHR,24+OFFSET_6_UHR+OFFSET_
 
 extern volatile uint8_t itemtab[10] = {8+OFFSET_6_UHR,32+OFFSET_6_UHR,48+OFFSET_6_UHR,60+OFFSET_6_UHR,72+OFFSET_6_UHR,84+OFFSET_6_UHR,96+OFFSET_6_UHR,108+OFFSET_6_UHR,116+OFFSET_6_UHR,0+OFFSET_6_UHR};
 
-extern volatile uint16_t      laufsekunde;
+extern volatile uint16_t      motorsekunde;
 
 //extern volatile uint8_t       curr_settingarray[8][2];
 extern volatile uint8_t       curr_levelarray[8];
@@ -71,9 +76,9 @@ extern volatile int8_t                vertikaltrimm;
 extern volatile int8_t                horizontaltrimm;
 
 
-//extern volatile uint16_t      laufsekunde;
-extern volatile uint8_t       laufstunde;
-extern volatile uint8_t       laufminute;
+//extern volatile uint16_t      motorsekunde;
+extern volatile uint8_t       motorstunde;
+extern volatile uint16_t      motorminute;
 extern volatile uint16_t      motorsekunde;
 extern volatile uint16_t      stopsekunde;
 extern volatile uint16_t      motorminute;
@@ -109,6 +114,7 @@ extern volatile uint16_t              updatecounter; // Zaehler fuer Einschalten
 //#define DATEN     0
 //#define CMD      1
 
+/*
 #define HOMESCREEN      0
 #define SETTINGSCREEN   1
 #define KANALSCREEN     2
@@ -127,7 +133,7 @@ extern volatile uint16_t              updatecounter; // Zaehler fuer Einschalten
 
 #define KANALTEXTCURSOR 1
 #define KANALNUMMERCURSOR  3
-
+*/
 
 const char balken[8]=
 {0x80,0xC0,0xE0,0xF0,0xF8,0xFC,0xFE,0xFF};
@@ -170,10 +176,6 @@ const volatile char DISPLAY_INIT[] =
 
 //char_height_mul 1, 2 or 4
 
-volatile unsigned char char_x=0;
-volatile unsigned char char_y=1;
-volatile unsigned char char_height_mul=1;
-volatile unsigned char char_width_mul=1;
 
 char menubuffer[20];
 char titelbuffer[20];
@@ -1047,8 +1049,8 @@ void update_time(void)
    char_height_mul = 1;
    char_width_mul = 1;
    
-   //display_write_min_sek(laufsekunde, 2);
-   display_write_zeit(laufsekunde&0xFF,laufminute,laufstunde, 2);
+   //display_write_min_sek(motorsekunde, 2);
+   display_write_zeit(motorsekunde&0xFF,motorminute,motorstunde, 2);
    
    // Stoppzeit aktualisieren
    char_y= (posregister[2][1] & 0xFF00)>>8;
@@ -1105,9 +1107,9 @@ uint8_t update_screen(void)
          char_y= (posregister[0][0] & 0xFF00)>>8;
          char_height_mul = 1;
          char_width_mul = 1;
-         display_write_zeit(laufsekunde&0xFF,laufminute,laufstunde, 2);
+         display_write_zeit(motorsekunde&0xFF,motorminute,motorstunde, 2);
 
-         //display_write_min_sek(laufsekunde, 2);
+         //display_write_min_sek(motorsekunde, 2);
           // Stoppzeit aktualisieren
          char_y= (posregister[2][1] & 0xFF00)>>8;
          char_x = posregister[2][1] & 0x00FF;
@@ -1171,7 +1173,7 @@ uint8_t update_screen(void)
          // Zeit aktualisieren
          char_y= 1;
          char_x = itemtab[5];
-     //    display_write_min_sek(laufsekunde,2);
+     //    display_write_min_sek(motorsekunde,2);
          
          char_height_mul = 1;
          if (programmstatus &(1<<UPDATESCREEN))
@@ -1226,7 +1228,7 @@ uint8_t update_screen(void)
             
             char_y= (blink_cursorpos & 0xFF00)>>8;
             char_x = blink_cursorpos & 0x00FF;
-            if (laufsekunde%2)
+            if (motorsekunde%2)
             {
                if (curr_cursorzeile==0)
                {
@@ -1424,7 +1426,7 @@ uint8_t update_screen(void)
                char_height_mul = 1;
             }
             
-            if (laufsekunde%2)
+            if (motorsekunde%2)
             {
                display_write_symbol(pfeilvollrechts);
             }
@@ -1625,7 +1627,7 @@ uint8_t update_screen(void)
             char_height_mul = 1;
             
             
-            if (laufsekunde%2)
+            if (motorsekunde%2)
             {
                display_write_symbol(pfeilvollrechts);
             }
@@ -1789,7 +1791,7 @@ uint8_t update_screen(void)
             char_height_mul = 1;
             
             
-            if (laufsekunde%2)
+            if (motorsekunde%2)
             {
                display_write_symbol(pfeilvollrechts);
             }
@@ -1909,7 +1911,7 @@ uint8_t update_screen(void)
             char_height_mul = 1;
             
             
-            if (laufsekunde%2)
+            if (motorsekunde%2)
             {
                display_write_symbol(pfeilvollrechts);
             }
@@ -1957,7 +1959,7 @@ uint8_t update_screen(void)
                char_height_mul = 1;
             }
 
-            if (laufsekunde%2)
+            if (motorsekunde%2)
             {
                display_write_symbol(pfeilvollrechts);
             }
@@ -1993,7 +1995,7 @@ uint8_t update_screen(void)
             char_y= (blink_cursorpos & 0xFF00)>>8;
             char_x = blink_cursorpos & 0x00FF;
             
-            if (laufsekunde%2)
+            if (motorsekunde%2)
             {
                display_write_symbol(pfeilvollrechts);
             }
@@ -2185,7 +2187,7 @@ void display_akkuanzeige (uint16_t spannung)
          }
          else if (page == (7-full)) // grenzwertig
          {
-            if ((full<grenze-1) && (laufsekunde%2)) // Blinken
+            if ((full<grenze-1) && (motorsekunde%2)) // Blinken
             {
                display_write_byte(DATEN,0x00);
             }
@@ -2215,7 +2217,7 @@ void display_akkuanzeige (uint16_t spannung)
             }
             else
             {
-               if ((full<grenze-1) && (laufsekunde%2)) // Blinken
+               if ((full<grenze-1) && (motorsekunde%2)) // Blinken
                {
                   display_write_byte(DATEN,0x00);
                }
