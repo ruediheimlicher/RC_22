@@ -177,6 +177,10 @@ void r_uitoa8(int8_t zahl, char* string);
 
 uint8_t update_screen(void);
 void update_time(void);
+
+void update_motorzeit(void);
+void update_stopzeit(void);
+//void update_systemzeit(void);
 uint8_t display_diagramm (uint8_t char_x, uint8_t char_y, uint8_t stufea,uint8_t stufeb, uint8_t typ);
 uint8_t display_kanaldiagramm (uint8_t char_x, uint8_t char_y, uint8_t level, uint8_t expo, uint8_t typ );
 uint8_t display_kanaldiagramm_var(uint8_t char_x0, uint8_t char_y0, uint8_t level, uint8_t expo, uint8_t typ );

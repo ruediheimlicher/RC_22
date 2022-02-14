@@ -11,7 +11,7 @@
 
 
 // Homescreen
- const char titel0[]  = "RC Home";
+ const char titel0[]  = "RC-22 Home";
  const char titel1[]  = "ON-Zeit:";
  const char titel2[]  = "Stoppuhr";
  const char titel3[]  = "Motorzeit";

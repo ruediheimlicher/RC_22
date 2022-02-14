@@ -288,26 +288,32 @@ void OSZI_B_HI(void)
 void OSZI_C_LO(void)
 {
    if (TEST)
-      digitalWriteFast(OSZI_PULS_D,LOW);
+      digitalWriteFast(OSZI_PULS_C,LOW);
 }
 
 void OSZI_C_HI(void)
 {
    if (TEST)
-      digitalWriteFast(OSZI_PULS_D,HIGH);
+      digitalWriteFast(OSZI_PULS_C,HIGH);
+}
+
+void OSZI_D_LO(void)
+{
+   if (TEST)
+      digitalWriteFast(OSZI_PULS_D,LOW);
 }
 
 
 void OSZI_D_HI(void)
 {
    if (TEST)
-      digitalWriteFast(SPI_EE_CS_PIN,HIGH);
+      digitalWriteFast(OSZI_PULS_D,HIGH);
 }
 
 
 void EE_CS_HI(void)
 {
-   digitalWriteFast(OSZI_PULS_C,HIGH);
+   digitalWriteFast(SPI_EE_CS_PIN,HIGH);
 }
 
 
@@ -845,10 +851,6 @@ uint8_t Tastenwahl(uint16_t Tastaturwert)
    
    
    // Tastatur2 // Reihenfolge anders
-   /*
-    
-    */
-  
    //   
 
    if (Tastaturwert < WERT1) // 76
@@ -947,6 +949,10 @@ void setup()
 
       pinMode(OSZI_PULS_C, OUTPUT);
       digitalWriteFast(OSZI_PULS_C, HIGH); 
+      
+      pinMode(OSZI_PULS_D, OUTPUT);
+      digitalWriteFast(OSZI_PULS_D, HIGH); 
+
    }
    
    
@@ -992,7 +998,8 @@ void setup()
    servostatus &= ~(1<<RUN);
    
    // Tastatur
-   digitalWriteFast(TASTATURPIN, INPUT);
+   
+   pinMode(TASTATURPIN, INPUT);
    //Serial.printf("W1: %d W2: %d W3: %d W4: %d W5: %d W6: %dW7: %d W8: %d W9: %d \n",WERT1, WERT2, WERT3, WERT4, WERT5, WERT6, WERT7, WERT8, WERT9);
 }
 
@@ -1009,7 +1016,29 @@ void loop()
    if (sincelastseccond > 1000)
    {
       sincelastseccond = 0;
-      Serial.printf("motorsekunde: %d programmstatus: %d\n",motorsekunde, programmstatus);
+      
+      if (programmstatus & (1<<SETTINGWAIT))
+      {
+         startcounter++;
+         /*
+         if (startcounter > 5) // Irrtum, kein Umschalten
+         {
+           // lcd_gotoxy(0,1);
+            //lcd_putc('X');
+            programmstatus &= ~(1<< SETTINGWAIT);
+            settingstartcounter=0;
+            startcounter=0;
+            manuellcounter = 0;
+         }
+          */
+      }
+      else
+      {
+         //startcounter = 0;
+      }
+
+      Serial.printf("motorsekunde: %d programmstatus: %d manuellcounter: %d\n",motorsekunde, programmstatus, manuellcounter);
+      
       if (programmstatus & (1<<MOTOR_ON))
       {
          motorsekunde++;
@@ -1043,7 +1072,7 @@ void loop()
          update_time();
       }
 
-   }
+   } // 1000
    
    if (sinceblink > 500) 
    {   
@@ -1084,6 +1113,51 @@ void loop()
           */
          impulscounter = 0;
       }
+   
+      
+      //
+      if ((manuellcounter > MANUELLTIMEOUT) )
+      {
+         {
+            programmstatus &= ~(1<< LEDON);
+            display_set_LED(0);
+            manuellcounter=1;
+            
+            if (curr_screen) // nicht homescreen
+            {
+               display_clear();
+               curr_screen=0;
+               curr_cursorspalte=0;
+               curr_cursorzeile=0;
+               last_cursorspalte=0;
+               last_cursorzeile=0;
+               settingstartcounter=0;
+               startcounter=0;
+               eepromsavestatus=0;
+               read_Ext_EEPROM_Settings();// zuruecksetzen
+               
+               sethomescreen();
+               
+            }
+           else 
+           {
+              programmstatus &= ~(1<< SETTINGWAIT);
+              startcounter=0;
+              settingstartcounter=0;
+              /*
+              lcd_gotoxy(0,2);
+              lcd_putc(' ');
+              lcd_putc(' ');
+              lcd_putc(' ');
+*/
+           }
+         }
+         //
+      }
+   
+   
+   
+   
    }// sinceblink
    
    
@@ -1119,14 +1193,16 @@ void loop()
          
          
       }
-      
+      servostatus &= ~(1<<ADC_OK);
       
       // MARK:  Tastatur ADC
       Tastenwert=(adc->adc0->analogRead(TASTATURPIN))>>2;
+      //Tastenwert = 0;
       if (Tastenwert>5)
       {
          if (!(tastaturstatus & (1<<TASTEOK)))
          {
+            //Serial.printf("A");
             //Tastenindex = Tastenwahl(Tastenwert); // taste pressed
             Tastenwertdiff = Tastenwert - lastTastenwert;
             if (Tastenwert > lastTastenwert)
@@ -1138,18 +1214,20 @@ void loop()
                Tastenwertdiff = lastTastenwert - Tastenwert;
             }
             lastTastenwert = Tastenwert;
-            
-            //Tastenindex = Tastenwahl(Tastenwert);
+            //Serial.printf("B");
             if (Tastenwertdiff < 6)
             {
-              // if (tastaturcounter < ADCTIMEOUT)
+               //Serial.printf("C");
+               if (tastaturcounter < ADCTIMEOUT)
                {
+                  //Serial.printf("D");
                   tastaturcounter++;
                   
-                  //if (tastaturcounter == ADCTIMEOUT)
+                  if (tastaturcounter == ADCTIMEOUT)
                   {
+                     
                      Tastenindex = Tastenwahl(Tastenwert); // taste pressed
-                     //Serial.printf("Tastenwert: %d Tastenindex: %d\n",Tastenwert,Tastenindex);
+                     Serial.printf("Tastenwert: %d Tastenindex: %d\n",Tastenwert,Tastenindex);
                      tastaturstatus |= (1<<TASTEOK);
                      tastaturstatus |= (1<<AKTIONOK);
                      programmstatus |= (1<< LEDON);
@@ -1158,9 +1236,12 @@ void loop()
                      
                   }
                }
-            }
+             
+            } // if Tastenwertdiff 
+             
             else
             {
+               Serial.printf("F");
                tastaturcounter = 0;
             }
             
@@ -1169,24 +1250,29 @@ void loop()
       }
       else
       {
+         //Serial.printf("H");
          tastaturstatus &= ~(1<<TASTEOK);
          tastaturcounter = 0;
          Tastenindex = 0;
 //           Trimmtastenwert=adc_read(TRIMMTASTATURPIN)>>2;
       }
-      
+      //Serial.printf("End\n");
       // end Tastatur
       OSZI_C_HI();
-      servostatus &= ~(1<<ADC_OK);
       
       
-      servostatus |= (1<<USB_OK);
+      
+      //servostatus |= (1<<USB_OK);
    }
+   
+   
    
    if (tastaturstatus & (1<<TASTEOK))
    {
+      Serial.printf("U");
       programmstatus |= (1<<UPDATESCREEN);
       //tastaturstatus &= ~(1<<TASTEOK);
+      //Tastenindex = 0;
       switch (Tastenindex)
       {
 #pragma mark Taste 0
@@ -2373,11 +2459,12 @@ void loop()
 #pragma mark Taste 5
             switch (curr_screen)
             {
-#pragma mark HOMESCREEN
+#pragma mark Taste 5 HOMESCREEN
                case HOMESCREEN:
                {
                  // lcd_gotoxy(14,2);
                  // lcd_puts("*H5*");
+                  Serial.printf("H5 \t");
                   
                   //lcd_putint2(startcounter);
                   //lcd_putc('*');
@@ -2387,6 +2474,7 @@ void loop()
                      //lcd_putc('1');
                      //lcd_putc(' ');
                      {
+                        
                      programmstatus |= (1<< SETTINGWAIT);
                      settingstartcounter=1;
                      manuellcounter = 1;
@@ -2396,12 +2484,12 @@ void loop()
                   else 
                   if (startcounter > 3) // Irrtum, kein Umschalten
                   {
-                    //lcd_gotoxy(0,2);
-                    //lcd_putc(' ');
-                    // lcd_putc(' ');
+                     //lcd_gotoxy(0,2);
+                     //lcd_putc(' ');
+                     // lcd_putc(' ');
                      programmstatus &= ~(1<< SETTINGWAIT);
                      settingstartcounter=0;
-                    startcounter=0;
+                     startcounter=0;
                      manuellcounter = 1;
                   }
                    
@@ -2409,8 +2497,8 @@ void loop()
                   {
                      if ((programmstatus & (1<< SETTINGWAIT))&& (manuellcounter)) // Umschaltvorgang noch aktiv
                      {
-                       //lcd_gotoxy(1,2);
-                       //lcd_putc('G');
+                        //lcd_gotoxy(1,2);
+                        //lcd_putc('G');
                         //lcd_putc('A'+settingstartcounter);
                         //lcd_putint2(settingstartcounter);
                         //lcd_gotoxy(2,2);
@@ -3460,11 +3548,18 @@ void loop()
                 */
                if (manuellcounter) // kurz warten
                {
-                  programmstatus &= ~(1<<MOTOR_ON);
-                  motorsekunde=0;
-                  motorminute=0;
+                  if (tastaturstatus & (1<<AKTIONOK))
+                  {
+                     tastaturstatus &=  ~(1<<AKTIONOK);
+                     programmstatus &= ~(1<<MOTOR_ON);
+                     motorsekunde=0;
+                     motorminute=0;
+                     //update_time();
+                     update_motorzeit();
+                     
+                  }
                   manuellcounter=0; // timeout zuruecksetzen
-                  update_time();
+                  //update_time();
                }
             }
          }break;
@@ -4107,12 +4202,17 @@ void loop()
 
             if (manuellcounter) // kurz warten
             {
-               programmstatus &= ~(1<<STOP_ON);
-               stopsekunde=0;
-               stopminute=0;
-               
+               if (tastaturstatus & (1<<AKTIONOK))
+               {
+                  tastaturstatus &=  ~(1<<AKTIONOK);
+                  
+                  programmstatus &= ~(1<<STOP_ON);
+                  stopsekunde=0;
+                  stopminute=0;
+                  update_time();
+               }
                manuellcounter=0; // timeout zuruecksetzen
-               update_time();
+               
             }
             
          }break;
@@ -4132,12 +4232,17 @@ void loop()
 #pragma mark Taste 12
             
          }break;
-            
+         
+         default:
+            break;
       }
-   }
+      Serial.printf("V\n");
+      programmstatus |= (1<<UPDATESCREEN);
+      tastaturstatus &= ~(1<<TASTEOK);
+ 
+   } // if Tastaturok
        
-   
-   
+   // 
    if (servostatus & (1<<USB_OK))
    {
 #pragma mark start_usb
