@@ -179,7 +179,6 @@ uint8_t testdata = 0;
 volatile uint16_t                posregister[8][8]={}; // Aktueller screen: werte fuer page und daraufliegende col fuer Menueintraege (hex). geladen aus progmem
 
 volatile uint16_t                cursorpos[8][8]={}; // Aktueller screen: werte fuer page und darauf liegende col fuer den cursor
-//volatile uint16_t                blink_cursorpos=0xFFF;
 
 volatile uint8_t              curr_levelarray[8];
 volatile uint8_t              curr_expoarray[8];
@@ -196,6 +195,11 @@ volatile uint16_t stopminute=0;
 volatile uint16_t motorsekunde=0;
 volatile uint16_t motorminute=0;
 volatile uint8_t motorstunde=0;
+
+volatile uint16_t sendesekunde=0;
+volatile uint16_t sendeminute=0;
+volatile uint8_t sendestunde=0;
+
 
 volatile uint16_t batteriespannung =0;
  
@@ -1016,28 +1020,23 @@ void loop()
    if (sincelastseccond > 1000)
    {
       sincelastseccond = 0;
+      sendesekunde++;
+      update_sendezeit();
+ 
+      //Serial.printf("motorsekunde: %d programmstatus: %d manuellcounter: %d\n",motorsekunde, programmstatus, manuellcounter);
       
-      if (programmstatus & (1<<SETTINGWAIT))
+      if (sendesekunde == 60)
       {
-         startcounter++;
-         /*
-         if (startcounter > 5) // Irrtum, kein Umschalten
-         {
-           // lcd_gotoxy(0,1);
-            //lcd_putc('X');
-            programmstatus &= ~(1<< SETTINGWAIT);
-            settingstartcounter=0;
-            startcounter=0;
-            manuellcounter = 0;
-         }
-          */
+         sendeminute++;
+         sendesekunde = 0;
       }
-      else
+      if (sendeminute == 60)
       {
-         //startcounter = 0;
+         sendestunde++;
+         sendeminute = 0;
       }
+      Serial.printf("sendesekunde: %d programmstatus: %d servostatus: %d manuellcounter: %d curr_screen: %d\n",sendesekunde, programmstatus,servostatus,  manuellcounter, curr_screen);
 
-      Serial.printf("motorsekunde: %d programmstatus: %d manuellcounter: %d\n",motorsekunde, programmstatus, manuellcounter);
       
       if (programmstatus & (1<<MOTOR_ON))
       {
@@ -1077,9 +1076,29 @@ void loop()
    if (sinceblink > 500) 
    {   
       //digitalWrite(OSZI_PULS_A, !digitalRead(OSZI_PULS_A));
-      
+      manuellcounter++;
+      //Serial.printf("manuellcounter: %d\n",manuellcounter);
       sinceblink = 0;
-      
+      if (programmstatus & (1<<SETTINGWAIT))
+      {
+         startcounter++;
+         /*
+         if (startcounter > 5) // Irrtum, kein Umschalten
+         {
+           // lcd_gotoxy(0,1);
+            //lcd_putc('X');
+            programmstatus &= ~(1<< SETTINGWAIT);
+            settingstartcounter=0;
+            startcounter=0;
+            manuellcounter = 0;
+         }
+          */
+      }
+      else
+      {
+         //startcounter = 0;
+      }
+
       if (digitalRead(LOOPLED) == 1)
       {
          digitalWriteFast(LOOPLED, 0);
@@ -1103,7 +1122,7 @@ void loop()
       impulscounter++;
       if (impulscounter > 5)
       {
-         Serial.printf("servo potwert 0: %d 1: %d\n", impulstimearray[0],impulstimearray[1]); 
+         //Serial.printf("servo potwert 0: %d 1: %d\n", impulstimearray[0],impulstimearray[1]); 
          /*
          for (uint8_t i=0;i<NUM_SERVOS;i++)
          {
@@ -1119,6 +1138,7 @@ void loop()
       if ((manuellcounter > MANUELLTIMEOUT) )
       {
          {
+            
             programmstatus &= ~(1<< LEDON);
             display_set_LED(0);
             manuellcounter=1;
@@ -1134,10 +1154,10 @@ void loop()
                settingstartcounter=0;
                startcounter=0;
                eepromsavestatus=0;
-               read_Ext_EEPROM_Settings();// zuruecksetzen
+        //       read_Ext_EEPROM_Settings();// zuruecksetzen
                
                sethomescreen();
-               
+               programmstatus &= ~(1<<UPDATESCREEN);
             }
            else 
            {
@@ -1163,7 +1183,8 @@ void loop()
    
    if (servostatus & (1<<ADC_OK)) // 20us pro kanal ohne printf
    {
-      manuellcounter++;
+      //manuellcounter++;
+      //Serial.printf("A");
       OSZI_C_LO();
       for (uint8_t i=0;i<NUM_SERVOS;i++)
       {
@@ -1269,7 +1290,7 @@ void loop()
    
    if (tastaturstatus & (1<<TASTEOK))
    {
-      Serial.printf("U");
+      Serial.printf("U Tastenindex: %d\n",Tastenindex);
       programmstatus |= (1<<UPDATESCREEN);
       //tastaturstatus &= ~(1<<TASTEOK);
       //Tastenindex = 0;
@@ -2462,87 +2483,89 @@ void loop()
 #pragma mark Taste 5 HOMESCREEN
                case HOMESCREEN:
                {
-                 // lcd_gotoxy(14,2);
-                 // lcd_puts("*H5*");
+                  // lcd_gotoxy(14,2);
+                  // lcd_puts("*H5*");
                   Serial.printf("H5 \t");
-                  
-                  //lcd_putint2(startcounter);
-                  //lcd_putc('*');
-                  if ((startcounter == 0) && (manuellcounter)) // Settings sind nicht aktiv
-                  {
-                     //lcd_gotoxy(0,2);
-                     //lcd_putc('1');
-                     //lcd_putc(' ');
+                  if (tastaturstatus & (1<<AKTIONOK))
+                  { 
+                     tastaturstatus &=  ~(1<<AKTIONOK);
+                     //lcd_putint2(startcounter);
+                     //lcd_putc('*');
+                     if ((startcounter == 0) && (manuellcounter)) // Settings sind nicht aktiv
                      {
-                        
-                     programmstatus |= (1<< SETTINGWAIT);
-                     settingstartcounter=1;
-                     manuellcounter = 1;
-                     }
-                  }
-                  
-                  else 
-                  if (startcounter > 3) // Irrtum, kein Umschalten
-                  {
-                     //lcd_gotoxy(0,2);
-                     //lcd_putc(' ');
-                     // lcd_putc(' ');
-                     programmstatus &= ~(1<< SETTINGWAIT);
-                     settingstartcounter=0;
-                     startcounter=0;
-                     manuellcounter = 1;
-                  }
-                   
-                  else
-                  {
-                     if ((programmstatus & (1<< SETTINGWAIT))&& (manuellcounter)) // Umschaltvorgang noch aktiv
-                     {
-                        //lcd_gotoxy(1,2);
-                        //lcd_putc('G');
-                        //lcd_putc('A'+settingstartcounter);
-                        //lcd_putint2(settingstartcounter);
-                        //lcd_gotoxy(2,2);
-                        //lcd_putint1(settingstartcounter);
-                        settingstartcounter++; // counter fuer klicks
-                        if (settingstartcounter == 3)
+                        //lcd_gotoxy(0,2);
+                        //lcd_putc('1');
+                        //lcd_putc(' ');
                         {
-                           //lcd_gotoxy(2,2);
-                           //lcd_putc('3');
+                           programmstatus |= (1<< SETTINGWAIT);
+                           settingstartcounter=1;
+                           manuellcounter = 1;
+                        }
+                     }
+                     
+                     else 
+                        if (startcounter > 3) // Irrtum, kein Umschalten
+                        {
+                           //lcd_gotoxy(0,2);
+                           //lcd_putc(' ');
+                           // lcd_putc(' ');
                            programmstatus &= ~(1<< SETTINGWAIT);
-                           programmstatus |=(1<<UPDATESCREEN);
                            settingstartcounter=0;
                            startcounter=0;
-                           eepromsavestatus = 0;
-                           // Umschalten
-                           display_clear();
-                           //lcd_putc('D');
-                           setsettingscreen();
-                           //lcd_putc('E');
-                           curr_screen = SETTINGSCREEN;
-                           curr_cursorspalte=0;
-                           curr_cursorzeile=0;
-                           last_cursorspalte=0;
-                           last_cursorzeile=0;
-                           blink_cursorpos=0xFFFF;
-                           
                            manuellcounter = 1;
-                        } // if settingcounter <
-                        //manuellcounter = 0;
-                     }
+                        }
+                     
+                        else
+                        {
+                           if ((programmstatus & (1<< SETTINGWAIT))&& (manuellcounter)) // Umschaltvorgang noch aktiv
+                           {
+                              //lcd_gotoxy(1,2);
+                              //lcd_putc('G');
+                              //lcd_putc('A'+settingstartcounter);
+                              //lcd_putint2(settingstartcounter);
+                              //lcd_gotoxy(2,2);
+                              //lcd_putint1(settingstartcounter);
+                              settingstartcounter++; // counter fuer klicks
+                              Serial.printf("settingstartcounter: %d\n",settingstartcounter);
+                              if (settingstartcounter == 3)
+                              {
+                                 //lcd_gotoxy(2,2);
+                                 //lcd_putc('3');
+                                 programmstatus &= ~(1<< SETTINGWAIT);
+                                 programmstatus |=(1<<UPDATESCREEN);
+                                 settingstartcounter=0;
+                                 startcounter=0;
+                                 eepromsavestatus = 0;
+                                 // Umschalten
+                                 display_clear();
+                                 //lcd_putc('D');
+                                 setsettingscreen();
+                                 //lcd_putc('E');
+                                 curr_screen = SETTINGSCREEN;
+                                 curr_cursorspalte=0;
+                                 curr_cursorzeile=0;
+                                 last_cursorspalte=0;
+                                 last_cursorzeile=0;
+                                 blink_cursorpos=0xFFFF;
+                                 
+                                 manuellcounter = 1;
+                              } // if settingcounter <
+                              //manuellcounter = 0;
+                           }
+                        }
+                     /*
+                      if (startcounter > 3) // Irrtum, kein Umschalten
+                      {
+                      lcd_gotoxy(3,2);
+                      lcd_putc('*');
+                      
+                      programmstatus &= ~(1<< SETTINGWAIT);
+                      settingstartcounter=0;
+                      startcounter=0;
+                      manuellcounter = 1;
+                      }
+                      */
                   }
-                  /*
-                  if (startcounter > 3) // Irrtum, kein Umschalten
-                  {
-                    lcd_gotoxy(3,2);
-                    lcd_putc('*');
-                    
-                     programmstatus &= ~(1<< SETTINGWAIT);
-                     settingstartcounter=0;
-                    startcounter=0;
-                     manuellcounter = 1;
-                  }
-*/
-                  
                }break;
                   
                case SAVESCREEN:
@@ -3250,290 +3273,301 @@ void loop()
             //lcd_puts("*7*");
             if (curr_screen) // nicht homescreen
             {
-               switch (curr_screen)
+               if (tastaturstatus & (1<<AKTIONOK))
                {
-                  case HOMESCREEN:
+                  tastaturstatus &=  ~(1<<AKTIONOK);
+                  
+                  switch (curr_screen)
                   {
-                     display_clear();
-                     
-                     curr_cursorspalte=0;
-                     curr_cursorzeile=0;
-                     last_cursorspalte=0;
-                     last_cursorzeile=0;
-                     blink_cursorpos = 0xFFFF;
-                     
-                     
-                     
-                     // curr_screen=HOMESCREEN;
-                     sethomescreen();
-                     
-                     
-                  }break;
-                     
-                  case TRIMMSCREEN:
-                  {
-                     display_clear();
-                     
-                     curr_cursorspalte=0;
-                     curr_cursorzeile=0;
-                     last_cursorspalte=0;
-                     last_cursorzeile=0;
-                     blink_cursorpos = 0xFFFF;
-                     
-                     
-                     // curr_screen=HOMESCREEN;
-                     sethomescreen();
-                     
-                     
-                  }break;
-
-                     
-                  case SAVESCREEN:
-                  {
-                     if ((blink_cursorpos == 0xFFFF) && manuellcounter)
+                     case HOMESCREEN:
                      {
                         display_clear();
+                        
                         curr_cursorspalte=0;
                         curr_cursorzeile=0;
                         last_cursorspalte=0;
-                        //last_cursorzeile=0;
+                        last_cursorzeile=0;
                         blink_cursorpos = 0xFFFF;
-                        settingstartcounter=0;
-                        startcounter=0;
                         
                         
-                        curr_screen=SAVESCREEN;
-                        //setsavescreen();
+                        
+                        // curr_screen=HOMESCREEN;
+                        sethomescreen();
                         
                         
-                        manuellcounter=0;
-                     }
-                     else if (manuellcounter)
+                     }break;
+                        
+                     case TRIMMSCREEN:
                      {
-                        
-                        blink_cursorpos = 0xFFFF;
-                        manuellcounter=0;
-                     }
-                  }break;
-
-                     
-                  case SETTINGSCREEN: // Settings
-                  {
-                     programmstatus &= ~(1<< SETTINGWAIT);
-                     if ((blink_cursorpos == 0xFFFF) && manuellcounter)
-                     {
-                        
                         display_clear();
                         
                         curr_cursorspalte=0;
-                        //curr_cursorzeile=0;
+                        curr_cursorzeile=0;
                         last_cursorspalte=0;
-                        //last_cursorzeile=0;
+                        last_cursorzeile=0;
                         blink_cursorpos = 0xFFFF;
-                        settingstartcounter=0;
-                        startcounter=0;
                         
-                        if (eepromsavestatus)
+                        
+                        // curr_screen=HOMESCREEN;
+                        sethomescreen();
+                        programmstatus &= ~(1<<UPDATESCREEN);
+                        
+                     }break;
+                        
+                        
+                     case SAVESCREEN:
+                     {
+                        if ((blink_cursorpos == 0xFFFF) && manuellcounter)
                         {
+                           display_clear();
+                           curr_cursorspalte=0;
+                           curr_cursorzeile=0;
+                           last_cursorspalte=0;
+                           //last_cursorzeile=0;
+                           blink_cursorpos = 0xFFFF;
+                           settingstartcounter=0;
+                           startcounter=0;
+                           
+                           
                            curr_screen=SAVESCREEN;
-                           setsavescreen();
+                           //setsavescreen();
+                           
+                           
+                           manuellcounter=0;
                         }
-                        else
+                        else if (manuellcounter)
                         {
-                           curr_screen=HOMESCREEN;
-                           sethomescreen();
+                           
+                           blink_cursorpos = 0xFFFF;
+                           manuellcounter=0;
                         }
-                
+                     }break;
                         
-                        manuellcounter=0;
-                     }
-                     else if (manuellcounter)
+                        
+                     case SETTINGSCREEN: // Settings
                      {
-                        
-                        blink_cursorpos = 0xFFFF;
-                        manuellcounter=0;
-                     }
-                     
-                  }break;
-                     
-                  case KANALSCREEN: // Settings
-                  {
-                     if ((blink_cursorpos == 0xFFFF) && manuellcounter)
-                     {
-                        manuellcounter=0;
-                        
-                        blink_cursorpos = 0xFFFF;
-                        //
-                        if (curr_cursorspalte==0) // position am linken Rand
+                        programmstatus &= ~(1<< SETTINGWAIT);
+                        if ((blink_cursorpos == 0xFFFF) && manuellcounter)
                         {
                            display_clear();
-                           curr_cursorzeile=0;
+                           
+                           curr_cursorspalte=0;
+                           //curr_cursorzeile=0;
                            last_cursorspalte=0;
-                           last_cursorzeile=0;
-                           curr_screen=SETTINGSCREEN;
-                           setsettingscreen();
+                           //last_cursorzeile=0;
+                           blink_cursorpos = 0xFFFF;
+                           settingstartcounter=0;
+                           startcounter=0;
+                           ///          
+                           eepromsavestatus=0;
+                           ///          
+                           if (eepromsavestatus)
+                           {
+                              
+                              curr_screen=SAVESCREEN;
+                              setsavescreen();
+                           }
+                           else
+                           {
+                              Serial.printf("H\n");
+                              //
+                              //
+                              curr_screen=HOMESCREEN;
+                              sethomescreen();
+                              programmstatus &= ~(1<<UPDATESCREEN);
+                           }
+                           
+                           
+                           manuellcounter=1;
                         }
-                        else
+                        else if (manuellcounter)
                         {
                            
+                           blink_cursorpos = 0xFFFF;
+                           manuellcounter=0;
                         }
-                        manuellcounter=0;
-                     }
-                     else if (manuellcounter)
-                     {
-                        blink_cursorpos = 0xFFFF;
-                        manuellcounter=0;
-                     }
-                  }break;
-                     
-                     
-                  case LEVELSCREEN: // Level einstellen
-                  {
-                     if ((blink_cursorpos == 0xFFFF) && manuellcounter)
-                     {
-                        manuellcounter=0;
-                        display_clear();
-                        curr_screen=KANALSCREEN;
-                        curr_cursorspalte=0;
-                        curr_cursorzeile=1; // Zeile Level
-                        last_cursorspalte=0;
-                        last_cursorzeile=0;
-                        blink_cursorpos = 0xFFFF;
-                        setcanalscreen();
                         
-                        manuellcounter=0;
-                     }
-                     else if (manuellcounter)
-                     {
+                     }break;
                         
-                        blink_cursorpos = 0xFFFF;
-                        manuellcounter=0;
-                     }
-                     
-                  }break;
-                     
-                  case EXPOSCREEN: // Level einstellen
-                  {
-                     if ((blink_cursorpos == 0xFFFF) && manuellcounter)
+                     case KANALSCREEN: // Settings
                      {
-                        manuellcounter=0;
-                        display_clear();
-                        curr_screen=KANALSCREEN;
-                        curr_cursorspalte=0;
-                        curr_cursorzeile=2; //Zeile Expo
-                        last_cursorspalte=0;
-                        last_cursorzeile=0;
-                        blink_cursorpos = 0xFFFF;
-                        setcanalscreen();
-                        
-                        manuellcounter=0;
-                     }
-                     else if (manuellcounter)
-                     {
-                        
-                        blink_cursorpos = 0xFFFF;
-                        manuellcounter=0;
-                     }
-                     
-                  }break;
-                     
-                  case MIXSCREEN: // Settings
-                  {
-                     if ((blink_cursorpos == 0xFFFF) && manuellcounter)
-                     {
-                        manuellcounter=0;
-                        
-                        blink_cursorpos = 0xFFFF;
-                        //
-                        if (curr_cursorspalte==0) // position am linken Rand
+                        if ((blink_cursorpos == 0xFFFF) && manuellcounter)
                         {
+                           manuellcounter=0;
+                           
+                           blink_cursorpos = 0xFFFF;
+                           //
+                           if (curr_cursorspalte==0) // position am linken Rand
+                           {
+                              display_clear();
+                              curr_cursorzeile=0;
+                              last_cursorspalte=0;
+                              last_cursorzeile=0;
+                              curr_screen=SETTINGSCREEN;
+                              setsettingscreen();
+                           }
+                           else
+                           {
+                              
+                           }
+                           manuellcounter=0;
+                        }
+                        else if (manuellcounter)
+                        {
+                           blink_cursorpos = 0xFFFF;
+                           manuellcounter=0;
+                        }
+                     }break;
+                        
+                        
+                     case LEVELSCREEN: // Level einstellen
+                     {
+                        if ((blink_cursorpos == 0xFFFF) && manuellcounter)
+                        {
+                           manuellcounter=0;
                            display_clear();
-                           curr_cursorzeile=0;
+                           curr_screen=KANALSCREEN;
+                           curr_cursorspalte=0;
+                           curr_cursorzeile=1; // Zeile Level
                            last_cursorspalte=0;
                            last_cursorzeile=0;
-                           curr_screen=SETTINGSCREEN;
-                           setsettingscreen();
+                           blink_cursorpos = 0xFFFF;
+                           setcanalscreen();
+                           
+                           manuellcounter=0;
                         }
-                        else
+                        else if (manuellcounter)
                         {
                            
+                           blink_cursorpos = 0xFFFF;
+                           manuellcounter=0;
                         }
-                        manuellcounter=0;
-                     }
-                     else if (manuellcounter)
-                     {
                         
-                        blink_cursorpos = 0xFFFF;
-                        manuellcounter=0;
-                     }
-                  }break;
-                     
-                  case ZUTEILUNGSCREEN: // Settings
-                     
-                  {
-                     if ((blink_cursorpos == 0xFFFF) && manuellcounter)
-                     {
-                        manuellcounter=0;
+                     }break;
                         
-                        blink_cursorpos = 0xFFFF;
-                        //
-                        if (curr_cursorspalte==0) // position am linken Rand
+                     case EXPOSCREEN: // Level einstellen
+                     {
+                        if ((blink_cursorpos == 0xFFFF) && manuellcounter)
                         {
+                           manuellcounter=0;
                            display_clear();
-                           curr_cursorzeile=0;
+                           curr_screen=KANALSCREEN;
+                           curr_cursorspalte=0;
+                           curr_cursorzeile=2; //Zeile Expo
                            last_cursorspalte=0;
                            last_cursorzeile=0;
-                           curr_screen=SETTINGSCREEN;
-                           setsettingscreen();
+                           blink_cursorpos = 0xFFFF;
+                           setcanalscreen();
+                           
+                           manuellcounter=0;
                         }
-                        else
+                        else if (manuellcounter)
                         {
                            
+                           blink_cursorpos = 0xFFFF;
+                           manuellcounter=0;
                         }
-                        manuellcounter=0;
-                     }
-                     else if (manuellcounter)
-                     {
                         
-                        blink_cursorpos = 0xFFFF;
-                        manuellcounter=0;
-                     }
-                  }break;
-                     
-                  case AUSGANGSCREEN: // Settings
-                     
-                  {
-                     if ((blink_cursorpos == 0xFFFF) && manuellcounter)
-                     {
-                        manuellcounter=0;
+                     }break;
                         
-                        blink_cursorpos = 0xFFFF;
-                        //
-                        if (curr_cursorspalte==0) // position am linken Rand
+                     case MIXSCREEN: // Settings
+                     {
+                        if ((blink_cursorpos == 0xFFFF) && manuellcounter)
+                        {
+                           manuellcounter=0;
+                           
+                           blink_cursorpos = 0xFFFF;
+                           //
+                           if (curr_cursorspalte==0) // position am linken Rand
+                           {
+                              display_clear();
+                              curr_cursorzeile=0;
+                              last_cursorspalte=0;
+                              last_cursorzeile=0;
+                              curr_screen=SETTINGSCREEN;
+                              setsettingscreen();
+                           }
+                           else
+                           {
+                              
+                           }
+                           manuellcounter=0;
+                        }
+                        else if (manuellcounter)
                         {
                            
-                           display_clear();
-                           curr_cursorzeile=0;
-                           last_cursorspalte=0;
-                           last_cursorzeile=0;
-                           curr_screen=SETTINGSCREEN;
-                           setsettingscreen();
+                           blink_cursorpos = 0xFFFF;
+                           manuellcounter=0;
                         }
-                        else
+                     }break;
+                        
+                     case ZUTEILUNGSCREEN: // Settings
+                        
+                     {
+                        if ((blink_cursorpos == 0xFFFF) && manuellcounter)
+                        {
+                           manuellcounter=0;
+                           
+                           blink_cursorpos = 0xFFFF;
+                           //
+                           if (curr_cursorspalte==0) // position am linken Rand
+                           {
+                              display_clear();
+                              curr_cursorzeile=0;
+                              last_cursorspalte=0;
+                              last_cursorzeile=0;
+                              curr_screen=SETTINGSCREEN;
+                              setsettingscreen();
+                           }
+                           else
+                           {
+                              
+                           }
+                           manuellcounter=0;
+                        }
+                        else if (manuellcounter)
                         {
                            
+                           blink_cursorpos = 0xFFFF;
+                           manuellcounter=0;
                         }
-                        manuellcounter=0;
-                     }
-                     else if (manuellcounter)
-                     {
+                     }break;
                         
-                        blink_cursorpos = 0xFFFF;
-                        manuellcounter=0;
-                     }
-                  }break;
-                     
-               }// switch
+                     case AUSGANGSCREEN: // Settings
+                        
+                     {
+                        if ((blink_cursorpos == 0xFFFF) && manuellcounter)
+                        {
+                           manuellcounter=0;
+                           
+                           blink_cursorpos = 0xFFFF;
+                           //
+                           if (curr_cursorspalte==0) // position am linken Rand
+                           {
+                              
+                              display_clear();
+                              curr_cursorzeile=0;
+                              last_cursorspalte=0;
+                              last_cursorzeile=0;
+                              curr_screen=SETTINGSCREEN;
+                              setsettingscreen();
+                           }
+                           else
+                           {
+                              
+                           }
+                           manuellcounter=0;
+                        }
+                        else if (manuellcounter)
+                        {
+                           
+                           blink_cursorpos = 0xFFFF;
+                           manuellcounter=0;
+                        }
+                     }break;
+                        
+                  }// switch
+               }
             }
             else // schon homescreen, motorzeit reset
             {
@@ -4209,7 +4243,8 @@ void loop()
                   programmstatus &= ~(1<<STOP_ON);
                   stopsekunde=0;
                   stopminute=0;
-                  update_time();
+                  //update_time();
+                  update_stopzeit();
                }
                manuellcounter=0; // timeout zuruecksetzen
                

@@ -85,11 +85,10 @@ extern volatile uint16_t      motorminute;
 extern volatile uint16_t      stopminute;
 extern volatile uint16_t      batteriespannung;
 
-/*
-extern volatile uint16_t systemsekunde;
-extern volatile uint16_t systemminute;
-extern volatile uint8_t systemstunde;
-*/
+extern volatile uint16_t sendesekunde;
+extern volatile uint16_t sendeminute;
+extern volatile uint8_t sendestunde;
+
 extern volatile uint16_t      tastentransfer;
 
 extern volatile uint16_t  posregister[8][8]; // Aktueller screen: werte fuer page und daraufliegende col fuer Menueintraege (hex). geladen aus progmem
@@ -203,6 +202,7 @@ void sethomescreen(void)
 {
    // Laufzeit
    resetRegister();
+   blink_cursorpos=0xFFFF;
    posregister[0][0] = itemtab[5] | (1 << 8);// Laufzeit Anzeige
    
    
@@ -338,6 +338,7 @@ void sethomescreen(void)
    char_x += 2;
    strcpy(titelbuffer, ((TitelTable[4])));
    display_write_str(titelbuffer,2);
+   
    
 }// sethomescreen
 
@@ -1053,13 +1054,14 @@ void settrimmscreen(void)
 
 void update_motorzeit(void)
 {   
+   /*
    char_x = posregister[0][0] & 0x00FF;
    char_y= (posregister[0][0] & 0xFF00)>>8;
    char_height_mul = 1;
    char_width_mul = 1;
-   
+   */
    //display_write_min_sek(motorsekunde, 2);
-   display_write_zeit(motorsekunde&0xFF,motorminute,motorstunde, 2);
+   //display_write_zeit(motorsekunde&0xFF,motorminute,motorstunde, 2);
    
     
    // Motorzeit aktualisieren
@@ -1073,9 +1075,8 @@ void update_motorzeit(void)
     
 }
 
-void update_stopzeit(void)
+void update_sendezeit(void)
 {
-   
    char_x = posregister[0][0] & 0x00FF;
    char_y= (posregister[0][0] & 0xFF00)>>8;
    char_height_mul = 1;
@@ -1083,7 +1084,22 @@ void update_stopzeit(void)
    
    //display_write_min_sek(motorsekunde, 2);
    //display_write_zeit(systemsekunde&0xFF,systemminute,systemstunde, 2);
-   
+   display_write_zeit(sendesekunde&0xFF,sendeminute,sendestunde, 2);
+
+}
+
+void update_stopzeit(void)
+{
+   /*
+   char_x = posregister[0][0] & 0x00FF;
+   char_y= (posregister[0][0] & 0xFF00)>>8;
+   char_height_mul = 1;
+   char_width_mul = 1;
+   */
+   //display_write_min_sek(motorsekunde, 2);
+   //display_write_zeit(systemsekunde&0xFF,systemminute,systemstunde, 2);
+  // display_write_zeit(sendesekunde&0xFF,sendeminute,sendestunde, 2);
+
    // Stoppzeit aktualisieren
    char_y= (posregister[2][1] & 0xFF00)>>8;
    char_x = posregister[2][1] & 0x00FF;
@@ -1097,15 +1113,15 @@ void update_stopzeit(void)
 
 void update_time(void)
 {
-   
+   /*
    char_x = posregister[0][0] & 0x00FF;
    char_y= (posregister[0][0] & 0xFF00)>>8;
    char_height_mul = 1;
    char_width_mul = 1;
-   
+   */
    //display_write_min_sek(motorsekunde, 2);
    //display_write_zeit(systemsekunde&0xFF,systemminute,systemstunde, 2);
-   display_write_zeit(motorsekunde&0xFF,motorminute,motorstunde, 2);
+   //display_write_zeit(motorsekunde&0xFF,motorminute,motorstunde, 2);
 
    // Stoppzeit aktualisieren
    char_y= (posregister[2][1] & 0xFF00)>>8;
