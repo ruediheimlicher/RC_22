@@ -89,6 +89,7 @@ volatile uint8_t           servostatus=0;
 volatile uint8_t           tastaturstatus=0;
 #define TASTEOK   1
 #define AKTIONOK 2
+#define UPDATEOK 3
 elapsedMillis sinceblink;
 elapsedMillis sincelcd;
 elapsedMicros sinceusb;
@@ -229,8 +230,8 @@ volatile uint8_t                 last_cursorspalte=0; // letzte colonne des curs
 
 volatile uint8_t                  masterstatus = 0;
 volatile uint8_t                   eepromsavestatus = 0;
-
-volatile uint16_t manuellcounter=0;
+volatile uint16_t                updatecounter=0; // Zaehler fuer Einschalten
+volatile uint16_t                manuellcounter=0;
 
 // Tastatur
 volatile uint8_t                 Tastenindex=0;
@@ -2618,7 +2619,7 @@ void loop()
                }break;
 
                   
-               case SETTINGSCREEN: // setting
+               case SETTINGSCREEN: // 5 setting
                {
                   #pragma mark  5 SETTINGSCREEN
                   if (manuellcounter)
@@ -3617,7 +3618,7 @@ void loop()
             if (tastaturstatus & (1<<AKTIONOK))
             {
                tastaturstatus &=  ~(1<<AKTIONOK);
-               
+               tastaturstatus |= (1<<UPDATEOK);
                switch (curr_screen)
                {
                   case HOMESCREEN: // home
@@ -3643,11 +3644,13 @@ void loop()
                      
                      
                   }break;
-                     
+#pragma mark 8 SETTINGSCREEN                   
                   case SETTINGSCREEN: // Settings
                   {
                      if ((blink_cursorpos == 0xFFFF) && manuellcounter) // kein Blinken
                      {
+                        uint8_t cur = (posregister[curr_cursorzeile+1][curr_cursorspalte]&0xFF00)>>8;
+                        Serial.printf("H8 curr_cursorzeile: %d curr_cursorspalte: %d\n",curr_cursorzeile,curr_cursorspalte);
                         /*
                          lcd_gotoxy(5,1);
                          lcd_puthex(curr_cursorzeile);
@@ -4238,6 +4241,12 @@ void loop()
                   }break; // case ausgang
                      
                }// switch
+               if (tastaturstatus & (1<<UPDATEOK))
+               {
+                  tastaturstatus &= ~(1<<UPDATEOK);
+                  Serial.printf("H8 update curscreen: %d\n",curr_screen);
+                  update_screen();
+               }
             }//if AKTIONOK
             
             

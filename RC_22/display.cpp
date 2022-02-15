@@ -387,7 +387,7 @@ void setsettingscreen(void)
    
    //display_write_prop_str(char_y,char_x,0,menubuffer,2);
    //display_write_str(menubuffer,1);
-   char_height_mul = 2;
+   char_height_mul = 1;
    char_width_mul = 1;
 
    char_y= (cursorpos[0][0] & 0xFF00)>>8;
@@ -3815,17 +3815,17 @@ void display_pfeilvollrechts(uint8_t col, uint8_t page)
 //Ausgabe eines Symbols
 //
 //##############################################################################################
-void display_write_symbol(const char symbol)
+void display_write_symbol(char* symbol)
 {
 	unsigned char col,page,tmp1,tmp2,tmp3,tmp4,counter;
-	PGM_P pointer = symbol;
-	
-	
+	char* pointer = symbol;
+   uint8_t symboldelay = 2;
+   uint8_t count = 0;
 	for(col=(char_x+DISPLAY_OFFSET);col<(char_x+(FONT_WIDTH*char_width_mul)+DISPLAY_OFFSET);col=col+char_width_mul)
 	{
 		for (page=char_y;page<(char_y+((FONT_HEIGHT/8)*char_height_mul));page = page +char_height_mul)
 		{
-			tmp1 = pgm_read_byte(pointer++);
+			tmp1 = (symbol[count++]);
 			
 			if (char_height_mul > 1)
 			{
@@ -3887,6 +3887,83 @@ void display_write_symbol(const char symbol)
 	}
 	return;
 }
+// **********
+void display_write_symbol_T(char* symbol, uint8_t cols, uint8_t rows)
+{
+   unsigned char col,page,tmp1,tmp2,tmp3,tmp4,counter;
+   char* pointer = symbol;
+   uint8_t symboldelay = 2;
+   uint8_t count = 0;
+   for(col=(char_x+DISPLAY_OFFSET);col<(char_x+(FONT_WIDTH*char_width_mul)+DISPLAY_OFFSET);col=col+char_width_mul)
+   {
+      for (page=char_y;page<(char_y+((FONT_HEIGHT/8)*char_height_mul));page = page +char_height_mul)
+      {
+         tmp1 = (symbol[count++]);
+         
+         if (char_height_mul > 1)
+         {
+            tmp2 = (tmp1&0xf0)>>4;
+            tmp1 = tmp1 & 0x0f;
+            
+            tmp1 = ((tmp1&0x01)*3)+(((tmp1&0x02)<<1)*3)+(((tmp1&0x04)<<2)*3)+(((tmp1&0x08)<<3)*3);
+            tmp2 = ((tmp2&0x01)*3)+(((tmp2&0x02)<<1)*3)+(((tmp2&0x04)<<2)*3)+(((tmp2&0x08)<<3)*3);
+            
+            if (char_height_mul>2)
+            {
+               tmp3 = tmp2;
+               tmp2 = (tmp1&0xf0)>>4;
+               tmp1 = tmp1 & 0x0f;
+               
+               tmp1 = ((tmp1&0x01)*3)+(((tmp1&0x02)<<1)*3)+(((tmp1&0x04)<<2)*3)+(((tmp1&0x08)<<3)*3);
+               tmp2 = ((tmp2&0x01)*3)+(((tmp2&0x02)<<1)*3)+(((tmp2&0x04)<<2)*3)+(((tmp2&0x08)<<3)*3);
+               
+               
+               tmp4 = (tmp3&0xf0)>>4;
+               tmp3 = tmp3 & 0x0f;
+               
+               tmp3 = ((tmp3&0x01)*3)+(((tmp3&0x02)<<1)*3)+(((tmp3&0x04)<<2)*3)+(((tmp3&0x08)<<3)*3);
+               tmp4 = ((tmp4&0x01)*3)+(((tmp4&0x02)<<1)*3)+(((tmp4&0x04)<<2)*3)+(((tmp4&0x08)<<3)*3);
+               
+               display_go_to(col,page+1);
+               for(counter = 0;counter<char_width_mul;counter++)
+               {
+                  display_write_byte(0,tmp3);
+               }
+               
+               display_go_to(col,page+2);
+               for(counter = 0;counter<char_width_mul;counter++)
+               {
+                  display_write_byte(0,tmp4);
+               }
+            }
+            
+            
+            display_go_to(col,page);
+            
+            for(counter = 0;counter<char_width_mul;counter++)
+            {
+               display_write_byte(DATEN,tmp2);
+            }
+         }
+         
+         display_go_to(col,page-1);
+         for(counter = 0;counter<char_width_mul;counter++)
+         {
+            display_write_byte(DATEN,tmp1);
+         }
+      }
+   }
+   
+   if (char_x < (128 + DISPLAY_OFFSET))
+   {
+      char_x = char_x + (FONT_WIDTH*char_width_mul);
+   }
+   return;
+}
+
+
+
+// **************
 
 void display_write_propsymbol(const char symbol)
 {
@@ -3979,7 +4056,43 @@ void display_write_propsymbol(const char symbol)
 
  */
 
+// progmem_image - prog_uint8_t array of columns aka the bitmap image
+// x             - x start coordinate on the screen (in pixel)
+// y             - y start coordinate on the screen (in pixel)
+// pages         - height of image in pages
+// columns       - width of image in pixels
+// style         - Bit2: sets inverse mode
+/*
+void lcd_draw_image_xy_P(char* progmem_image, uint8_t x, uint8_t y, uint8_t pages, uint8_t columns, uint8_t style) 
+{
+  uint16_t i,j;
+ uint8_t data   = 0;
+ uint8_t inv    = style & INVERT_BIT;
+  uint8_t offset = y & 0x7; //Optimized modulo 8
+  //If there is an offset, we must use an additional page
+  if(offset)  
+   pages++;
+ //If there is not enough vertical space -> cut image
+ if(pages > LCD_RAM_PAGES - lcd_get_position_page())   
+   pages = LCD_RAM_PAGES - lcd_get_position_page();
+ //Goto starting point and draw
+  lcd_moveto_xy((y>>3), x);
+  for (j=0; j<pages; j++) {
+     for (i=0; i<columns && (lcd_get_position_column() < LCD_WIDTH); i++){
+     data = 0;
+     if (!offset || j+1 != pages)
+       data = progmem_image[j*columns + i]) << offset;
+        if(j > 0 && offset)
+           data |= (progmem_image[(j-1)*columns + i]) >> (8-offset);
+        if(inv)   lcd_data(~data);
+     else       lcd_data(data);
+       }
+     if(j+1 != pages)
+        lcd_move_xy(1,-columns);
+    }
+ }
 
+*/
 /*
  * File:        dogl.c
  * Project:     Mini Anzeige Modul
@@ -4121,7 +4234,7 @@ void r_uitoa8(int8_t zahl, char* string)
 //##############################################################################################
 
 
-uint8_t spi_out(uint8_t DATENout)
+uint8_t spi_out(uint8_t Datenout)
 {
    uint8_t spidelay = 1;
    cli();
@@ -4132,7 +4245,7 @@ uint8_t spi_out(uint8_t DATENout)
    uint8_t pos=0;
    //SCL_LO; // SCL LO
    digitalWriteFast(DOG_SCL,0); 
-   uint8_t tempDATEN=DATENout;
+   uint8_t tempDATEN=Datenout;
    _delay_us(spidelay);
    for (pos=8;pos>0;pos--)
    {

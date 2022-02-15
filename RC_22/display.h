@@ -155,7 +155,7 @@ void display_write_P (const char *Buffer,...);
 void display_write_int(uint8_t zahl, uint8_t prop);
 void display_inverse(uint8_t inv);
 uint8_t spi_out(uint8_t dataout);
-void display_write_symbol(const char symbol);
+void display_write_symbol( char* symbol);
 void display_write_propsymbol(const char symbol);
 
 void display_pfeilvollrechts(uint8_t col, uint8_t page);
