@@ -380,14 +380,18 @@ void setsettingscreen(void)
    char_height_mul = 1;
    char_width_mul = 1;
    display_write_inv_str(SettingTable[0],1);
-   char_height_mul = 1;
+   char_height_mul = 2;
    char_width_mul = 1;
    
    // Modell Name
    
    //display_write_prop_str(char_y,char_x,0,menubuffer,2);
-   //display_write_str(menubuffer,1);
-   char_height_mul = 1;
+   
+   char_y= (posregister[0][0] & 0xFF00)>>8;
+   char_x = posregister[0][0] & 0x00FF;
+
+   display_write_str(ModelTable[curr_model],1);
+   char_height_mul = 2;
    char_width_mul = 1;
 
    char_y= (cursorpos[0][0] & 0xFF00)>>8;
@@ -448,6 +452,7 @@ void setsettingscreen(void)
 
 void setcanalscreen(void)
 {
+   Serial.printf("setcanalscreen curr_screen: %d\n",curr_screen);
    resetRegister();
    blink_cursorpos=0xFFFF;
    
@@ -609,7 +614,7 @@ void setcanalscreen(void)
    display_write_int((expowert & 0x03),1);
 
    char_height_mul = 1;
-
+   Serial.printf("setcanalscreen end\n");
    
    // Typ anzeigen nur symbol
    
@@ -868,12 +873,12 @@ void setzuteilungscreen(void)
    cursorpos[2][1] = 70 |  (8 << 8); //
 
    
-   strcpy(menubuffer, (&(ZuteilungTable[0]))); // titel
+   //strcpy(menubuffer, (&(ZuteilungTable[0]))); // titel
    char_y= 1;
    char_x = itemtab[0] ;
    char_height_mul = 1;
    char_width_mul = 1;
-   display_write_str(menubuffer,2);
+   display_write_str(ZuteilungTable[0],2);
    uint8_t page=0;
    for(page=3;page < 5;page++)
    {
@@ -1164,6 +1169,7 @@ uint8_t update_screen(void)
    uint8_t fehler=0;
    uint16_t cursorposition = cursorpos[curr_cursorzeile][curr_cursorspalte];
    fehler=1;
+   Serial.printf("****************  update_screen: %d\n",curr_screen);
    switch (curr_screen)
    {
          
@@ -1345,7 +1351,7 @@ uint8_t update_screen(void)
          
       case KANALSCREEN: // Kanal
       {
-         if (programmstatus & (1<< UPDATESCREEN))
+    //     if (programmstatus & (1<< UPDATESCREEN))
          {
             programmstatus &= ~(1<< UPDATESCREEN);
             
@@ -3890,6 +3896,7 @@ void display_write_symbol(char* symbol)
 // **********
 void display_write_symbol_T(char* symbol, uint8_t cols, uint8_t rows)
 {
+   // https://www.mikrocontroller.net/topic/144500?page=single
    unsigned char col,page,tmp1,tmp2,tmp3,tmp4,counter;
    char* pointer = symbol;
    uint8_t symboldelay = 2;
