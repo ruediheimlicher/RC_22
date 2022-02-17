@@ -45,7 +45,7 @@
 #include "settings.h"
 //#include "spi_eeprom.h"
 #include "display.h"
-
+#include "expo.h"
 // Display
 
 
@@ -91,6 +91,7 @@ volatile uint8_t           tastaturstatus=0;
 #define AKTIONOK 2
 #define UPDATEOK 3
 elapsedMillis sinceblink;
+elapsedMillis sinceupdatesceen=0;
 elapsedMillis sincelcd;
 elapsedMicros sinceusb;
 uint16_t cncdelaycounter = 0;
@@ -137,17 +138,19 @@ volatile uint8_t           servoindex = 0;
 volatile uint16_t impulstimearray[NUM_SERVOS] = {};
 
 volatile uint8_t adcpinarray[NUM_SERVOS] = {};
+volatile uint16_t servomittearray[NUM_SERVOS] = {}; // Werte fuer Mitte
+
 // Prototypes
 ADC *adc = new ADC(); // adc object
 
 #define POTLO  10
 #define POTHI  4092
-#define PPMLO  500
-#define PPMHI  1500
+#define PPMLO  750
+#define PPMHI  2250
 
 #define SHIFT 0xFFFFF
 
-#define IMPULSBREITE 50
+#define IMPULSBREITE 20
 // Pot
 /*
 volatile uint16_t potlo = POTLO; // min pot
@@ -227,6 +230,8 @@ volatile uint8_t                 curr_cursorspalte=0; // aktuelle colonne des cu
 volatile uint8_t                 last_cursorzeile=0; // letzte zeile des cursors
 volatile uint8_t                 last_cursorspalte=0; // letzte colonne des cursors
 
+static volatile uint8_t             displaystatus=0x00; // Tasks fuer Display
+static volatile uint16_t            displaycounter=0;
 
 volatile uint8_t                  masterstatus = 0;
 volatile uint8_t                   eepromsavestatus = 0;
@@ -921,6 +926,7 @@ void setup()
        impulstimearray[i] = wert; // mittelwert
    //Serial.printf("i: %d wert:\t %d\n",i,wert);
       adcpinarray[i] = 0xFF;
+      servomittearray[i] = 1500;
    }
    // init Pins
    
@@ -1019,6 +1025,20 @@ void loop()
    {
       Serial.printf("first run\n");
       servostatus |= (1<<RUN);
+      // Mitte lesen
+      Serial.printf("Mitte lesen\n");
+      for (uint8_t i=0;i<NUM_SERVOS;i++)
+      {
+         if (adcpinarray[i] < 0xFF) // PIN belegt
+         {
+            uint16_t potwert = adc->adc0->analogRead(adcpinarray[i])/2;
+            float ppmfloat = PPMLO + quot *(float(potwert)-POTLO);
+            uint16_t ppmint = uint16_t(ppmfloat);
+            Serial.printf("i: %d pin: %d\n",i,potwert);
+            servomittearray[i] = ppmint;
+         }
+         
+      }
    }
    
    if (sincelastseccond > 1000)
@@ -1086,8 +1106,20 @@ void loop()
 
    } // 1000
    
+   if (sinceupdatesceen > 100) 
+   {
+      displaystatus |= (1<<UHR_UPDATE);
+      //Serial.printf("updatesceen\n");
+         update_screen();
+         //OSZI_B_HI;
+         
+      sinceupdatesceen=0;
+   }
+   
    if (sinceblink > 500) 
    {   
+  
+      
       //digitalWrite(OSZI_PULS_A, !digitalRead(OSZI_PULS_A));
       manuellcounter++;
       //Serial.printf("manuellcounter: %d\n",manuellcounter);
@@ -1197,6 +1229,7 @@ void loop()
    
    }// sinceblink
    
+// MARK:  -  ADC_OK
    
    if (servostatus & (1<<ADC_OK)) // 20us pro kanal ohne printf
    {
@@ -1212,19 +1245,47 @@ void loop()
          {
             if (adcpinarray[i] == 0xEF) // last
             {
-               impulstimearray[i] = 1000;
+               impulstimearray[i] = 1000; // 
             }
             else 
             {
             uint16_t potwert = adc->adc0->analogRead(adcpinarray[i]);
             float ppmfloat = PPMLO + quot *(float(potwert)-POTLO);
             uint16_t ppmint = uint16_t(ppmfloat);
-               /*
-            if (i == 0)
+               uint16_t expo  = 0;  
+               uint16_t expoabs  = 0;  
+               
+            if (i <2)
             {
-               Serial.printf("servo %d potwert: %d   ppmfloat: %.6f\n",i,potwert,ppmfloat);    
+               /*
+               int16_t expoabs = abs( ppmint - servomittearray[i]); // Abweichun ^g von mitte
+               if (expoabs > 0x200)
+               {
+                  Serial.printf("servo %d expoabs zu gross: %d\n",expoabs);
+                  expoabs = 0x200;
+               }
+                
+                
+               expoarray[1][expoabs];
+               
+                */
+/*
+               if (ppmint < servomittearray[i])
+               {
+                  ppmint = servomittearray[i] - expo;
+               }
+                  else
+                  {
+                     ppmint = servomittearray[i] + expo;
+                  }
+ */
+               if (i==0)
+               {
+               Serial.printf("servo %d potwert: %d   ppmfloat: %.6f ppmint: %d expoabs: %d expo: %d\n",i,potwert,ppmfloat,ppmint,expoabs, expo);
+               }
+ 
             }                 
-            */
+            
             impulstimearray[i] = ppmint;
             //impulstimearray[i] = potwert;
             }
@@ -1234,11 +1295,11 @@ void loop()
       }
       servostatus &= ~(1<<ADC_OK);
       
-      // MARK:  Tastatur ADC
+      // MARK - Tastatur ADC
       Tastenwert=(adc->adc0->analogRead(TASTATURPIN))>>2;
       if (curr_screen )
       {
-         Serial.printf("C");
+         //Serial.printf("C");
       }
       //Tastenwert = 0;
       if (Tastenwert>5)
@@ -1352,7 +1413,7 @@ void loop()
             
          case 2://
          {
-#pragma mark Taste 2
+#pragma mark - Taste 2
             if (tastaturstatus & (1<<AKTIONOK))
             {
                tastaturstatus &=  ~(1<<AKTIONOK);
@@ -1556,7 +1617,7 @@ void loop()
                         manuellcounter=0;
                      }
                   }break;
-                     
+#pragma mark 2 KANALSCREEN                    
                   case KANALSCREEN: // Kanalsettings
                   {
                      /*
@@ -1670,6 +1731,7 @@ void loop()
                               {
                                  case 0: // Levelwert A
                                  {
+                                    Serial.printf("2 Levelwert A curr level: %d\n",curr_levelarray[curr_kanal] );
                                     if ((curr_levelarray[curr_kanal] & 0x70)>>4)
                                     {
                                        curr_levelarray[curr_kanal] -= 0x10;
@@ -3937,10 +3999,12 @@ void loop()
                            case  1: // Level
                            {
                               eepromsavestatus |= (1<<SAVE_LEVEL);
+                              
                               switch (curr_cursorspalte)
                               {
                                  case 0: // Levelwert A
                                  {
+                                    Serial.printf("8 Levelwert A curr level: %d\n",curr_levelarray[curr_kanal] );
                                     if (((curr_levelarray[curr_kanal] & 0x70)>>4)<5)
                                     {
                                        curr_levelarray[curr_kanal] += 0x10;

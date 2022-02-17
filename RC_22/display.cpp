@@ -221,25 +221,7 @@ void sethomescreen(void)
    posregister[4][1] = (80+OFFSET_6_UHR) | (3 << 8); // Text Setting
    posregister[4][2] = (100+OFFSET_6_UHR) | (3 << 8); // Anzeige Setting
 
-   /*
-   display_go_to(4,4);
-   _delay_us(50);
-   display_write_str("abc",2);
-  
    
-   //display_write_str(titel0,2);
-   strcpy(titelbuffer, TitelTable[2]);
-   
-   Serial.printf("titel0: %s\n",titel0);
-   Serial.printf("titeltable: %s  %s %s\n",TitelTable[0],TitelTable[1] ,titelbuffer);
-  
-   
-   display_write_str(TitelTable[0],2);
-   display_write_str(titelbuffer,2);
-   display_write_str("def",2);
-    */
-  
-  
    // positionen lesen
    // titel setzen
 
@@ -265,7 +247,6 @@ void sethomescreen(void)
    char_width_mul = 1;
    
    // Stoppuhrtext schreiben
-   //strcpy(titelbuffer, ((TitelTable[2]))); // Text Stoppuhr
    char_x = (posregister[2][0] & 0x00FF);
    char_y= (posregister[2][0] & 0xFF00)>>8;
    display_write_str(TitelTable[2],2);
@@ -281,7 +262,6 @@ void sethomescreen(void)
    
    
    // Motorzeittext schreiben
-   //strcpy(titelbuffer, ((TitelTable[3]))); // Text Motorzeit
    char_x = (posregister[1][0] & 0x00FF);
    char_y= ((posregister[1][0] & 0xFF00)>>8);
    char_height_mul = 1;
@@ -299,7 +279,6 @@ void sethomescreen(void)
   
    
    // Modell schreiben
-   //strcpy(titelbuffer, ((ModelTable[curr_model])));
    char_y= (posregister[4][0] & 0xFF00)>>8;
    char_x = posregister[4][0] & 0x00FF;
    //display_write_prop_str(char_y,char_x,0,titelbuffer,2);
@@ -307,10 +286,10 @@ void sethomescreen(void)
    display_write_str(ModelTable[curr_model],1);
 
    char_height_mul = 1;
-   strcpy(titelbuffer, ((TitelTable[5])));
+   //strcpy(titelbuffer, ((TitelTable[5])));
    char_y= (posregister[4][1] & 0xFF00)>>8;
    char_x = posregister[4][1] & 0x00FF;
-   display_write_str(titelbuffer,2);
+   display_write_str(TitelTable[5],2);
    char_y= (posregister[4][2] & 0xFF00)>>8;
    char_x = posregister[4][2] & 0x00FF;
    display_write_int(curr_setting,2);
@@ -323,9 +302,8 @@ void sethomescreen(void)
    // Batteriespannung
    char_y= ((posregister[3][0] & 0xFF00)>>8)+1;
    char_x = posregister[3][0] & 0x00FF;
-   strcpy(titelbuffer, ((TitelTable[6]))); // Akku
    char_height_mul = 1;
-   display_write_str(titelbuffer,2);
+   display_write_str(TitelTable[6],2);
    
    char_height_mul = 1;
    char_width_mul = 1;
@@ -336,8 +314,7 @@ void sethomescreen(void)
    char_y = 8;
    display_write_symbol(pfeilvollrechts);
    char_x += 2;
-   strcpy(titelbuffer, ((TitelTable[4])));
-   display_write_str(titelbuffer,2);
+   display_write_str(TitelTable[4],2);
    
    
 }// sethomescreen
@@ -374,7 +351,6 @@ void setsettingscreen(void)
    cursorpos[4][0] = cursortab[0] |    (7 << 8);  // cursorpos fuer zuteilung
   
    
-   //strcpy(menubuffer, (&(SettingTable[0]))); // "Settings"
    char_x=itemtab[0];
    char_y = 1;
    char_height_mul = 1;
@@ -399,7 +375,6 @@ void setsettingscreen(void)
    display_write_symbol(pfeilvollrechts);
    
    // 2. Zeile Set mit Nummer
-   //strcpy(menubuffer, (&(SettingTable[2])));
    char_y= (posregister[0][2] & 0xFF00)>>8;
    char_x = posregister[0][2] & 0x00FF;
    
@@ -408,7 +383,6 @@ void setsettingscreen(void)
    
 
    // Kanal-Zeile
-   //strcpy(menubuffer, (&(SettingTable[3])));
    char_y= (posregister[1][0] & 0xFF00)>>8;
    char_x = posregister[1][0] & 0x00FF;
    //char_x=0;
@@ -420,21 +394,18 @@ void setsettingscreen(void)
 
    
    // Mix-Zeile
-   //strcpy(menubuffer, (&(SettingTable[4])));
    char_y= (posregister[2][0] & 0xFF00)>>8;
    char_x = posregister[2][0] & 0x00FF;
    //char_x=0;
    display_write_str(SettingTable[4],2);
    
    // Zuteilung-Zeile
-   //strcpy(menubuffer, (&(SettingTable[5])));
    char_y= (posregister[3][0] & 0xFF00)>>8;
    char_x = posregister[3][0] & 0x00FF;
    //char_x=0;
    display_write_str(SettingTable[5],2);
  
    // Output-Zeile
-   //strcpy(menubuffer, (&(SettingTable[6])));
    char_y= (posregister[4][0] & 0xFF00)>>8;
    char_x = posregister[4][0] & 0x00FF;
    //char_x=0;
@@ -506,7 +477,6 @@ void setcanalscreen(void)
    cursorpos[4][0] =cursortab[0] |   (1 << 8); // cursorpos fuer Art
    
    
-   //strcpy(menubuffer, (&(KanalTable[0]))); // Kanalname
    char_y= (posregister[0][0] & 0xFF00)>>8;
    char_x = posregister[0][0] & 0x00FF;
    char_height_mul = 1;
@@ -515,7 +485,6 @@ void setcanalscreen(void)
    char_height_mul = 1;
    
 // Richtung anzeigen
-   //strcpy(menubuffer,(&(KanalTable[1]))); // Richtung
    char_y= (posregister[0][2] & 0xFF00)>>8;
    char_x = posregister[0][2] & 0x00FF;
    display_write_str(KanalTable[1],2);
@@ -523,7 +492,6 @@ void setcanalscreen(void)
    char_height_mul = 1;
 
    // Funktion anzeigen
-   //strcpy(menubuffer, (&(FunktionTable[curr_kanal]))); // Richtung
    char_y= (posregister[0][4] & 0xFF00)>>8;
    char_x = posregister[0][4] & 0x00FF;
    display_write_str(FunktionTable[curr_kanal],2);
@@ -533,41 +501,36 @@ void setcanalscreen(void)
  
    
    
-   // Level anzeigen
-   //strcpy(menubuffer, (&(KanalTable[2]))); // Leveltext
+   // Bezeichnung Level anzeigen
    char_y= (posregister[1][0] & 0xFF00)>>8;
    char_x = posregister[1][0] & 0x00FF;
    
    display_write_str(KanalTable[2],1);
-   
+   Serial.printf("Level charx: %d chary: %d Level: %s\n",char_x, char_y,KanalTable[2]);
    char_height_mul = 1;
  
    // Level A text
-//   strcpy(menubuffer, (&(KanalTable[4]))); // Leveltext
    char_y= (posregister[1][1] & 0xFF00)>>8;
    char_x = posregister[1][1] & 0x00FF;
-   //display_write_str(menubuffer,1);
+   //display_write_str(KanalTable[4],1);
  
    // Level A wert
-   //strcpy(menubuffer, (&(KanalTable[2]))); // Level wert A
    char_y= (posregister[1][2] & 0xFF00)>>8;
    char_x = posregister[1][2] & 0x00FF;
    char_width_mul = 1;
-   //display_write_int((curr_settingarray[curr_kanal][0] & 0x70)>>4,1);
    display_write_int((curr_levelarray[curr_kanal] & 0x70)>>4,1);
 
    //display_write_int((levelwert & 0x07),1);
    
    char_width_mul = 1;
    char_height_mul = 1;
+   
    // Level B text
- //  strcpy(menubuffer, (&(KanalTable[5]))); // Leveltext
    char_y= (posregister[1][3] & 0xFF00)>>8;
    char_x = posregister[1][3] & 0x00FF;
-   //display_write_str(menubuffer,2);
+   //display_write_str(KanalTable[5],2);
    
    // Level B wert
-   //strcpy(menubuffer, (&(KanalTable[2]))); // Level wert B
    char_width_mul = 1;
    char_y= (posregister[1][4] & 0xFF00)>>8;
    char_x = posregister[1][4] & 0x00FF;
@@ -581,18 +544,18 @@ void setcanalscreen(void)
    //strcpy(menubuffer, (&(KanalTable[3]))); // Expotext
    char_y= (posregister[2][0] & 0xFF00)>>8;
    char_x = posregister[2][0] & 0x00FF;
+   //char_x = 74;
    char_width_mul = 1;
+   //Serial.printf("Expo charx: %d chary: %d Expo: %s\n",char_x, char_y,KanalTable[3]);
    display_write_str(KanalTable[3],1);
-
+   
    
    // expo A text
-   //strcpy(menubuffer, (&(KanalTable[4]))); //expo text
    char_y= (posregister[2][1] & 0xFF00)>>8;
    char_x = posregister[2][1] & 0x00FF;
    //display_write_str(menubuffer,2);
    
    // expo A wert
-   //strcpy(menubuffer, (&(KanalTable[2]))); // expo wert
    char_y= (posregister[2][2] & 0xFF00)>>8;
    char_x = posregister[2][2] & 0x00FF;
    char_width_mul = 1;
@@ -600,21 +563,19 @@ void setcanalscreen(void)
    
    
    // expo B text
-   //strcpy(menubuffer, (&(KanalTable[5]))); // expo text
    char_y= (posregister[2][3] & 0xFF00)>>8;
    char_x = posregister[2][3] & 0x00FF;
    char_width_mul = 1;
   // display_write_str(menubuffer,2);
    
    // expo B wert
-   //strcpy(menubuffer, (&(KanalTable[2]))); // expo wert
    char_y= (posregister[2][4] & 0xFF00)>>8;
    char_x = posregister[2][4] & 0x00FF;
    char_width_mul = 1;
    display_write_int((expowert & 0x03),1);
 
-   char_height_mul = 1;
-   Serial.printf("setcanalscreen end\n");
+   //char_height_mul = 1;
+   //Serial.printf("setcanalscreen end\n");
    
    // Typ anzeigen nur symbol
    
@@ -784,12 +745,12 @@ void setmixscreen(void)
    cursorpos[2][2] =(cursortab[5]+delta) |   (5 << 8); // cursorpos fuer Mix 0
 
  
-   strcpy(menubuffer, (&(MixTable[0]))); // titel
+   //strcpy(menubuffer, (&(MixTable[0]))); // titel
    char_y= 1;
    char_x = itemtab[0] ;
    char_height_mul = 1;
    char_width_mul = 1;
-   display_write_str(menubuffer,2);
+   display_write_str(MixTable[0],2);
    
    // Tabellenkopf anzeigen
    char_y= 2;
@@ -1065,7 +1026,7 @@ void update_motorzeit(void)
    char_height_mul = 1;
    char_width_mul = 1;
    */
-   //display_write_min_sek(motorsekunde, 2);
+   //display_write_min_sek(sendesekunde, 2);
    //display_write_zeit(motorsekunde&0xFF,motorminute,motorstunde, 2);
    
     
@@ -1169,7 +1130,7 @@ uint8_t update_screen(void)
    uint8_t fehler=0;
    uint16_t cursorposition = cursorpos[curr_cursorzeile][curr_cursorspalte];
    fehler=1;
-   Serial.printf("****************  update_screen: %d\n",curr_screen);
+   //Serial.printf("****************  update_screen: %d\n",curr_screen);
    switch (curr_screen)
    {
          
@@ -1179,6 +1140,7 @@ uint8_t update_screen(void)
          
          fehler=2;
          updatecounter++;
+         /*
          //Laufzeit
          char_x = posregister[0][0] & 0x00FF;
          char_y= (posregister[0][0] & 0xFF00)>>8;
@@ -1205,7 +1167,7 @@ uint8_t update_screen(void)
          {
             display_write_stopzeit_BM(motorsekunde,motorminute);
          }
- 
+ */
          // Batteriespannung aktualisieren
          char_y= (posregister[3][1] & 0xFF00)>>8;
          char_x = posregister[3][1] & 0x00FF;
@@ -1305,7 +1267,7 @@ uint8_t update_screen(void)
             
             char_y= (blink_cursorpos & 0xFF00)>>8;
             char_x = blink_cursorpos & 0x00FF;
-            if (motorsekunde%2)
+            if (sendesekunde%2)
             {
                if (curr_cursorzeile==0)
                {
@@ -1396,17 +1358,19 @@ uint8_t update_screen(void)
             display_write_int((8-(curr_levelarray[curr_kanal] & 0x07)),1);
             display_write_str("/8\0",1);
             
+            
             // expowert A anzeigen
             char_y= (posregister[2][2] & 0xFF00)>>8;
             char_x = posregister[2][2] & 0x00FF;
-            //display_write_int((curr_settingarray[curr_kanal][1] & 0x70)>>4,1);
+            //Serial.printf("Expo charx: %d chary: %d Expo: %d\n",char_x, char_y,curr_expoarray[curr_kanal]);
+
             display_write_int((curr_expoarray[curr_kanal] & 0x70)>>4,1);
-            
+            /*
             // expowert B anzeigen
             char_y= (posregister[2][4] & 0xFF00)>>8;
             char_x = posregister[2][4] & 0x00FF;
-            //display_write_int((curr_settingarray[curr_kanal][1] & 0x07),1);
             display_write_int((curr_expoarray[curr_kanal] & 0x07),1);
+            */
             
             char_y= (posregister[0][3] & 0xFF00)>>8;
             char_x = posregister[0][3] & 0x00FF;
@@ -1472,7 +1436,7 @@ uint8_t update_screen(void)
          }
          
          // Blinken
-         
+         //Serial.printf("update_screen blink_cursorpos: %d z: %d",blink_cursorpos,sendesekunde);
          if (blink_cursorpos == 0xFFFF) // Kein Blinken des Cursors
          {
             char_y= (cursorposition & 0xFF00)>>8;
@@ -1503,7 +1467,7 @@ uint8_t update_screen(void)
                char_height_mul = 1;
             }
             
-            if (motorsekunde%2)
+            if (sendesekunde%2)
             {
                display_write_symbol(pfeilvollrechts);
             }
@@ -1704,7 +1668,7 @@ uint8_t update_screen(void)
             char_height_mul = 1;
             
             
-            if (motorsekunde%2)
+            if (sendesekunde%2)
             {
                display_write_symbol(pfeilvollrechts);
             }
@@ -1868,7 +1832,7 @@ uint8_t update_screen(void)
             char_height_mul = 1;
             
             
-            if (motorsekunde%2)
+            if (sendesekunde%2)
             {
                display_write_symbol(pfeilvollrechts);
             }
@@ -1988,7 +1952,7 @@ uint8_t update_screen(void)
             char_height_mul = 1;
             
             
-            if (motorsekunde%2)
+            if (sendesekunde%2)
             {
                display_write_symbol(pfeilvollrechts);
             }
@@ -2036,7 +2000,7 @@ uint8_t update_screen(void)
                char_height_mul = 1;
             }
 
-            if (motorsekunde%2)
+            if (sendesekunde%2)
             {
                display_write_symbol(pfeilvollrechts);
             }
@@ -2072,7 +2036,7 @@ uint8_t update_screen(void)
             char_y= (blink_cursorpos & 0xFF00)>>8;
             char_x = blink_cursorpos & 0x00FF;
             
-            if (motorsekunde%2)
+            if (sendesekunde%2)
             {
                display_write_symbol(pfeilvollrechts);
             }
@@ -2264,7 +2228,7 @@ void display_akkuanzeige (uint16_t spannung)
          }
          else if (page == (7-full)) // grenzwertig
          {
-            if ((full<grenze-1) && (motorsekunde%2)) // Blinken
+            if ((full<grenze-1) && (sendesekunde%2)) // Blinken
             {
                display_write_byte(DATEN,0x00);
             }
@@ -2294,7 +2258,7 @@ void display_akkuanzeige (uint16_t spannung)
             }
             else
             {
-               if ((full<grenze-1) && (motorsekunde%2)) // Blinken
+               if ((full<grenze-1) && (sendesekunde%2)) // Blinken
                {
                   display_write_byte(DATEN,0x00);
                }
@@ -3972,11 +3936,12 @@ void display_write_symbol_T(char* symbol, uint8_t cols, uint8_t rows)
 
 // **************
 
-void display_write_propsymbol(const char symbol)
+void display_write_propsymbol( char* symbol)
 {
 	unsigned char col,page,tmp1,tmp2,tmp3,tmp4,counter;
 	PGM_P pointer = symbol;
    uint8_t charsize = 8;
+   uint8_t count = 0;
    uint8_t  charbreite =   pgm_read_byte(pointer++);
 	
 	
@@ -3984,7 +3949,7 @@ void display_write_propsymbol(const char symbol)
 	{
 		for (page=char_y;page<(char_y+((charsize/8)*char_height_mul));page = page +char_height_mul)
 		{
-			tmp1 = pgm_read_byte(pointer++);
+         tmp1 =  (symbol[count++]);
 			
 			if (char_height_mul > 1)
 			{

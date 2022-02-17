@@ -136,7 +136,6 @@ const char device7[]  = "Aux\0";
 const char *DeviceTable[]  = {device0, device1, device2, device3, device4, device5, device6, device7};
 
 
-
 #endif
 
 
