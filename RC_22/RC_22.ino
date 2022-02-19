@@ -124,7 +124,7 @@ uint16_t impulsdauer = 0;
 uint8_t impulscounter = 0;
 
 IntervalTimer microTimer; 
-uint16_t microcounter = 0;
+uint16_t displaycounter = 0;
 
 #define IMPULSPIN  1
 
@@ -143,8 +143,11 @@ volatile uint16_t servomittearray[NUM_SERVOS] = {}; // Werte fuer Mitte
 // Prototypes
 ADC *adc = new ADC(); // adc object
 
-#define POTLO  10
-#define POTHI  4092
+#define POT0LO 1300
+
+
+#define POTLO   1300
+#define POTHI  2900
 #define PPMLO  750
 #define PPMHI  2250
 
@@ -170,9 +173,13 @@ volatile unsigned char char_height_mul = 0;
 volatile unsigned char char_width_mul = 0;
 
 //uint8_t spieeprom_rdbyte(uint16_t addr);
-
+uint16_t potgrenzearray[NUM_SERVOS][2]; // obere und untere Grenze von adc
 
 volatile float quot = (ppmhi - ppmlo)/(pothi - potlo);
+
+volatile float expoquot = (ppmhi - ppmlo)/2/0x200; // umrechnen der max expo (512) auf PPM  
+
+volatile float quotarray[NUM_SERVOS] = {}; // Umrechnungsfaktor pro Pot
 
 // display
 
@@ -231,7 +238,6 @@ volatile uint8_t                 last_cursorzeile=0; // letzte zeile des cursors
 volatile uint8_t                 last_cursorspalte=0; // letzte colonne des cursors
 
 static volatile uint8_t             displaystatus=0x00; // Tasks fuer Display
-static volatile uint16_t            displaycounter=0;
 
 volatile uint8_t                  masterstatus = 0;
 volatile uint8_t                   eepromsavestatus = 0;
@@ -924,9 +930,14 @@ void setup()
     int wert = 500 + i * 50;
       wert = 750;
        impulstimearray[i] = wert; // mittelwert
+      
+      potgrenzearray[i][0] = potlo;
+      potgrenzearray[i][1] = pothi;
+
    //Serial.printf("i: %d wert:\t %d\n",i,wert);
       adcpinarray[i] = 0xFF;
       servomittearray[i] = 1500;
+      
    }
    // init Pins
    
@@ -1020,25 +1031,30 @@ void setup()
 // Add loop code
 void loop()
 {
-
+  
    if (!(servostatus & (1<<RUN))) // first run
    {
       Serial.printf("first run\n");
       servostatus |= (1<<RUN);
       // Mitte lesen
-      Serial.printf("Mitte lesen\n");
+      Serial.printf("Mitte lesen quot: %.4f expoquot:  %.4f\n",quot, expoquot);
       for (uint8_t i=0;i<NUM_SERVOS;i++)
       {
          if (adcpinarray[i] < 0xFF) // PIN belegt
          {
-            uint16_t potwert = adc->adc0->analogRead(adcpinarray[i])/2;
+            uint16_t potwert = adc->adc0->analogRead(adcpinarray[i]);
+            
+            float potmitte = (potgrenzearray[i][1] - potgrenzearray[i][0])/2;
+            
             float ppmfloat = PPMLO + quot *(float(potwert)-POTLO);
             uint16_t ppmint = uint16_t(ppmfloat);
-            Serial.printf("i: %d pin: %d\n",i,potwert);
+            Serial.printf("i: %d potwert: %d ppmint: %d potmitte: %.4f\n",i,potwert,ppmint,potmitte);
             servomittearray[i] = ppmint;
+            
          }
          
       }
+      
    }
    
    if (sincelastseccond > 1000)
@@ -1106,13 +1122,12 @@ void loop()
 
    } // 1000
    
-   if (sinceupdatesceen > 100) 
+   if (sinceupdatesceen > 200) 
    {
       displaystatus |= (1<<UHR_UPDATE);
       //Serial.printf("updatesceen\n");
-         update_screen();
+      update_screen();
          //OSZI_B_HI;
-         
       sinceupdatesceen=0;
    }
    
@@ -1237,62 +1252,85 @@ void loop()
       //manuellcounter++;
       //Serial.printf("A");
       OSZI_C_LO();
+      displaycounter++;
       for (uint8_t i=0;i<NUM_SERVOS;i++)
       {
-         
+         //Serial.printf("A\n");
          //Serial.printf("i: %d pin: %d\n",i,adcpinarray[i]);
          if (adcpinarray[i] < 0xFF) // PIN belegt
          {
             if (adcpinarray[i] == 0xEF) // last
             {
+               //Serial.printf("A: i: %d\n",i);
                impulstimearray[i] = 1000; // 
             }
             else 
             {
-            uint16_t potwert = adc->adc0->analogRead(adcpinarray[i]);
-            float ppmfloat = PPMLO + quot *(float(potwert)-POTLO);
-            uint16_t ppmint = uint16_t(ppmfloat);
+               
+               //Serial.printf("B");
+               uint16_t potwert = adc->adc0->analogRead(adcpinarray[i]);
+               float ppmfloat = PPMLO + quot *(float(potwert) - POTLO);
+               uint16_t ppmint = uint16_t(ppmfloat);
                uint16_t expo  = 0;  
-               uint16_t expoabs  = 0;  
+               uint16_t ppmabs  = 0;  
+               uint16_t expoint  = 0;  
                
-            if (i <2)
-            {
-               /*
-               int16_t expoabs = abs( ppmint - servomittearray[i]); // Abweichun ^g von mitte
-               if (expoabs > 0x200)
+               if (i < 2)
                {
-                  Serial.printf("servo %d expoabs zu gross: %d\n",expoabs);
-                  expoabs = 0x200;
-               }
-                
-                
-               expoarray[1][expoabs];
-               
-                */
-/*
-               if (ppmint < servomittearray[i])
-               {
-                  ppmint = servomittearray[i] - expo;
-               }
+                  float mittefloat = float( servomittearray[i]);
+                  
+                  float ppmapsfloat = (abs(ppmfloat - mittefloat))/expoquot;
+                  int16_t ppmabs = uint16_t(ppmapsfloat);
+                  //int16_t ppmabs = abs( ppmint - servomittearray[i]); // Abweichung PPM von mitte
+                  
+                  
+                  if (ppmabs > 0x200) // 512
+                  {
+                     //Serial.printf("servo %d ppmabs zu gross: %d\n",ppmabs);
+                     ppmabs = 0x200;
+                  }
+                  
+                  
+                  expo  = expoarray[2][ppmabs] * expoquot;
+                  
+                  
+                  
+                  if (ppmint < servomittearray[i])
+                  {
+                     expoint = servomittearray[i] - expo;
+                  }
                   else
                   {
-                     ppmint = servomittearray[i] + expo;
+                     expoint = servomittearray[i] + expo;
                   }
- */
-               if (i==0)
-               {
-               Serial.printf("servo %d potwert: %d   ppmfloat: %.6f ppmint: %d expoabs: %d expo: %d\n",i,potwert,ppmfloat,ppmint,expoabs, expo);
-               }
- 
-            }                 
-            
-            impulstimearray[i] = ppmint;
-            //impulstimearray[i] = potwert;
+                  
+                  if (displaycounter == 14)
+                  {
+                     //Serial.printf("displaycounter: %d\n", displaycounter);
+                     Serial.printf("servo %d potwert: %d    ppmint: %d ppmabs: %d expo: %d expoint: %d \n",i,potwert,ppmint,ppmabs, expo, expoint);
+                  }
+                  {
+                    // if (i<2)
+                     {
+                      //  Serial.printf("servo %d potwert: %d    ppmint: %d ppmabs: %d expo: %d expoint: %d displaycounter: %d\n",i,potwert,ppmint,ppmabs, expo, expoint,displaycounter);
+                     }
+                  }
+               }                 
+               impulstimearray[i] = expoint;
+               // impulstimearray[i] = ppmint;
+               //impulstimearray[i] = potwert;
             }
          }
          
+         //Serial.printf("C\n");
+      } // for i
+      if (displaycounter == 25)
+      {
          
+         displaycounter=0;
+         Serial.printf("-\n");
       }
+
       servostatus &= ~(1<<ADC_OK);
       
       // MARK - Tastatur ADC
@@ -1369,7 +1407,7 @@ void loop()
       //servostatus |= (1<<USB_OK);
    }
    
-   
+#pragma mark - Tasten   
    
    if (tastaturstatus & (1<<TASTEOK))
    {
