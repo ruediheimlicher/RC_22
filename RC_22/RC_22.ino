@@ -143,13 +143,17 @@ volatile uint16_t servomittearray[NUM_SERVOS] = {}; // Werte fuer Mitte
 // Prototypes
 ADC *adc = new ADC(); // adc object
 
-#define POT0LO 1300
+#define POT0LO 848
+#define POT0HI 3600
+
+#define POT1LO 660
+#define POT1HI 3450
 
 
 #define POTLO   1300
 #define POTHI  2900
-#define PPMLO  750
-#define PPMHI  2250
+#define PPMLO  850
+#define PPMHI  2150
 
 #define SHIFT 0xFFFFF
 
@@ -166,6 +170,8 @@ float potlo = POTLO; // min pot
 float pothi = POTHI; // max pot
 float ppmlo = PPMLO; // min ppm
 float ppmhi = PPMHI; // max ppm
+
+
 
 volatile unsigned char char_x = 0;
 volatile unsigned char char_y = 0;
@@ -804,14 +810,15 @@ void servopaketfunktion(void) // start Abschnitt
    servostatus |= (1<<PAKET);// neues Paket starten
    servostatus |= (1<<IMPULS);
    servoindex = 0; // Index des aktuellen impulses
- 
+   if (servostatus & (1<<RUN))
+   {
    servoimpulsTimer.begin(servoimpulsfunktion,impulstimearray[servoindex]);
    
    kanalimpulsTimer.begin(kanalimpulsfunktion, IMPULSBREITE); // neuer Kanalimpuls
    digitalWriteFast(IMPULSPIN,HIGH);
    OSZI_B_LO();
    paketcounter++;
-   
+   }
 }
 
 
@@ -924,7 +931,8 @@ void setup()
    //volatile float quot = (PPMHI - PPMLO)/(POTHI - POTLO);
    uint32_t shiftquot = uint32_t(quot * SHIFT);
    Serial.printf("quot: %.6f shiftquot: %d\n",quot, shiftquot);
-                 
+   
+                  
    for (int i=0;i<NUM_SERVOS;i++)
    {
     int wert = 500 + i * 50;
@@ -933,20 +941,35 @@ void setup()
       
       potgrenzearray[i][0] = potlo;
       potgrenzearray[i][1] = pothi;
-
+      quotarray[i] = quot;
    //Serial.printf("i: %d wert:\t %d\n",i,wert);
       adcpinarray[i] = 0xFF;
       servomittearray[i] = 1500;
       
    }
+
    // init Pins
    
+   // Servo 0
+   potgrenzearray[0][0] = POT0LO;
+   potgrenzearray[0][1] = POT0HI;
    pinMode(pot0_PIN, INPUT);
    adcpinarray[0] = pot0_PIN;
+   
+   quotarray[0] = float((ppmhi - ppmlo))/float((potgrenzearray[0][1] - potgrenzearray[0][0]));
+   Serial.printf("potgrenzearray[0][0]: %d potgrenzearray[0][1]: %d  quotarray[0]: %.3f\n",potgrenzearray[0][0],potgrenzearray[0][1],quotarray[0]);
+   // Servo 1
+   potgrenzearray[1][0] = POT1LO;
+   potgrenzearray[1][1] = POT1HI;
    pinMode(pot1_PIN, INPUT);
    adcpinarray[1] = pot1_PIN;
+   quotarray[1] = (ppmhi - ppmlo)/(potgrenzearray[1][1] - potgrenzearray[1][0]);
+
+   // Servo 2 
    pinMode(pot2_PIN, INPUT);
    adcpinarray[2] = pot2_PIN;
+   
+   // Servo 3
    pinMode(pot3_PIN, INPUT);
    adcpinarray[3] = pot3_PIN;
    adcpinarray[NUM_SERVOS-1] = 0xEF;// letzten Puls kennzeichnen
@@ -962,7 +985,7 @@ void setup()
    kanalimpulsTimer.priority(2);
    servopaketTimer.priority(1);
    */
-   servopaketTimer.begin(servopaketfunktion, 50000);
+   servopaketTimer.begin(servopaketfunktion, 20000);
    
    if (TEST)
    {
@@ -1042,14 +1065,18 @@ void loop()
       {
          if (adcpinarray[i] < 0xFF) // PIN belegt
          {
+            //Pot 0
             uint16_t potwert = adc->adc0->analogRead(adcpinarray[i]);
             
-            float potmitte = (potgrenzearray[i][1] - potgrenzearray[i][0])/2;
+            float potmitte = (potgrenzearray[i][1] + potgrenzearray[i][0])/2;
             
             float ppmfloat = PPMLO + quot *(float(potwert)-POTLO);
             uint16_t ppmint = uint16_t(ppmfloat);
             Serial.printf("i: %d potwert: %d ppmint: %d potmitte: %.4f\n",i,potwert,ppmint,potmitte);
+            Serial.printf("i: %d potgrenzearray[i][0]: %d potgrenzearray[i][1]: %d quotarray[]: %.3f\n",i,potgrenzearray[i][0],potgrenzearray[i][1],quotarray[i]);
+
             servomittearray[i] = ppmint;
+
             
          }
          
@@ -1269,7 +1296,9 @@ void loop()
                
                //Serial.printf("B");
                uint16_t potwert = adc->adc0->analogRead(adcpinarray[i]);
-               float ppmfloat = PPMLO + quot *(float(potwert) - POTLO);
+               //float ppmfloat = PPMLO + quot *(float(potwert) - POTLO);
+
+               float ppmfloat = PPMLO + quotarray[i] *(float(potwert) - potgrenzearray[i][0]);
                uint16_t ppmint = uint16_t(ppmfloat);
                uint16_t expo  = 0;  
                uint16_t ppmabs  = 0;  
@@ -1291,7 +1320,7 @@ void loop()
                   }
                   
                   
-                  expo  = expoarray[2][ppmabs] * expoquot;
+                  expo  = expoarray[0][ppmabs] * expoquot;
                   
                   
                   
@@ -1307,7 +1336,7 @@ void loop()
                   if (displaycounter == 14)
                   {
                      //Serial.printf("displaycounter: %d\n", displaycounter);
-                     Serial.printf("servo %d potwert: %d    ppmint: %d ppmabs: %d expo: %d expoint: %d \n",i,potwert,ppmint,ppmabs, expo, expoint);
+                     Serial.printf("servo %d potwert: %d  ppmint: %d ppmabs: %d expo: %d expoint: %d quot: %.3f quotarray[i]: %.2f\n",i,potwert,ppmint,ppmabs, expo, expoint, quot, quotarray[i]);
                   }
                   {
                     // if (i<2)
@@ -1317,7 +1346,7 @@ void loop()
                   }
                }                 
                impulstimearray[i] = expoint;
-               // impulstimearray[i] = ppmint;
+               //impulstimearray[i] = ppmint;
                //impulstimearray[i] = potwert;
             }
          }
