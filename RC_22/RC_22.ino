@@ -78,13 +78,6 @@ volatile uint8_t           servostatus=0;
 
 
 
-#define RUN 0
-#define PAUSE        1
-#define PAKET   2
-#define IMPULS    3
-#define ADC_OK 4
-#define USB_OK 5
-#define ENDEPAKET  7
 
 volatile uint8_t           tastaturstatus=0;
 #define TASTEOK   1
@@ -116,6 +109,8 @@ static volatile uint8_t drillbuffer[USB_DATENBREITE]={};// Daten fuer Drill, bei
 IntervalTimer servopaketTimer;
 IntervalTimer servoimpulsTimer;
 IntervalTimer kanalimpulsTimer;
+IntervalTimer sekundenTimer;
+
 
 volatile uint8_t                 programmstatus=0x00;
 
@@ -246,7 +241,7 @@ volatile uint8_t                 last_cursorspalte=0; // letzte colonne des curs
 static volatile uint8_t             displaystatus=0x00; // Tasks fuer Display
 
 volatile uint8_t                  masterstatus = 0;
-volatile uint8_t                   eepromsavestatus = 0;
+volatile uint8_t                  eepromsavestatus = 0;
 volatile uint16_t                updatecounter=0; // Zaehler fuer Einschalten
 volatile uint16_t                manuellcounter=0;
 
@@ -388,6 +383,12 @@ void servoimpulsfunktion(void) //
       servoimpulsTimer.end();
       servostatus |= (1<<PAUSE);
       servostatus |= (1<<ADC_OK); // ADCFenster starten
+      
+      
+      
+      
+      
+      
       //OSZI_B_HI();
       //OSZI_C_LO();
 
@@ -804,6 +805,79 @@ uint8_t eeprombyteschreiben(uint8_t code, uint16_t writeadresse,uint8_t eeprom_w
    return byte_errcount;
 }
 
+
+void sekundentimerfunktion(void)
+{
+   {
+      /*
+      //sincelastseccond = 0;
+      sendesekunde++;
+      if (curr_screen == 0)
+      {
+      //update_sendezeit();
+      }
+      //Serial.printf("motorsekunde: %d programmstatus: %d manuellcounter: %d\n",motorsekunde, programmstatus, manuellcounter);
+      
+      if (sendesekunde == 60)
+      {
+         sendeminute++;
+         sendesekunde = 0;
+         if (curr_screen == 0)
+         {
+         refresh_screen();
+         }
+      }
+      if (sendeminute == 60)
+      {
+         sendestunde++;
+         sendeminute = 0;
+      }
+      //Serial.printf("sendesekunde: %d programmstatus: %d servostatus: %d manuellcounter: %d curr_screen: %d\n",sendesekunde, programmstatus,servostatus,  manuellcounter, curr_screen);
+
+      
+      if (programmstatus & (1<<MOTOR_ON))
+      {
+         motorsekunde++;
+         if (motorsekunde==60)
+         {
+            motorminute++;
+            motorsekunde=0;
+         }
+         if (motorminute >= 60)
+         {
+            motorminute = 0;
+         }
+         if (curr_screen == 0)
+         {
+            update_time();
+         }
+         
+      }
+      
+      if (programmstatus & (1<<STOP_ON))
+      {
+      //   lcd_gotoxy(15,0);
+      //   lcd_putint2(stopsekunde);
+
+         stopsekunde++;
+         if (stopsekunde == 60)
+         {
+            stopminute++;
+            stopsekunde=0;
+         }
+         if (stopminute >= 60)
+         {
+            stopminute = 0;
+         }
+         if (curr_screen == 0)
+         {
+            //update_time();
+         }
+      }
+*/
+   }
+}
+
 void servopaketfunktion(void) // start Abschnitt
 { 
    servostatus &= ~(1<<PAUSE);
@@ -818,10 +892,9 @@ void servopaketfunktion(void) // start Abschnitt
    digitalWriteFast(IMPULSPIN,HIGH);
    OSZI_B_LO();
    paketcounter++;
+      
    }
 }
-
-
 
 
 
@@ -980,12 +1053,12 @@ void setup()
    digitalWriteFast(IMPULSPIN,LOW);
    
    // Servopakete starten
-   /*
+   
    servoimpulsTimer.priority(3);
    kanalimpulsTimer.priority(2);
    servopaketTimer.priority(1);
-   */
-   servopaketTimer.begin(servopaketfunktion, 20000);
+   
+   servopaketTimer.begin(servopaketfunktion, 30000);
    
    if (TEST)
    {
@@ -1086,11 +1159,13 @@ void loop()
    
    if (sincelastseccond > 1000)
    {
+      
       sincelastseccond = 0;
+      
       sendesekunde++;
       if (curr_screen == 0)
       {
-      update_sendezeit();
+      //update_sendezeit();
       }
       //Serial.printf("motorsekunde: %d programmstatus: %d manuellcounter: %d\n",motorsekunde, programmstatus, manuellcounter);
       
@@ -1098,6 +1173,10 @@ void loop()
       {
          sendeminute++;
          sendesekunde = 0;
+         if (curr_screen == 0)
+         {
+         refresh_screen();
+         }
       }
       if (sendeminute == 60)
       {
@@ -1121,7 +1200,7 @@ void loop()
          }
          if (curr_screen == 0)
          {
-            update_time();
+            //update_time();
          }
          
       }
@@ -1143,17 +1222,17 @@ void loop()
          }
          if (curr_screen == 0)
          {
-            update_time();
+            //update_time();
          }
       }
-
+      displaystatus |= (1<<UHR_UPDATE);
    } // 1000
    
    if (sinceupdatesceen > 200) 
    {
       displaystatus |= (1<<UHR_UPDATE);
       //Serial.printf("updatesceen\n");
-      update_screen();
+      //update_screen();
          //OSZI_B_HI;
       sinceupdatesceen=0;
    }
@@ -1218,6 +1297,7 @@ void loop()
          }
          Serial.printf("\n");
           */
+         
          impulscounter = 0;
       }
    
@@ -1336,7 +1416,7 @@ void loop()
                   if (displaycounter == 14)
                   {
                      //Serial.printf("displaycounter: %d\n", displaycounter);
-                     Serial.printf("servo %d potwert: %d  ppmint: %d ppmabs: %d expo: %d expoint: %d quot: %.3f quotarray[i]: %.2f\n",i,potwert,ppmint,ppmabs, expo, expoint, quot, quotarray[i]);
+                     //Serial.printf("servo %d potwert: %d  ppmint: %d ppmabs: %d expo: %d expoint: %d quot: %.3f quotarray[i]: %.2f\n",i,potwert,ppmint,ppmabs, expo, expoint, quot, quotarray[i]);
                   }
                   {
                     // if (i<2)
@@ -1357,7 +1437,7 @@ void loop()
       {
          
          displaycounter=0;
-         Serial.printf("-\n");
+         //Serial.printf("-\n");
       }
 
       servostatus &= ~(1<<ADC_OK);
@@ -1431,9 +1511,20 @@ void loop()
       // end Tastatur
       OSZI_C_HI();
       
+     // if (displaystatus & (1<<UHR_UPDATE))
+      {
+         OSZI_D_LO();
+         //update_sendezeit();
+         update_time(updatecounter & 0x0f);
+         updatecounter++;
+         OSZI_D_HI();
+         
+         displaystatus &= ~(1<<UHR_UPDATE);
+         
+      }
       
       
-      //servostatus |= (1<<USB_OK);
+      servostatus |= (1<<USB_OK);
    }
    
 #pragma mark - Tasten   
@@ -4546,8 +4637,9 @@ void loop()
    if (servostatus & (1<<USB_OK))
    {
 #pragma mark start_usb
-      if (sinceusb > 100)   
+    //  if (sinceusb > 100)   
       {
+         OSZI_D_LO();
          //Serial.printf("usb\n");
          sinceusb = 0;
          r = RawHID.recv(buffer, 0); 
@@ -4555,10 +4647,10 @@ void loop()
          code = 0;
          if (r > 0) // 
          {
-            Serial.printf("usb r: %d\n",r);
+            //Serial.printf("usb r: %d\n",r);
          //   noInterrupts();
             
-            code = buffer[24];
+            code = buffer[0];
             
             
             Serial.printf("\n***************************************  --->    rawhid_recv start code HEX: %02X\n",code);
@@ -4593,7 +4685,7 @@ void loop()
        //     code=0;
          }// r > 0
          /**   End USB-routinen   ***********************/
-       
+         OSZI_D_HI();
       } // since usb
 
       servostatus &= ~(1<<USB_OK);

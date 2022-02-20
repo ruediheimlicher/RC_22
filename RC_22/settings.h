@@ -125,6 +125,16 @@
 
 #define TIMERINTERVALL 128
 
+#define RUN 0
+#define PAUSE        1
+#define PAKET   2
+#define IMPULS    3
+#define ADC_OK 4
+#define USB_OK 5
+#define ENDEPAKET  7
+
+
+
 // Ramp
 #define RAMP_OK      1 // Ramp einschalten
 #define RAMPFAKTOR   2 // Verlaengerung der delayzeit

@@ -176,7 +176,8 @@ void display_trimmanzeige_vertikal (uint8_t char_x0, uint8_t char_y0, uint8_t de
 void r_uitoa8(int8_t zahl, char* string);
 
 uint8_t update_screen(void);
-void update_time(void);
+uint8_t refresh_screen(void);
+void update_time(uint8_t code);
 
 void update_motorzeit(void);
 void update_stopzeit(void);

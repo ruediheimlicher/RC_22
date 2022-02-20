@@ -18,6 +18,8 @@
 #include "display.h"
 #include "font.h"
 #include "text.h"
+#include "settings.h"
+
 #include "Arduino.h"
 extern volatile uint8_t levelwert;
 extern volatile uint8_t levelb;
@@ -60,7 +62,7 @@ extern volatile uint8_t       curr_impuls; // aktueller impuls
 
 extern volatile uint8_t       eepromsavestatus;
 extern volatile uint8_t       programmstatus;
-
+extern volatile uint8_t       servostatus;
 
 extern volatile uint8_t       curr_setting;
 extern volatile uint8_t       curr_cursorzeile; // aktuelle zeile des cursors
@@ -1048,74 +1050,86 @@ void update_sendezeit(void)
    char_height_mul = 1;
    char_width_mul = 1;
    
-   //display_write_min_sek(motorsekunde, 2);
-   //display_write_zeit(systemsekunde&0xFF,systemminute,systemstunde, 2);
-   display_write_zeit(sendesekunde&0xFF,sendeminute,sendestunde, 2);
-
+  
 }
 
 void update_stopzeit(void)
 {
-   /*
-   char_x = posregister[0][0] & 0x00FF;
-   char_y= (posregister[0][0] & 0xFF00)>>8;
-   char_height_mul = 1;
-   char_width_mul = 1;
-   */
-   //display_write_min_sek(motorsekunde, 2);
-   //display_write_zeit(systemsekunde&0xFF,systemminute,systemstunde, 2);
-  // display_write_zeit(sendesekunde&0xFF,sendeminute,sendestunde, 2);
 
    // Stoppzeit aktualisieren
    char_y= (posregister[2][1] & 0xFF00)>>8;
    char_x = posregister[2][1] & 0x00FF;
    char_height_mul = 2;
    char_width_mul = 2;
-   //display_write_min_sek(stopsekunde,2);
    display_write_stopzeit(stopsekunde,stopminute, 2);
    
   
 }
 
-void update_time(void)
+void update_time(uint8_t code)
 {
-   /*
-   char_x = posregister[0][0] & 0x00FF;
-   char_y= (posregister[0][0] & 0xFF00)>>8;
-   char_height_mul = 1;
-   char_width_mul = 1;
-   */
-   //display_write_min_sek(motorsekunde, 2);
-   //display_write_zeit(systemsekunde&0xFF,systemminute,systemstunde, 2);
-   //display_write_zeit(motorsekunde&0xFF,motorminute,motorstunde, 2);
+   switch (code)
+   {
+   case 0:
+      {
+         char_x = posregister[0][0] & 0x00FF;
+         char_y= (posregister[0][0] & 0xFF00)>>8;
+         char_height_mul = 1;
+         char_width_mul = 1;
+         
+         display_write_zeit(sendesekunde&0xFF,sendeminute,sendestunde, 2);
 
-   // Stoppzeit aktualisieren
-   char_y= (posregister[2][1] & 0xFF00)>>8;
-   char_x = posregister[2][1] & 0x00FF;
-   char_height_mul = 2;
-   char_width_mul = 2;
-   //display_write_min_sek(stopsekunde,2);
-   display_write_stopzeit(stopsekunde,stopminute, 2);
-   
-   // Motorzeit aktualisieren
-   char_height_mul = 2;
-   char_width_mul = 2;
-   char_y= (posregister[1][1] & 0xFF00)>>8;
-   char_x = posregister[1][1] & 0x00FF;
-   //display_write_min_sek(motorsekunde,2);
-   display_write_stopzeit(motorsekunde,motorminute, 2);
+      }break;
+      
+   case 1: // Stopzeit
+      {
+         // Stoppzeit aktualisieren
+         char_y= (posregister[2][1] & 0xFF00)>>8;
+         char_x = posregister[2][1] & 0x00FF;
+         char_height_mul = 2;
+         char_width_mul = 2;
+         display_write_stopzeit(stopsekunde,stopminute, 2);
 
-   // Batteriespannung aktualisieren
-   char_y= (posregister[3][1] & 0xFF00)>>8;
-   char_x = posregister[3][1] & 0x00FF;
-   char_height_mul = 1;
-   char_width_mul = 1;
-   display_write_spannung(batteriespannung/10,2);
-   // Akkubalken anzeigen
-   char_height_mul = 1;
-   char_width_mul = 1;
-   display_akkuanzeige(batteriespannung);
+      }break;
+      
+   case 2: // Motorzeit
+      {
+         // Motorzeit aktualisieren
+         char_height_mul = 2;
+         char_width_mul = 2;
+         char_y= (posregister[1][1] & 0xFF00)>>8;
+         char_x = posregister[1][1] & 0x00FF;
+         display_write_stopzeit(motorsekunde,motorminute, 2);
 
+      }break;
+      
+   case 3: // Batteriespannung aktualisieren
+      {
+         // Batteriespannung aktualisieren
+         char_y= (posregister[3][1] & 0xFF00)>>8;
+         char_x = posregister[3][1] & 0x00FF;
+         char_height_mul = 1;
+         char_width_mul = 1;
+         display_write_spannung(batteriespannung/10,2);
+  
+      }break;
+      case 4: // // Akkubalken aktualisieren
+      {
+         // Akkubalken anzeigen
+         char_height_mul = 1;
+         char_width_mul = 1;
+         display_akkuanzeige(batteriespannung);
+
+      }
+      default:
+      {
+         return;//servostatus |= (1<<USB_OK);
+      }break;
+   }// switch
+ 
+    
+ 
+ 
 
 }
 
@@ -1124,6 +1138,970 @@ void update_akku(void)
    
 }
 
+uint8_t refresh_screen(void)
+{
+   display_clear();
+   uint8_t fehler=0;
+   uint16_t cursorposition = cursorpos[curr_cursorzeile][curr_cursorspalte];
+   fehler=1;
+   //Serial.printf("****************  refresh_screen: %d\n",curr_screen);
+   switch (curr_screen)
+   {
+         
+      case HOMESCREEN: // homescreen
+      {
+#pragma mark update HOMESCREEN
+         
+         fehler=2;
+         //updatecounter++;
+         
+  
+         char_x=OFFSET_6_UHR;
+         char_y = 1;
+         char_height_mul = 1;
+         char_width_mul = 1;
+         display_go_to(char_x+1,0);
+         
+         display_write_byte(DATEN,0xFF);
+         //char_x++;
+         
+         display_inverse(1);
+         char_height_mul = 1;
+         char_width_mul = 1;
+
+         //display_write_prop_str(char_y,char_x,0,(unsigned char*)titelbuffer);
+         display_write_inv_str(TitelTable[0],1);
+         //display_write_str(TitelTable[0],1);
+         //display_write_str("ABC",1);
+         display_inverse(0);
+         char_height_mul = 1;
+         char_width_mul = 1;
+         
+         // Stoppuhrtext schreiben
+         char_x = (posregister[2][0] & 0x00FF);
+         char_y= (posregister[2][0] & 0xFF00)>>8;
+         display_write_str(TitelTable[2],2);
+         
+         // Stoppzeit schreiben
+         char_y= (posregister[2][1] & 0xFF00)>>8;
+         char_x = (posregister[2][1] & 0x00FF);
+         char_height_mul = 2;
+         char_width_mul = 2;
+         display_write_stopzeit_BM(stopsekunde,stopminute);
+         char_height_mul = 1;
+         char_width_mul = 1;
+         
+         
+         // Motorzeittext schreiben
+         char_x = (posregister[1][0] & 0x00FF);
+         char_y= ((posregister[1][0] & 0xFF00)>>8);
+         char_height_mul = 1;
+         display_write_str(TitelTable[3],2);
+         char_height_mul = 2;
+         char_width_mul = 2;
+
+         char_y= (posregister[1][1] & 0xFF00)>>8;
+         char_x = posregister[1][1] & 0x00FF;
+         // display_write_min_sek(motorsekunde,2);
+         display_write_stopzeit(motorsekunde,motorminute, 2);
+         
+         char_height_mul = 1;
+         char_width_mul = 1;
+        
+         
+         // Modell schreiben
+         char_y= (posregister[4][0] & 0xFF00)>>8;
+         char_x = posregister[4][0] & 0x00FF;
+         //display_write_prop_str(char_y,char_x,0,titelbuffer,2);
+         char_height_mul = 2;
+         display_write_str(ModelTable[curr_model],1);
+
+         char_height_mul = 1;
+         //strcpy(titelbuffer, ((TitelTable[5])));
+         char_y= (posregister[4][1] & 0xFF00)>>8;
+         char_x = posregister[4][1] & 0x00FF;
+         display_write_str(TitelTable[5],2);
+         char_y= (posregister[4][2] & 0xFF00)>>8;
+         char_x = posregister[4][2] & 0x00FF;
+         display_write_int(curr_setting,2);
+         
+         
+         
+         char_height_mul = 1;
+         char_width_mul = 1;
+
+         // Batteriespannung
+         char_y= ((posregister[3][0] & 0xFF00)>>8)+1;
+         char_x = posregister[3][0] & 0x00FF;
+         char_height_mul = 1;
+         display_write_str(TitelTable[6],2);
+         
+         char_height_mul = 1;
+         char_width_mul = 1;
+
+        // display_write_propchar(' ');
+       
+         char_x=OFFSET_6_UHR;
+         char_y = 8;
+         display_write_symbol(pfeilvollrechts);
+         char_x += 2;
+         display_write_str(TitelTable[4],2);
+                 
+      }break;
+         
+      case SETTINGSCREEN: // Setting
+      {
+#pragma mark update SETTINGSCREEN
+         char_height_mul = 1;
+         char_width_mul = 1;
+         
+         // Zeit aktualisieren
+         char_y= 1;
+         char_x = itemtab[5];
+     //    display_write_min_sek(motorsekunde,2);
+         
+         char_height_mul = 1;
+         if (programmstatus &(1<<UPDATESCREEN))
+         {
+            programmstatus &= ~(1<<UPDATESCREEN);
+            
+            
+            // Modellname
+         //   strcpy(menubuffer, (ModelTable[curr_model]));
+            char_y= (posregister[0][0] & 0xFF00)>>8;
+            char_x = posregister[0][0] & 0x00FF;
+            char_height_mul = 2;
+            char_width_mul = 1;
+            display_write_str(ModelTable[curr_model],1);
+            char_height_mul = 1;
+            
+            // settingnummer
+            char_height_mul = 1;
+            char_y= (posregister[0][3] & 0xFF00)>>8;
+            char_x = posregister[0][3] & 0x00FF;
+            display_write_int(curr_setting,2);
+         }
+         
+         if (blink_cursorpos == 0xFFFF) // Kein Blinken des Cursors
+         {
+            char_y= (cursorposition & 0xFF00)>>8;
+            char_x = cursorposition & 0x00FF;
+            if (curr_cursorzeile==0) // Modellname
+            {
+               if (curr_cursorspalte == 0)
+               {
+                  char_height_mul = 2;
+                  display_write_symbol(pfeilvollrechtsklein);
+               }
+               else // Set Nummer
+               {
+                  char_height_mul = 1;
+                  display_write_symbol(pfeilvollrechts);
+               }
+               
+            }
+            else // alle anderen
+            {
+               char_height_mul = 1;
+               display_write_symbol(pfeilvollrechts);
+            }
+            
+         }
+         
+         else // Cursor blinkt an blink_cursorpos
+         {
+            
+            char_y= (blink_cursorpos & 0xFF00)>>8;
+            char_x = blink_cursorpos & 0x00FF;
+            if (sendesekunde%2)
+            {
+               if (curr_cursorzeile==0)
+               {
+                  if (curr_cursorspalte == 0) // Modellname
+                  {
+                     char_height_mul = 2;
+                     display_write_symbol(pfeilvollrechtsklein);
+                  }
+                  else // Set  Nummer
+                  {
+                     char_height_mul = 1;
+                     display_write_symbol(pfeilvollrechts);
+                  }
+                  
+                  
+               }
+               else
+               {
+                  char_height_mul = 1;
+                  display_write_symbol(pfeilvollrechts);
+               }
+               
+               
+            }
+            else
+            {
+               if (curr_cursorzeile==0)
+               {
+                  char_height_mul = 2;
+               }
+               else
+               {
+                  char_height_mul = 1;
+               }
+               
+               display_write_symbol(pfeilwegrechts);
+            }
+            
+         }
+         
+         
+      }break;
+         
+      case KANALSCREEN: // Kanal
+      {
+    //     if (programmstatus & (1<< UPDATESCREEN))
+         {
+            programmstatus &= ~(1<< UPDATESCREEN);
+            
+#pragma mark update KANALSCREEN
+            // kanalnummer
+            char_y= (posregister[0][1] & 0xFF00)>>8;
+            char_x = posregister[0][1] & 0x00FF;
+            char_height_mul = 1;
+            char_width_mul = 1;
+            display_write_int(curr_kanal,2);
+            
+            // Richtungspfeil anzeigen
+            
+            char_y= (posregister[0][3] & 0xFF00)>>8;
+            char_x = posregister[0][3] & 0x00FF;
+            char_height_mul = 1;
+            char_width_mul = 1;
+            
+            
+            // Funktion anzeigen // Bit 0-2 !!
+            // !! Funktion ist bit 0-2 , Steuerdevice ist bit 4-6!!
+            //strcpy(menubuffer, ((FunktionTable[(curr_funktionarray[curr_kanal]&0x07)])));
+            
+            
+            char_y= (posregister[0][4] & 0xFF00)>>8;
+            char_x = posregister[0][4] & 0x00FF;
+            display_write_str(FunktionTable[(curr_funktionarray[curr_kanal]&0x07)],2);
+            
+            // levelwert A anzeigen
+            char_y= (posregister[1][2] & 0xFF00)>>8;
+            char_x = posregister[1][2] & 0x00FF;
+            
+            //display_write_int(8-((curr_settingarray[curr_kanal][0] & 0x70)>>4),1);
+            display_write_int(8-((curr_levelarray[curr_kanal] & 0x70)>>4),1);
+            
+            display_write_str("/8\0",1);
+            
+            // levelwert B anzeigen
+            char_y= (posregister[1][4] & 0xFF00)>>8;
+            char_x = posregister[1][4] & 0x00FF;
+            //display_write_int((8-(curr_settingarray[curr_kanal][0] & 0x07)),1);
+            display_write_int((8-(curr_levelarray[curr_kanal] & 0x07)),1);
+            display_write_str("/8\0",1);
+            
+            
+            // expowert A anzeigen
+            char_y= (posregister[2][2] & 0xFF00)>>8;
+            char_x = posregister[2][2] & 0x00FF;
+            //Serial.printf("Expo charx: %d chary: %d Expo: %d\n",char_x, char_y,curr_expoarray[curr_kanal]);
+
+            display_write_int((curr_expoarray[curr_kanal] & 0x70)>>4,1);
+            /*
+            // expowert B anzeigen
+            char_y= (posregister[2][4] & 0xFF00)>>8;
+            char_x = posregister[2][4] & 0x00FF;
+            display_write_int((curr_expoarray[curr_kanal] & 0x07),1);
+            */
+            
+            char_y= (posregister[0][3] & 0xFF00)>>8;
+            char_x = posregister[0][3] & 0x00FF;
+            
+            if (curr_funktionarray[curr_kanal]%2 ==0) // gerade Kanalnummer
+            {
+               //if (curr_settingarray[curr_kanal][1] & 0x80)
+               if (curr_expoarray[curr_kanal] & 0x80) // Bit fuer Richtung
+               {
+                  //display_write_symbol(richtungright);
+                  display_write_propsymbol(proprichtungright);
+               }
+               else
+               {
+                  //display_write_symbol(richtungleft);
+                  display_write_propsymbol(proprichtungleft);
+               }
+               
+            }
+            else // senkrecht
+            {
+               // if (curr_settingarray[curr_kanal][1] & 0x80)
+               if  (curr_expoarray[curr_kanal] & 0x80) // Bit fuer Richtung
+               {
+                  //display_write_symbol(richtungup);
+                  display_write_propsymbol(proprichtungup);
+                  
+               }
+               else
+               {
+                  //display_write_symbol(richtungdown);
+                  display_write_propsymbol(proprichtungdown);
+               }
+               
+            }
+            // Typ anzeigen
+            char_y= (posregister[3][1] & 0xFF00)>>8;
+            char_x = posregister[3][1] & 0x00FF;
+            char_height_mul = 1;
+            char_width_mul = 1;
+            
+            // PGM_P typsymbol = (&(steuertyp[curr_funktionarray[curr_kanal]]));
+            
+            uint8_t kanaltyp =(curr_expoarray[curr_kanal] & 0x0C)>>2;
+            char typsymbol = steuertyp[kanaltyp];
+            //typsymbol=pitch;
+            
+            display_write_propsymbol(typsymbol);
+            //strcpy(menubuffer, (&(KanalTypTable[kanaltyp]))); // Art wert
+            //display_write_propsymbol(pitch);
+            
+            char_height_mul = 1;
+            char_width_mul = 1;
+            
+            //display_kanaldiagramm (64, 7, curr_settingarray[curr_kanal][0], curr_settingarray[curr_kanal][1], 1);
+            display_kanaldiagramm_var(64+OFFSET_6_UHR, 6, curr_levelarray[curr_kanal], curr_expoarray[curr_kanal], 1);
+         
+            
+            char_height_mul = 1;
+            
+           // display_trimmanzeige_horizontal (14+OFFSET_6_UHR, 7,-15);
+
+         }
+         
+         // Blinken
+         //Serial.printf("update_screen blink_cursorpos: %d z: %d",blink_cursorpos,sendesekunde);
+         if (blink_cursorpos == 0xFFFF) // Kein Blinken des Cursors
+         {
+            char_y= (cursorposition & 0xFF00)>>8;
+            char_x = cursorposition & 0x00FF;
+            if ((curr_cursorspalte <=3)&& (curr_cursorzeile<=2)) //Erste Zeile, Kanalnummer
+            {
+               char_height_mul = 1;
+            }
+            else
+            {
+               char_height_mul = 1;
+            }
+            
+            display_write_symbol(pfeilvollrechts);
+            
+         }
+         else // Cursor blinkt an blink_cursorpos
+         {
+            
+            char_y= (blink_cursorpos & 0xFF00)>>8;
+            char_x = blink_cursorpos & 0x00FF;
+            if ((curr_cursorspalte <=1)&& (curr_cursorzeile==1)) //Erste Zeile, Kanalnummer
+            {
+               char_height_mul = 1;
+            }
+            else
+            {
+               char_height_mul = 1;
+            }
+            
+            if (sendesekunde%2)
+            {
+               display_write_symbol(pfeilvollrechts);
+            }
+            else
+            {
+               display_write_symbol(pfeilwegrechts);
+            }
+            
+         }
+         char_height_mul = 1;
+         
+      }break;
+         
+      case MIXSCREEN:
+      {
+#pragma mark update MIXSCREEN
+         //uint8_t delta=6;
+         /*
+          // index gerade  : mixb mit (0x70)<<4, mixa mit 0x07
+          
+          // index ungerade: typ mit 0x03
+          default:
+          0x01, Kanal 0,1
+          0x01, Typ 1: V-Mix
+          0x23, Kanal 2,3
+          0x02, Typ 2: Butterfly
+          
+          Kanalnummer 8: > OFF
+          
+          */
+         if (programmstatus & (1<< UPDATESCREEN))
+         {
+            programmstatus &= ~(1<< UPDATESCREEN);
+            
+            // Mix 0
+            uint8_t mixtyp = curr_mixarray[1]& 0x03; // von ungeradem Index
+            mixtyp &= 0x03; // nur 4 Typen
+            
+            //strcpy(menubuffer, (&(MixTypTable[mixtyp]))); // Typtext
+            
+            char_y= (posregister[0][0] & 0xFF00)>>8;
+            char_x = posregister[0][0] & 0x00FF;
+            display_write_str(MixTypTable[mixtyp],2); // Mix-Typ
+            uint8_t canalnummera=0,canalnummerb=0;
+            
+            if (mixtyp)
+            {
+               //Kanal A
+               char_y= (posregister[0][2] & 0xFF00)>>8;
+               char_x = posregister[0][2] & 0x00FF;
+               
+               // Funktion anzeigen
+               // Funktion fuer Seite A:
+               canalnummera = ((curr_mixarray[0] & 0xF0)>>4);
+                // index in curr_funktionarray: Kanalnummer von Seite A: (curr_mixarray[0] & 0x70)>>4]], Bit 4,5
+              
+               if (canalnummera < 8)
+               {
+                  display_write_int(canalnummera,2); // Kanalnummer A, von geradem Index
+                  display_write_str(": \0",2);
+               
+                  //strcpy(menubuffer, (&(FunktionTable[canalnummera]))); // Funktion
+                  display_write_str(FunktionTable[canalnummera],1);
+               }
+               else
+               {
+                  display_write_str(" - ",1);
+                  display_write_str("  OFF \0",1);
+               }
+
+               
+               //Kanal B
+               char_y= (posregister[0][5] & 0xFF00)>>8;
+               char_x = (posregister[0][5] & 0x00FF);
+               
+               // Funktion anzeigen
+               // Funktion fuer Seite B:
+               canalnummerb = (curr_mixarray[0] & 0x0F);
+               // index in curr_funktionarray: Kanalnummer von Seite B: (curr_mixarray[0] & 0x70)]], Bit 0,1
+               if (canalnummerb < 8)
+               {
+                  display_write_int((curr_mixarray[0] & 0x0F),2);// Kanalnummer B, von geradem Index
+                  display_write_str(": \0",2);
+
+                  //strcpy(menubuffer, (&(FunktionTable[canalnummerb]))); // Funktion
+                  display_write_str(FunktionTable[canalnummerb],1);
+               }
+               else
+               {
+                  display_write_str(" - ",1);
+                  display_write_str("  OFF \0",1);
+               }
+               
+            }
+            else // Mix 0 ist OFF
+            {
+               char_y= (posregister[0][2] & 0xFF00)>>8;
+               char_x = posregister[0][2] & 0x00FF;
+               display_write_str(" -\0",1);
+               display_write_str("   OFF     \0",1);
+               char_y= (posregister[0][5] & 0xFF00)>>8;
+               char_x = (posregister[0][5] & 0x00FF);
+               display_write_str(" -\0",1);
+               display_write_str("   OFF    \0",1);
+               
+            }
+            
+            
+            // Mix 1
+            mixtyp = curr_mixarray[3]& 0x03; // von ungeradem Index
+            mixtyp &= 0x03; // nur 4 Typen
+            //strcpy(menubuffer, (&(MixTypTable[mixtyp]))); // Leveltext
+            char_y= (posregister[1][0] & 0xFF00)>>8;
+            char_x = posregister[1][0] & 0x00FF;
+            display_write_str(MixTypTable[mixtyp],2); // Mix-Typ
+            
+            if (mixtyp)
+            {
+               
+               //Kanal A
+               char_y= (posregister[1][2] & 0xFF00)>>8;
+               char_x = posregister[1][2] & 0x00FF;
+               
+               // Funktion anzeigen
+               // Funktion fuer Seite A:
+               canalnummera = ((curr_mixarray[2] & 0xF0)>>4);
+               if (canalnummera < 8)
+               {
+                  display_write_int(((curr_mixarray[2] & 0xF0)>>4),2); // Kanalnummer A, von geradem Index
+                  display_write_str(": ",2);
+                  
+               // index in curr_funktionarray: Kanalnummer von Seite A: (curr_mixarray[0] & 0x70)>>4]], Bit 4,5
+                  //strcpy(menubuffer, (&(FunktionTable[canalnummera]))); // Funktion
+                  display_write_str(FunktionTable[canalnummera],1);
+               }
+               else
+               {
+                  display_write_str(" - ",1);
+                  display_write_str("  OFF \0",1);
+               }
+               
+               
+               //Kanal B
+               char_y= (posregister[1][5] & 0xFF00)>>8;
+               char_x = (posregister[1][5] & 0x00FF);
+               canalnummerb = (curr_mixarray[2] & 0x0F);
+               
+               // Funktion anzeigen
+               // Funktion fuer Seite B:
+               
+               // index in curr_funktionarray: Kanalnummer von Seite B: (curr_mixarray[0] & 0x70)]], Bit 0,1
+               if (canalnummerb<8)
+               {
+                  display_write_int((curr_mixarray[2] & 0x0F),2);// Kanalnummer B, von geradem Index
+                  display_write_str(": ",2);
+
+                  //strcpy(menubuffer, (&(FunktionTable[canalnummerb]))); // Funktion
+                  display_write_str(FunktionTable[canalnummerb],1);
+               }
+               else
+               {
+                  display_write_str(" - ",1);
+                  display_write_str("  OFF ",1);
+               }
+            }
+            else // Mix 1 ist OFF
+            {
+               char_y= (posregister[1][2] & 0xFF00)>>8;
+               char_x = posregister[1][2] & 0x00FF;
+               display_write_str(" -\0",1);
+               display_write_str("   OFF     \0",1);
+               char_y= (posregister[1][5] & 0xFF00)>>8;
+               char_x = (posregister[1][5] & 0x00FF);
+               display_write_str(" -\0",1);
+               display_write_str("   OFF    \0",1);
+               
+            }
+            
+            
+         } // if updaate
+         
+         
+         
+         // Cursor anzeigen
+         if (blink_cursorpos == 0xFFFF) // Kein Blinken des Cursors
+         {
+            char_y= (cursorposition & 0xFF00)>>8;
+            char_x = cursorposition & 0x00FF;
+            char_height_mul = 1;
+            display_write_symbol(pfeilvollrechts);
+            
+         }
+         else // Cursor blinkt an blink_cursorpos
+         {
+            
+            char_y= (blink_cursorpos & 0xFF00)>>8;
+            char_x = blink_cursorpos & 0x00FF;
+            char_height_mul = 1;
+            
+            
+            if (sendesekunde%2)
+            {
+               display_write_symbol(pfeilvollrechts);
+            }
+            else
+            {
+               display_write_symbol(pfeilwegrechts);
+            }
+            
+         }
+         char_height_mul = 1;
+         
+         
+      }break;
+         
+      case ZUTEILUNGSCREEN:
+      {
+#pragma mark update ZUTEILUNGSCREEN
+         
+         if (programmstatus & (1<< UPDATESCREEN))
+         {
+            programmstatus &= ~(1<< UPDATESCREEN);
+            
+            uint8_t kanalindex=0;
+            for (kanalindex=0;kanalindex<8;kanalindex++)
+            {
+               uint8_t deviceindex = ((curr_funktionarray[kanalindex] & 0x70)>>4); // aktuelles device fuer kanal, bit 4-6
+               // Kanal an deviceindex einsetzen
+ //              curr_devicearray[deviceindex] = kanalindex ;
+            }
+            
+            // Ungerade Nummern_ vertikal
+            
+            // Device 1: L_V
+            
+            // Display-Position Nummer
+            char_y= (posregister[0][0] & 0xFF00)>>8;
+            char_x = (posregister[0][0] & 0x00FF);
+            
+            // Kanalnummer: aktueller Wert in curr_devicearray
+            uint8_t canalnummer = ((curr_devicearray[1]& 0x07));
+            display_write_int(canalnummer,1);// Kanalnummer ,
+            
+            // Display-Position Funktion
+            char_y= (posregister[0][1] & 0xFF00)>>8;
+            char_x = (posregister[0][1] & 0x00FF);
+            // Funktionnummer: aktueller wert in curr_funktionarray auf Zeile canalnummer
+            uint8_t funktionnummer= curr_funktionarray[canalnummer]&0x07;
+            
+            // index der Devicenummer (1 fuer L_V) in curr_funktionarray einsetzen: bit 4-6
+            curr_funktionarray[canalnummer] = 0x10 | (curr_funktionarray[canalnummer]&0x0F);
+            
+            // Name der Funktion schreiben
+            //strcpy(menubuffer, (&(FunktionTable[funktionnummer]))); // L_V
+            display_write_str(FunktionTable[funktionnummer],1);
+            
+            
+            // Device 3: R_V
+            // Display-Position Nummer
+            char_y = (posregister[0][2] & 0xFF00)>>8;
+            char_x = (posregister[0][2] & 0x00FF);
+
+            // Kanalnummer: aktueller Wert in curr_devicearray
+            canalnummer = ((curr_devicearray[3]& 0x07));
+            display_write_int(canalnummer,1);// Kanalnummer R_V,
+            
+            // Display-Position Funktion
+            char_y= (posregister[0][3] & 0xFF00)>>8;
+            char_x = (posregister[0][3] & 0x00FF);
+            funktionnummer= curr_funktionarray[canalnummer]&0x07;
+            
+            // index der Devicenummer in curr_funktionarray einsetzen: bit 4-6
+            curr_funktionarray[canalnummer] = 0x30 | (curr_funktionarray[canalnummer]&0x0F);
+
+            // Name der Funktion schreiben
+            //strcpy(menubuffer, (&(FunktionTable[funktionnummer]))); // R_V
+            display_write_str(FunktionTable[funktionnummer],1);
+            
+            
+            // Gerade Nummern_ horizontal
+
+            // Device 0: L_H
+            
+            char_y = (posregister[1][0] & 0xFF00)>>8;
+            char_x = (posregister[1][0] & 0x00FF);
+            canalnummer = ((curr_devicearray[0]& 0x07));
+            display_write_int(canalnummer,1);// Kanalnummer L_H,
+            funktionnummer= curr_funktionarray[canalnummer]&0x07;
+ 
+            // index der Devicenummer in curr_funktionarray einsetzen: bit 4-6
+            curr_funktionarray[canalnummer] = 0x00 | (curr_funktionarray[canalnummer]&0x0F);
+            
+            char_y = (posregister[1][1] & 0xFF00)>>8;
+            char_x = (posregister[1][1] & 0x00FF);
+            //strcpy(menubuffer, (&(FunktionTable[funktionnummer]))); // L_H
+            display_write_str(FunktionTable[funktionnummer],1);
+            
+            
+            // Device 2: R_H
+            
+            char_y = (posregister[1][2] & 0xFF00)>>8;
+            char_x = (posregister[1][2] & 0x00FF);
+            canalnummer =((curr_devicearray[2]& 0x07));
+            display_write_int(canalnummer,1);// Kanalnummer R_H,
+            funktionnummer= curr_funktionarray[canalnummer]&0x07;
+            
+            // index der Devicenummer in curr_funktionarray einsetzen: bit 4-6
+            curr_funktionarray[canalnummer] = 0x20 | (curr_funktionarray[canalnummer]&0x0F);
+            
+            char_y = (posregister[1][3] & 0xFF00)>>8;
+            char_x = (posregister[1][3] & 0x00FF);
+            //strcpy(menubuffer, (&(FunktionTable[funktionnummer]))); // R_H
+            display_write_str(FunktionTable[funktionnummer],1);
+            
+            
+            // Device 4: Schieber L
+            
+            // Position Nummer
+            char_y = (posregister[2][0] & 0xFF00)>>8;
+            char_x = (posregister[2][0] & 0x00FF);
+            canalnummer = ((curr_devicearray[4]& 0x07));
+            display_write_int(canalnummer,1);// Schieber l,
+            funktionnummer= curr_funktionarray[canalnummer]&0x07;
+            // Position Funktion
+            char_y = (posregister[2][1] & 0xFF00)>>8;
+            char_x = (posregister[2][1] & 0x00FF);
+            //strcpy(menubuffer, (&(FunktionTable[funktionnummer]))); // S_L
+            display_write_str(FunktionTable[funktionnummer],1);
+            
+            // Device 5: Schieber R
+            char_y = (posregister[2][2] & 0xFF00)>>8;
+            char_x = (posregister[2][2] & 0x00FF);
+            canalnummer = ((curr_devicearray[5]& 0x07));
+            display_write_int(canalnummer,1);// Schieber l,
+            funktionnummer= curr_funktionarray[canalnummer]&0x07;
+            // index der Devicenummer in curr_funktionarray einsetzen: bit 4-6
+  //          curr_funktionarray[canalnummer] = 0x10 | (curr_funktionarray[canalnummer]&0x07);
+            
+
+            // Position Funktion
+            char_y = (posregister[2][3] & 0xFF00)>>8;
+            char_x = (posregister[2][3] & 0x00FF);
+            //strcpy(menubuffer, (&(FunktionTable[funktionnummer]))); // S_R
+            display_write_str(FunktionTable[funktionnummer],1);
+            
+         }
+         
+         // Cursor anzeigen
+         if (blink_cursorpos == 0xFFFF) // Kein Blinken des Cursors
+         {
+            char_y= (cursorposition & 0xFF00)>>8;
+            char_x = cursorposition & 0x00FF;
+            char_height_mul = 1;
+            display_write_symbol(pfeilvollrechts);
+            
+         }
+         else // Cursor blinkt an blink_cursorpos
+         {
+            
+            char_y= (blink_cursorpos & 0xFF00)>>8;
+            char_x = blink_cursorpos & 0x00FF;
+            char_height_mul = 1;
+            
+            
+            if (sendesekunde%2)
+            {
+               display_write_symbol(pfeilvollrechts);
+            }
+            else
+            {
+               display_write_symbol(pfeilwegrechts);
+            }
+            
+         }
+         char_height_mul = 1;
+         
+         
+      }break;
+         
+         
+      case AUSGANGSCREEN:
+      {
+#pragma mark update AUSGANGSCREEN
+         uint8_t cursoroffset=0;
+         if (programmstatus & (1<< UPDATESCREEN))
+         {
+            programmstatus &= ~(1<< UPDATESCREEN);
+            uint8_t delta=2;
+            uint8_t spaltenarray[4] = {itemtab[0],itemtab[1]-delta,itemtab[2],itemtab[4]};
+            uint8_t impulsindex=0;
+            uint8_t startindex = 0, endindex=5;
+            
+            startindex = 0;
+            endindex = 5;
+            char_y = 3;
+            if (curr_impuls<4)
+            {
+               cursoroffset=0;
+            }
+            else // scrollen, curr_cursorzeile auf 1 <> impuls 4
+            {
+               if (cursoroffset==0) // curr_impuls neu > 3
+               {
+                  display_cursorweg();
+               }
+               //curr_cursorzeile=1;
+               //startindex = 3;
+               //endindex = 8;
+               cursoroffset = 3;
+               
+               
+            }
+            
+            //cursoroffset = 3;
+            for (impulsindex= (startindex);impulsindex < (endindex );impulsindex++)
+            {
+               char_y = impulsindex+3;
+               // Impulsnummer in Summensignal
+               char_x = spaltenarray[0];
+               display_write_int(impulsindex + cursoroffset,1);
+               
+               // Kanalnummer
+               char_x = spaltenarray[1];
+               
+               // canalnummer ist im ausgangarray bit 0-2: Reihenfolge der Kanaele im Summensignal
+               
+               uint8_t canalnummer = curr_ausgangarray[impulsindex + cursoroffset]&0x07;
+               //uint8_t canalnummer = curr_ausgangarray[impulsindex-cursoroffset]&0x07;
+               
+               display_write_int(canalnummer,1);
+               
+               // Devicenummer
+               char_x = spaltenarray[2];
+               //display_write_int((curr_funktionarray[canalnummer]&0x70)>>4,1);
+               //uint8_t devicenummer = curr_devicearray[impulsindex]&0x07;
+               
+               //devicenummer ist im funktionarray bit 4-6. Wird in Zuteilung gesetzt
+               uint8_t devicenummer = (curr_funktionarray[canalnummer]&0x70)>>4;
+               
+               //display_write_int(devicenummer,1);
+ 
+               //strcpy(menubuffer, (&(DeviceTable[devicenummer])));
+               display_write_str(DeviceTable[devicenummer],1);
+               
+               // Funktion
+               char_x = spaltenarray[3];
+               uint8_t funktionnummer =(curr_funktionarray[canalnummer]&0x07);
+               //display_write_int(funktionnummer,1);
+               
+               //strcpy(menubuffer, (&(FunktionTable[funktionnummer])));
+               display_write_str(FunktionTable[funktionnummer],1);
+               
+               /*
+               //if (char_y == 3)
+               {
+               display_write_str(" ",1);
+               display_write_int(curr_impuls,1);
+               display_write_str(" ",1);
+               display_write_int(curr_cursorzeile,1);
+
+               }
+                */
+            }
+
+            
+         } // if update
+         
+         // Cursor anzeigen
+         if (blink_cursorpos == 0xFFFF) // Kein Blinken des Cursors
+         {
+            char_y= ((cursorposition & 0xFF00)>>8);;//-cursoroffset;
+            char_x = cursorposition & 0x00FF;
+            char_height_mul = 1;
+            display_write_symbol(pfeilvollrechts);
+            
+         }
+         else // Cursor blinkt an blink_cursorpos
+         {
+            
+            char_y= ((blink_cursorpos & 0xFF00)>>8);//-cursoroffset;
+            char_x = blink_cursorpos & 0x00FF;
+            char_height_mul = 1;
+            
+            
+            if (sendesekunde%2)
+            {
+               display_write_symbol(pfeilvollrechts);
+            }
+            else
+            {
+               display_write_symbol(pfeilwegrechts);
+            }
+            
+         }
+         char_height_mul = 1;
+
+      }break;
+
+#pragma mark update SAVESCREEN
+
+      case SAVESCREEN: // Kanal
+      {
+         if (blink_cursorpos == 0xFFFF) // Kein Blinken des Cursors
+         {
+            char_y= (cursorposition & 0xFF00)>>8;
+            char_x = cursorposition & 0x00FF;
+            if ((curr_cursorspalte <=3)&& (curr_cursorzeile<=2)) //Erste Zeile, Kanalnummer
+            {
+               char_height_mul = 1;
+            }
+            else
+            {
+               char_height_mul = 1;
+            }
+            
+            display_write_symbol(pfeilvollrechts);
+            
+         }
+         else // Cursor blinkt an blink_cursorpos
+         {
+            
+            char_y= (blink_cursorpos & 0xFF00)>>8;
+            char_x = blink_cursorpos & 0x00FF;
+            if ((curr_cursorspalte <=1)&& (curr_cursorzeile==1)) //Erste Zeile, Kanalnummer
+            {
+               char_height_mul = 1;
+            }
+            else
+            {
+               char_height_mul = 1;
+            }
+
+            if (sendesekunde%2)
+            {
+               display_write_symbol(pfeilvollrechts);
+            }
+            else
+            {
+               display_write_symbol(pfeilwegrechts);
+            }
+            
+         }
+         char_height_mul = 1;
+         char_y= 5;
+         char_x = 10+OFFSET_6_UHR;
+         display_write_int(eepromsavestatus,2);
+         
+         
+      }break;
+
+#pragma mark update TRIMMSCREEN
+
+      case TRIMMSCREEN: // Kanal
+      {
+         if (blink_cursorpos == 0xFFFF) // Kein Blinken des Cursors
+         {
+            char_y= (cursorposition & 0xFF00)>>8;
+            char_x = cursorposition & 0x00FF;
+            
+            display_write_symbol(pfeilvollrechts);
+            
+         }
+         else // Cursor blinkt an blink_cursorpos
+         {
+            
+            char_y= (blink_cursorpos & 0xFF00)>>8;
+            char_x = blink_cursorpos & 0x00FF;
+            
+            if (sendesekunde%2)
+            {
+               display_write_symbol(pfeilvollrechts);
+            }
+            else
+            {
+               display_write_symbol(pfeilwegrechts);
+            }
+            
+         }
+         char_y= 5;
+         char_x = 10+OFFSET_6_UHR;
+         
+         display_trimmanzeige_horizontal (14+OFFSET_6_UHR, 7,1,-15);
+      }break;
+
+
+   }
+   return fehler;
+}
 
 uint8_t update_screen(void)
 {
@@ -1139,7 +2117,7 @@ uint8_t update_screen(void)
 #pragma mark update HOMESCREEN
          
          fehler=2;
-         updatecounter++;
+         //updatecounter++;
          /*
          //Laufzeit
          char_x = posregister[0][0] & 0x00FF;
