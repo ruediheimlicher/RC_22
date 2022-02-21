@@ -1380,6 +1380,9 @@ void loop()
 
                float ppmfloat = PPMLO + quotarray[i] *(float(potwert) - potgrenzearray[i][0]);
                uint16_t ppmint = uint16_t(ppmfloat);
+               sendbuffer[DATAOFFSET + 2*i] = (ppmint & 0x00FF); // LO
+               sendbuffer[DATAOFFSET + 2*i + 1] = (ppmint & 0xFF00)>>8; // Hi
+               
                uint16_t expo  = 0;  
                uint16_t ppmabs  = 0;  
                uint16_t expoint  = 0;  
@@ -1522,8 +1525,10 @@ void loop()
          displaystatus &= ~(1<<UHR_UPDATE);
          
       }
-      
-      
+      //usb_rawhid_send((void*)sendbuffer, 50);
+      uint8_t senderfolg = RawHID.send(sendbuffer, 50);
+      Serial.printf("usb senderfolg: %d \n");
+
       servostatus |= (1<<USB_OK);
    }
    
@@ -4672,10 +4677,16 @@ void loop()
                   
                }break;
         
+               case 0xF0: // Data
+               {
+                  
+               }break;
       #pragma mark default
                default:
                {
-                  
+                  RawHID.send(sendbuffer, 50);
+                  //usb_rawhid_send((void*)sendbuffer, 50);
+                  Serial.printf("usb send\n");
                }break; // default
                   
                   
@@ -4688,6 +4699,7 @@ void loop()
          OSZI_D_HI();
       } // since usb
 
+      
       servostatus &= ~(1<<USB_OK);
    }// usb
 } // loop

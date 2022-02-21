@@ -133,7 +133,8 @@
 #define USB_OK 5
 #define ENDEPAKET  7
 
-
+// USB
+#define DATAOFFSET   8
 
 // Ramp
 #define RAMP_OK      1 // Ramp einschalten
