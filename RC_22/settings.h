@@ -54,6 +54,8 @@
 #define UHR_UPDATE         0
 #define BATTERIE_UPDATE    1
 
+#define USB_DATENBREITE 64
+#define EE_PARTBREITE 32
 
 
 // Tastatur
@@ -81,16 +83,18 @@
 #define SAVE_DEVICE 5
 #define SAVE_AUSGANG 6
 
+// USB Konstanten
+
+#define USB_DATA_OFFSET 4
 // EEPROM Speicherorte
 
-#define TASK_OFFSET        0x2000 // Ort fuer Einstellungen
+#define TASK_OFFSET        0 // war 0x2000, Ort fuer Einstellungen
 
-#define SETTINGBREITE      0x100; // 256 Bytes, Breite des Settingblocks fuer ein model
+#define SETTINGBREITE      4 // 0x100; // 256 Bytes, Breite des Settingblocks fuer ein model
 
-#define  MITTE_OFFSET      0x10 // 16
-#define  LEVEL_OFFSET      0x20 // 32
-#define  EXPO_OFFSET       0x30 // 48
-#define  MIX_OFFSET        0x40 // 64
+#define  LEVEL_OFFSET      1 //0x20 // 32
+#define  EXPO_OFFSET       2 //0x30 // 48
+#define  MIX_OFFSET        3 // 0x40 // 64
 
 #define FUNKTION_OFFSET    0x60 // 96
 #define DEVICE_OFFSET      0x70 // 122
