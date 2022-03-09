@@ -182,6 +182,8 @@ void update_time(uint8_t code);
 void update_motorzeit(void);
 void update_stopzeit(void);
 void update_sendezeit(void);
+void update_akku(void);
+void update_batteriespannung(void);
 //void update_systemzeit(void);
 uint8_t display_diagramm (uint8_t char_x, uint8_t char_y, uint8_t stufea,uint8_t stufeb, uint8_t typ);
 uint8_t display_kanaldiagramm (uint8_t char_x, uint8_t char_y, uint8_t level, uint8_t expo, uint8_t typ );

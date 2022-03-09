@@ -240,7 +240,7 @@ volatile uint8_t                 curr_cursorspalte=0; // aktuelle colonne des cu
 volatile uint8_t                 last_cursorzeile=0; // letzte zeile des cursors
 volatile uint8_t                 last_cursorspalte=0; // letzte colonne des cursors
 
-static volatile uint8_t             displaystatus=0x00; // Tasks fuer Display
+volatile uint8_t             displaystatus=0x00; // Tasks fuer Display
 
 volatile uint8_t                  masterstatus = 0;
 volatile uint8_t                  eepromsavestatus = 0;
@@ -534,6 +534,7 @@ void read_Ext_EEPROM_Settings(void)
 // MARK: writeSettings
 void write_Ext_EEPROM_Settings(void)
 {
+   return;
    // Halt einschalten
    masterstatus |= (1<<HALT_BIT); // Halt-Bit aktiviert Task bei ausgeschaltetem Slave
 //   MASTER_PORT &= ~(1<<SUB_BUSY_PIN);
@@ -675,7 +676,7 @@ void write_Ext_EEPROM_Settings(void)
 
 uint8_t eeprombytelesen(uint16_t readadresse) // 300 us ohne lcd_anzeige
 {
-   
+   return;
    //OSZI_B_LO;
    readdata = EEPROM.read(readadresse);
    //OSZI_B_HI;
@@ -773,6 +774,7 @@ uint8_t eeprompartlesen(uint16_t readadresse) //   us ohne lcd_anzeige
 
 uint8_t eeprombyteschreiben(uint8_t code, uint16_t writeadresse,uint8_t eeprom_writedatabyte) //   1 ms ohne lcd-anzeige
 {
+   return;
    //OSZI_B_LO;
    EEPROM.write(writeadresse,eeprom_writedatabyte);
    
@@ -879,6 +881,7 @@ uint8_t eeprombyteschreiben(uint8_t code, uint16_t writeadresse,uint8_t eeprom_w
 
 uint16_t eeprompartschreiben(void) // 23 ms
 {
+   return;
    //OSZI_B_LO;
      uint16_t result = 0;
    
@@ -1130,7 +1133,7 @@ void setup()
    kanalimpulsTimer.priority(2);
    servopaketTimer.priority(1);
    
-   servopaketTimer.begin(servopaketfunktion, 30000);
+   servopaketTimer.begin(servopaketfunktion, 25000);
    
    if (TEST)
    {
@@ -1297,12 +1300,12 @@ void loop()
             //update_time();
          }
       }
-      displaystatus |= (1<<UHR_UPDATE); // XX
+      displaystatus |= (1<<UHR_UPDATE);//XX
    } // 1000
    
    if (sinceupdatesceen > 200) 
    {
-      displaystatus |= (1<<UHR_UPDATE);
+      //displaystatus |= (1<<UHR_UPDATE);
       //Serial.printf("updatesceen\n");
       //update_screen();
          //OSZI_B_HI;
@@ -1589,8 +1592,10 @@ void loop()
      // if (displaystatus & (1<<UHR_UPDATE))
       {
          OSZI_D_LO();
-         //update_sendezeit();
-         update_time(updatecounter & 0x0f);
+         if (curr_screen == 0)
+         {
+            update_time(updatecounter & 0x0f);
+         }
          updatecounter++;
          OSZI_D_HI();
          
@@ -2907,12 +2912,10 @@ void loop()
                                     display_clear();
                                     //lcd_putc('D');
                                     Serial.printf("*H5*D \t");
-                                   // setsettingscreen();
-                                    setcanalscreen();  
+                                   setsettingscreen();
                                     //lcd_putc('E');
                                     Serial.printf("*H5*E \t");
                                     curr_screen = SETTINGSCREEN;
-                                    //curr_screen = KANALSCREEN;
                                     curr_cursorspalte=0;
                                     curr_cursorzeile=0;
                                     last_cursorspalte=0;
@@ -4008,7 +4011,7 @@ void loop()
                      motorsekunde=0;
                      motorminute=0;
                      //update_time();
-                     update_motorzeit();
+          //*           update_motorzeit();
                      
                   }
                   manuellcounter=0; // timeout zuruecksetzen
@@ -4680,7 +4683,7 @@ void loop()
                   stopsekunde=0;
                   stopminute=0;
                   //update_time();
-                  update_stopzeit();
+      //*            update_stopzeit();
                }
                manuellcounter=0; // timeout zuruecksetzen
                
@@ -4715,7 +4718,7 @@ void loop()
          
          Serial.printf("Tastenindex update curscreen: %d\n",curr_screen);
          tastaturstatus &= ~(1<<UPDATEOK);
-         update_screen();
+//         update_screen();
       }
 
       tastaturstatus &= ~(1<<TASTEOK);

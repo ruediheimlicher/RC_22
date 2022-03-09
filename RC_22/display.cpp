@@ -1068,11 +1068,12 @@ void update_stopzeit(void)
 
 void update_time(uint8_t code)
 {
-   
    switch (code)
    {
    case 0:
       {
+         //sendezeit aktualisieren
+         
          char_x = posregister[0][0] & 0x00FF;
          char_y= (posregister[0][0] & 0xFF00)>>8;
          char_height_mul = 1;
@@ -1139,7 +1140,22 @@ void update_time(uint8_t code)
 
 void update_akku(void)
 {
-   
+   // Akkubalken anzeigen
+   char_height_mul = 1;
+   char_width_mul = 1;
+   display_akkuanzeige(batteriespannung);
+
+}
+
+void update_batteriespannung(void)
+{
+   // Batteriespannung aktualisieren
+   char_y= (posregister[3][1] & 0xFF00)>>8;
+   char_x = posregister[3][1] & 0x00FF;
+   char_height_mul = 1;
+   char_width_mul = 1;
+   display_write_spannung(batteriespannung/10,2);
+
 }
 
 uint8_t refresh_screen(void)
