@@ -1048,7 +1048,7 @@ void update_sendezeit(void)
    char_y= (posregister[0][0] & 0xFF00)>>8;
    char_height_mul = 1;
    char_width_mul = 1;
-   
+   display_write_zeit(sendesekunde&0xFF,sendeminute,sendestunde, 2);
   
 }
 
@@ -1064,6 +1064,7 @@ void update_stopzeit(void)
    
   
 }
+
 
 void update_time(uint8_t code)
 {
@@ -1105,6 +1106,7 @@ void update_time(uint8_t code)
       
    case 3: // Batteriespannung aktualisieren
       {
+         
          // Batteriespannung aktualisieren
          char_y= (posregister[3][1] & 0xFF00)>>8;
          char_x = posregister[3][1] & 0x00FF;
@@ -1121,10 +1123,12 @@ void update_time(uint8_t code)
          display_akkuanzeige(batteriespannung);
 
       }
+         
       default:
       {
          return;//servostatus |= (1<<USB_OK);
       }break;
+          
    }// switch
  
     

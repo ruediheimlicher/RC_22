@@ -2907,8 +2907,8 @@ void loop()
                                     display_clear();
                                     //lcd_putc('D');
                                     Serial.printf("*H5*D \t");
-                                   setsettingscreen();
-                                    //setcanalscreen();  
+                                   // setsettingscreen();
+                                    setcanalscreen();  
                                     //lcd_putc('E');
                                     Serial.printf("*H5*E \t");
                                     curr_screen = SETTINGSCREEN;
