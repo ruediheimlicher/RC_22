@@ -203,6 +203,7 @@ void resetRegister(void)
 void sethomescreen(void)
 {
    // Laufzeit
+   Serial.printf("sethomescreen start\n");
    resetRegister();
    blink_cursorpos=0xFFFF;
    posregister[0][0] = itemtab[5] | (1 << 8);// Laufzeit Anzeige
@@ -318,12 +319,14 @@ void sethomescreen(void)
    char_x += 2;
    display_write_str(TitelTable[4],2);
    
-   
+   Serial.printf("sethomescreen end\n");
 }// sethomescreen
 
 
 void setsettingscreen(void)
 {
+   Serial.printf("setsettingscreen start\n");
+   
    resetRegister();
    blink_cursorpos=0xFFFF;
    
@@ -413,13 +416,7 @@ void setsettingscreen(void)
    //char_x=0;
    display_write_str(SettingTable[6],2);
    
-  
-   
-   
-   
-   
-
-
+   Serial.printf("setsettingscreen end\n");
 }// setsettingscreen
 
 
@@ -1022,6 +1019,7 @@ void settrimmscreen(void)
 
 void update_motorzeit(void)
 {   
+   
    /*
    char_x = posregister[0][0] & 0x00FF;
    char_y= (posregister[0][0] & 0xFF00)>>8;
@@ -1045,6 +1043,7 @@ void update_motorzeit(void)
 
 void update_sendezeit(void)
 {
+   
    char_x = posregister[0][0] & 0x00FF;
    char_y= (posregister[0][0] & 0xFF00)>>8;
    char_height_mul = 1;
@@ -1055,7 +1054,7 @@ void update_sendezeit(void)
 
 void update_stopzeit(void)
 {
-
+   
    // Stoppzeit aktualisieren
    char_y= (posregister[2][1] & 0xFF00)>>8;
    char_x = posregister[2][1] & 0x00FF;
@@ -1068,6 +1067,7 @@ void update_stopzeit(void)
 
 void update_time(uint8_t code)
 {
+   
    switch (code)
    {
    case 0:
@@ -1251,6 +1251,7 @@ uint8_t refresh_screen(void)
          
       case SETTINGSCREEN: // Setting
       {
+         
 #pragma mark update SETTINGSCREEN
          char_height_mul = 1;
          char_width_mul = 1;
@@ -1284,6 +1285,7 @@ uint8_t refresh_screen(void)
          
          if (blink_cursorpos == 0xFFFF) // Kein Blinken des Cursors
          {
+            
             char_y= (cursorposition & 0xFF00)>>8;
             char_x = cursorposition & 0x00FF;
             if (curr_cursorzeile==0) // Modellname
@@ -2105,10 +2107,12 @@ uint8_t refresh_screen(void)
 
 uint8_t update_screen(void)
 {
+   
    uint8_t fehler=0;
    uint16_t cursorposition = cursorpos[curr_cursorzeile][curr_cursorspalte];
    fehler=1;
-   //Serial.printf("****************  update_screen: %d\n",curr_screen);
+   Serial.printf("****************  update_screen: %d\n",curr_screen);
+   
    switch (curr_screen)
    {
          
@@ -2183,6 +2187,7 @@ uint8_t update_screen(void)
          
       case SETTINGSCREEN: // Setting
       {
+         
 #pragma mark update SETTINGSCREEN
          char_height_mul = 1;
          char_width_mul = 1;
@@ -3646,26 +3651,7 @@ void display_write_byte(unsigned cmd_DATEN, unsigned char data)
    
    spi_out(data);
   
-   /*
-	DOG_PORT &= ~(1<<SPI_SS);
-	if(cmd_DATEN == 0)
-	{
-		PORT_A0 |= (1<<PIN_A0);
-	}
-	else
-	{
-		PORT_A0 &= ~(1<<PIN_A0);
-	}
-   
-//   
-   
-	SPDR = data;
-	while(!(SPSR & (1<<SPIF)));
-   
-   _delay_us(1);
-	PORTB |= (1<<SPI_SS);
-    */
-}
+ }
 
 //##############################################################################################
 //Init LC-Display
@@ -3712,29 +3698,6 @@ void display_init()
 
 void display_soft_init()
 {
-   /*
-	TCCR2A |= (1<<WGM21|1<<WGM20|1<<COM2A1|1<<CS20);
-	OCR2A = 50;
-	
-   SOFT_SPI_DDR |= (1<<DOG_A0);
-   SOFT_SPI_PORT |= (1<<DOG_A0);
-   
-   SOFT_SPI_DDR |= (1<<DOG_RST);
-   SOFT_SPI_PORT |= (1<<DOG_RST);
-   
-   SOFT_SPI_DDR |= (1<<DOG_CS);
-   SOFT_SPI_PORT |= (1<<DOG_CS);
-   
-   SOFT_SPI_DDR |= (1<<DOG_SCL);
-   SOFT_SPI_PORT &= ~(1<<DOG_SCL);
-   
-   SOFT_SPI_DDR |= (1<<DOG_DATEN);
-   SOFT_SPI_PORT &= ~(1<<DOG_DATEN);
-
-   SOFT_SPI_DDR |= (1<<DOG_PWM);
-   //SOFT_SPI_PORT &= ~(1<<DOG_PWM);
-   SOFT_SPI_PORT |= (1<<DOG_PWM); // LED ON
-*/
 	_delay_us(1);
 	//send 11 init commands to Display
    
@@ -5186,7 +5149,7 @@ void r_uitoa8(int8_t zahl, char* string)
 
 uint8_t spi_out(uint8_t Datenout)
 {
-   uint8_t spidelay = 1;
+   uint8_t spidelay = 1; // xxx
    cli();
   // OSZI_B_LO;
    digitalWriteFast(DOG_CS,0); ; // Chip enable

@@ -283,6 +283,7 @@ static volatile uint8_t kontrollbuffer[USB_DATENBREITE]={};
 
 static volatile uint8_t eeprombuffer[USB_DATENBREITE]={};
 
+volatile uint8_t kanalsettingarray[ANZAHLMODELLE][NUM_SERVOS][KANALSETTINGBREITE] = {};
 uint8_t readdata=0xaa;
 
 
@@ -948,75 +949,40 @@ uint16_t eeprompartschreiben(void) // 23 ms
    return result;
 }
 
+uint8_t  decodeUSBChannelSettings(uint8_t buffer[USB_DATENBREITE])
+{
+   // uint8_t kanalsettingarray[ANZAHLMODELLE][NUM_SERVOS][KANALSETTINGBREITE] = {};
+   
+   uint8_t modelindex = buffer[USB_DATA_OFFSET + modelindex * MODELSETTINGBREITE] & 0x03; // Bit 0,1 welches model soll gelesen werden
+
+   uint8_t kanalindex =  buffer[USB_DATA_OFFSET + modelindex * KANALSETTINGBREITE] & 0x70; // Bits 4,5,6
+   
+   
+   uint8_t on = buffer[USB_DATA_OFFSET + modelindex * KANALSETTINGBREITE] & 0x08; // Bit 3
+   uint8_t pos = USB_DATA_OFFSET;
+   for (uint8_t kanal = 0;kanal < 8;kanal++)
+   {
+      for (uint8_t dataindex = 0;dataindex < 4;dataindex++)
+      {
+         kanalsettingarray[modelindex][kanal][dataindex] = buffer[pos + dataindex];
+         
+      }
+      pos += KANALSETTINGBREITE;
+      
+   }
+   
+   return 1;
+   
+   // funktion lesen
+   uint16_t readstartadresse = TASK_OFFSET  + FUNKTION_OFFSET + modelindex*SETTINGBREITE;
+
+   
+}// decodeUSBChannelSettings
+
 void sekundentimerfunktion(void)
 {
    {
-      /*
-      //sincelastseccond = 0;
-      sendesekunde++;
-      if (curr_screen == 0)
-      {
-      //update_sendezeit();
-      }
-      //Serial.printf("motorsekunde: %d programmstatus: %d manuellcounter: %d\n",motorsekunde, programmstatus, manuellcounter);
-      
-      if (sendesekunde == 60)
-      {
-         sendeminute++;
-         sendesekunde = 0;
-         if (curr_screen == 0)
-         {
-         refresh_screen();
-         }
-      }
-      if (sendeminute == 60)
-      {
-         sendestunde++;
-         sendeminute = 0;
-      }
-      //Serial.printf("sendesekunde: %d programmstatus: %d servostatus: %d manuellcounter: %d curr_screen: %d\n",sendesekunde, programmstatus,servostatus,  manuellcounter, curr_screen);
-
-      
-      if (programmstatus & (1<<MOTOR_ON))
-      {
-         motorsekunde++;
-         if (motorsekunde==60)
-         {
-            motorminute++;
-            motorsekunde=0;
-         }
-         if (motorminute >= 60)
-         {
-            motorminute = 0;
-         }
-         if (curr_screen == 0)
-         {
-            update_time();
-         }
-         
-      }
-      
-      if (programmstatus & (1<<STOP_ON))
-      {
-      //   lcd_gotoxy(15,0);
-      //   lcd_putint2(stopsekunde);
-
-         stopsekunde++;
-         if (stopsekunde == 60)
-         {
-            stopminute++;
-            stopsekunde=0;
-         }
-         if (stopminute >= 60)
-         {
-            stopminute = 0;
-         }
-         if (curr_screen == 0)
-         {
-            //update_time();
-         }
-      }
-*/
+ 
    }
 }
 
@@ -1043,44 +1009,8 @@ void servopaketfunktion(void) // start Abschnitt
 
 void displayinit()
 {
-   /*
-#define A0_HI        SOFT_SPI_PORT |= (1<<DOG_A0)
-#define A0_LO        SOFT_SPI_PORT &= ~(1<<DOG_A0)
-
-#define RST_HI        SOFT_SPI_PORT |= (1<<DOG_RST)
-#define RST_LO        SOFT_SPI_PORT &= ~(1<<DOG_RST)
-
-
-#define CS_HI        SOFT_SPI_PORT |= (1<<DOG_CS)
-#define CS_LO        SOFT_SPI_PORT &= ~(1<<DOG_CS)
-
-#define SCL_HI       SOFT_SPI_PORT |= (1<<DOG_SCL)
-#define SCL_LO       SOFT_SPI_PORT &= ~(1<<DOG_SCL)
-
-#define DATA_HI      SOFT_SPI_PORT |= (1<<DOG_DATA)
-#define DATA_LO      SOFT_SPI_PORT &= ~(1<<DOG_DATA)
-*/
    
-   /*
-   pinMode(DOG_CS, OUTPUT);
-   digitalWriteFast(DOG_CS, 1);
-   
-   pinMode(DOG_RST, OUTPUT);
-   digitalWriteFast(DOG_RST, 1);
-
-   pinMode(DOG_A0, OUTPUT);
-   digitalWriteFast(DOG_A0, 1);
-   
-   pinMode(DOG_SCL, OUTPUT);
-   digitalWriteFast(DOG_SCL, 0);
-   
-   pinMode(DOG_DATA, OUTPUT);
-   digitalWriteFast(DOG_DATA, 0);
-   
-   pinMode(DOG_PWM, OUTPUT);
-   digitalWriteFast(DOG_PWM, 1);
-*/
-
+ 
 
    
 }
@@ -1367,7 +1297,7 @@ void loop()
             //update_time();
          }
       }
-      displaystatus |= (1<<UHR_UPDATE);
+      displaystatus |= (1<<UHR_UPDATE); // XX
    } // 1000
    
    if (sinceupdatesceen > 200) 
@@ -1447,44 +1377,44 @@ void loop()
       //
       if ((manuellcounter > MANUELLTIMEOUT) )
       {
+         
+         
+         programmstatus &= ~(1<< LEDON);
+         display_set_LED(0);
+         manuellcounter=1;
+         
+         if (curr_screen) // nicht homescreen
+         {
+            display_clear();
+            curr_screen=0;
+            curr_cursorspalte=0;
+            curr_cursorzeile=0;
+            last_cursorspalte=0;
+            last_cursorzeile=0;
+            settingstartcounter=0;
+            startcounter=0;
+            eepromsavestatus=0;
+            //       read_Ext_EEPROM_Settings();// zuruecksetzen
+            
+            sethomescreen();
+            programmstatus &= ~(1<<UPDATESCREEN);
+         }
+         else 
          {
             
-            programmstatus &= ~(1<< LEDON);
-            display_set_LED(0);
-            manuellcounter=1;
+            programmstatus &= ~(1<< SETTINGWAIT);
+            curr_screen=0;
+            startcounter=0;
+            settingstartcounter=0;
             
-            if (curr_screen) // nicht homescreen
-            {
-               display_clear();
-               curr_screen=0;
-               curr_cursorspalte=0;
-               curr_cursorzeile=0;
-               last_cursorspalte=0;
-               last_cursorzeile=0;
-               settingstartcounter=0;
-               startcounter=0;
-               eepromsavestatus=0;
-        //       read_Ext_EEPROM_Settings();// zuruecksetzen
-               
-               sethomescreen();
-               programmstatus &= ~(1<<UPDATESCREEN);
-            }
-           else 
-           {
-              
-              programmstatus &= ~(1<< SETTINGWAIT);
-              curr_screen=0;
-              startcounter=0;
-              settingstartcounter=0;
-              
-              /*
-              lcd_gotoxy(0,2);
-              lcd_putc(' ');
-              lcd_putc(' ');
-              lcd_putc(' ');
-*/
-           }
+            /*
+             lcd_gotoxy(0,2);
+             lcd_putc(' ');
+             lcd_putc(' ');
+             lcd_putc(' ');
+             */
          }
+         
          //
       }
    
@@ -1499,7 +1429,7 @@ void loop()
    {
       loopcounter++;
       //manuellcounter++;
-      //Serial.printf("A");
+      //Serial.printf("+A+");
       OSZI_C_LO();
       displaycounter++;
       for (uint8_t i=0;i<NUM_SERVOS;i++)
@@ -1516,7 +1446,7 @@ void loop()
             else 
             {
                
-               //Serial.printf("B");
+               //Serial.printf("+B+");
                uint16_t potwert = adc->adc0->analogRead(adcpinarray[i]);
                //float ppmfloat = PPMLO + quot *(float(potwert) - POTLO);
 
@@ -1593,11 +1523,11 @@ void loop()
          //Serial.printf("C");
       }
       //Tastenwert = 0;
-      if (Tastenwert>5)
+      if (Tastenwert>10)
       {
          if (!(tastaturstatus & (1<<TASTEOK)))
          {
-            Serial.printf("A");
+            Serial.printf("*AA*");
             //Tastenindex = Tastenwahl(Tastenwert); // taste pressed
             Tastenwertdiff = Tastenwert - lastTastenwert;
             if (Tastenwert > lastTastenwert)
@@ -1609,10 +1539,10 @@ void loop()
                Tastenwertdiff = lastTastenwert - Tastenwert;
             }
             lastTastenwert = Tastenwert;
-            //Serial.printf("B");
+            //Serial.printf("*BB*");
             if (Tastenwertdiff < 6)
             {
-               //Serial.printf("C");
+               Serial.printf("*C*");
                if (tastaturcounter < ADCTIMEOUT)
                {
                   //Serial.printf("D");
@@ -1636,12 +1566,12 @@ void loop()
              
             else
             {
-               //Serial.printf("F");
+               Serial.printf("F");
                tastaturcounter = 0;
             }
             //Serial.printf("TASTEOK end\n");
          }   // TASTEOK 
-         //Serial.printf("Tastenwert end\n");
+         Serial.printf("Tastenwert end\n");
       }
       else
       {
@@ -1651,6 +1581,7 @@ void loop()
          Tastenindex = 0;
 //           Trimmtastenwert=adc_read(TRIMMTASTATURPIN)>>2;
       }
+      
       //Serial.printf("End\n");
       // end Tastatur
       OSZI_C_HI();
@@ -1665,10 +1596,12 @@ void loop()
          
          displaystatus &= ~(1<<UHR_UPDATE);
          
+     //    Serial.printf("X");
+         
       }
       //usb_rawhid_send((void*)sendbuffer, 50);
-      uint8_t senderfolg = RawHID.send(sendbuffer, 50);
-      Serial.printf("usb senderfolg: %d \n");
+   //   uint8_t senderfolg = RawHID.send(sendbuffer, 50);
+   //   Serial.printf("usb senderfolg: %d \n");
 
       servostatus |= (1<<USB_OK);
    }
@@ -1843,10 +1776,12 @@ void loop()
                      
                      
                      
-                  case SETTINGSCREEN: // Settings
+                  case SETTINGSCREEN: // T2 Settings
                   {
+                     //break;
                      if (blink_cursorpos == 0xFFFF && manuellcounter) // Kein Blinken
                      {
+                        Serial.printf("T2 SETTINGSCREEN no blink");
                         //lcd_gotoxy(0,1);
                         if (curr_cursorzeile ) // curr_cursorzeile ist >0,
                         {
@@ -1865,6 +1800,7 @@ void loop()
                      }
                      else if (manuellcounter)
                      {
+                        Serial.printf("T2 SETTINGSCREEN mauellcounter>0 blink");
                         /*
                          lcd_gotoxy(0,1);
                          lcd_puthex((blink_cursorpos & 0xFF00)>>8);
@@ -1919,7 +1855,8 @@ void loop()
                               
                         }// switch
                         manuellcounter=0;
-                     }
+                        Serial.printf("T2 SETTINGSCREEN mauellcounter>0 end");
+                     } 
                   }break;
 #pragma mark 2 KANALSCREEN                    
                   case KANALSCREEN: // Kanalsettings
@@ -2422,6 +2359,7 @@ void loop()
                Serial.printf("H%d update curscreen: %d\n",Tastenindex,curr_screen);
                tastaturstatus &= ~(1<<UPDATEOK);
                update_screen();
+               Serial.printf("H%d update curscreen end %d\n");
             }
 
          }break;
@@ -2477,7 +2415,7 @@ void loop()
                   }break;
                      
                      
-                  case SETTINGSCREEN: // Settings
+                  case SETTINGSCREEN: // T4 Settings
                   {
                     // lcd_gotoxy(14,2);
                     // lcd_puts("*S4*");
@@ -2913,7 +2851,7 @@ void loop()
                      {
                         // lcd_gotoxy(14,2);
                         // lcd_puts("*H5*");
-                        Serial.printf("H5 \t");
+                        Serial.printf("*H5* \t");
                         
                         
                         tastaturstatus &=  ~(1<<AKTIONOK);
@@ -2959,6 +2897,7 @@ void loop()
                                  {
                                     //lcd_gotoxy(2,2);
                                     //lcd_putc('3');
+                                    Serial.printf("*** settingstartcounter 3\n");
                                     programmstatus &= ~(1<< SETTINGWAIT);
                                     programmstatus |=(1<<UPDATESCREEN);
                                     settingstartcounter=0;
@@ -2967,15 +2906,19 @@ void loop()
                                     // Umschalten
                                     display_clear();
                                     //lcd_putc('D');
-                                    setsettingscreen();
+                                    Serial.printf("*H5*D \t");
+                                   setsettingscreen();
+                                    //setcanalscreen();  
                                     //lcd_putc('E');
+                                    Serial.printf("*H5*E \t");
                                     curr_screen = SETTINGSCREEN;
+                                    //curr_screen = KANALSCREEN;
                                     curr_cursorspalte=0;
                                     curr_cursorzeile=0;
                                     last_cursorspalte=0;
                                     last_cursorzeile=0;
                                     blink_cursorpos=0xFFFF;
-                                    
+                                    Serial.printf("*H5*F \n");
                                     manuellcounter = 1;
                                  } // if settingcounter <
                                  //manuellcounter = 0;
@@ -3041,7 +2984,7 @@ void loop()
                      case SETTINGSCREEN: // 5 setting
                      {
 #pragma mark  5 SETTINGSCREEN
-                        Serial.printf("T5 Settingscreen\n");
+                        Serial.printf("display T5 Settingscreen curr_cursorzeile: %d\n",curr_cursorzeile);
                         if (manuellcounter)
                         {
                            switch (curr_cursorzeile)
@@ -3414,7 +3357,7 @@ void loop()
                      
                   }break;
                      
-                  case SETTINGSCREEN: // Settings
+                  case SETTINGSCREEN: // T6 Settings
                   {
                      if (blink_cursorpos == 0xFFFF && manuellcounter) // Kein Blinken
                      {
@@ -3732,11 +3675,12 @@ void loop()
             //manuellcounter=0; // timeout zuruecksetzen
             //lcd_gotoxy(14,2);
             //lcd_puts("*7*");
-            Serial.printf("T7 ");
+            Serial.printf("*** T7 ***\n");
             if (curr_screen) // nicht homescreen
             {
                if (tastaturstatus & (1<<AKTIONOK))
                {
+                  Serial.printf("*** T7 AKTIONOK***\n");
                   tastaturstatus &=  ~(1<<AKTIONOK);
                   tastaturstatus |= (1<<UPDATEOK);
 
@@ -3745,6 +3689,7 @@ void loop()
                   {
                      case HOMESCREEN:
                      {
+                        
                         display_clear();
                         
                         curr_cursorspalte=0;
@@ -3752,9 +3697,7 @@ void loop()
                         last_cursorspalte=0;
                         last_cursorzeile=0;
                         blink_cursorpos = 0xFFFF;
-                        
-                        
-                        
+                         
                         // curr_screen=HOMESCREEN;
                         sethomescreen();
                         
@@ -4108,7 +4051,7 @@ void loop()
                      
                   }break;
 #pragma mark 8 SETTINGSCREEN                   
-                  case SETTINGSCREEN: // Settings
+                  case SETTINGSCREEN: // T8 Settings
                   {
                      if ((blink_cursorpos == 0xFFFF) && manuellcounter) // kein Blinken
                      {
@@ -4783,7 +4726,7 @@ void loop()
    if (servostatus & (1<<USB_OK))
    {
 #pragma mark - start_usb
-    //  if (sinceusb > 100)   
+      if (sinceusb > 100)   
       {
          OSZI_D_LO();
          //Serial.printf("usb\n");
@@ -4832,11 +4775,32 @@ void loop()
                    AUSGANG_OFFSET     0x80 // 128
                    
                    */
-                  uint8_t modelindex =0;
-                  modelindex = buffer[1] & 0xE0; // Bit 5,6,7 welches model soll gelesen werden
+                  Serial.printf("0xF4");
+                  for (uint8_t i=0;i<32;i++)
+                  {
+                     Serial.printf("\t%d",buffer[i]);
+                     if (i==15)
+                     {
+                        Serial.printf("\n");
+                     }
+                  }
+                  Serial.printf("\n");
 
-                  uint8_t kanalindex =  buffer[USB_DATA_OFFSET + modelindex * KANALSETTINGBREITE] & 0x07; // Bits 0,1,2
+                  uint8_t erfolg = decodeUSBChannelSettings(buffer);
+                  
+                  
+                  
+                  
+                  uint8_t modelindex =0;
+                  modelindex = buffer[USB_DATA_OFFSET + modelindex * KANALSETTINGBREITE] & 0x03; // Bit 0,1 welches model soll gelesen werden
+
+                  uint8_t kanalindex =  buffer[USB_DATA_OFFSET + modelindex * KANALSETTINGBREITE] & 0x70; // Bits 4,5,6
                    uint8_t pos=0;
+                  
+                  uint8_t on = buffer[USB_DATA_OFFSET + modelindex * KANALSETTINGBREITE] & 0x08; // Bit 3
+                  
+                  // level
+                  break;
                   
                   // funktion lesen
                   uint16_t readstartadresse = TASK_OFFSET  + FUNKTION_OFFSET + modelindex*SETTINGBREITE;

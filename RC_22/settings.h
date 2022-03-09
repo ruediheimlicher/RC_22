@@ -92,6 +92,11 @@
 
 #define SETTINGBREITE      4 // 0x100; // 256 Bytes, Breite des Settingblocks fuer ein model
 
+#define  ANZAHLMODELLE        3
+#define  KANALSETTINGBREITE   4
+#define  MODELSETTINGBREITE   32
+
+
 #define  LEVEL_OFFSET      1 //0x20 // 32
 #define  EXPO_OFFSET       2 //0x30 // 48
 #define  MIX_OFFSET        3 // 0x40 // 64
