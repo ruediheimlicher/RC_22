@@ -480,7 +480,8 @@ void setcanalscreen(void)
 //   Serial.printf("posregister[1]: %d posregister[2]%d ",posregister[1][0],posregister[2][0]);
 //   Serial.printf("posregister[1]: %d posregister[2]%d ",posregister[1][1],posregister[2][1]);
 //  Serial.printf("posregister[1]: %d posregister[2]%d ",posregister[1][2],posregister[2][2]);
- 
+   
+ //  display_cursoron();
    
    char_y= (posregister[0][0] & 0xFF00)>>8;
    char_x = posregister[0][0] & 0x00FF;

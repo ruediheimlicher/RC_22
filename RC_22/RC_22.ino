@@ -3128,7 +3128,7 @@ void loop()
                            manuellcounter=0;
                         } // if manuellcounter
                         
-                        
+                        /*
                         if (manuellcounter)
                         {
                            switch (curr_cursorzeile)
@@ -3218,10 +3218,12 @@ void loop()
                               }break;
                                  
                                  
-                           }// switch cursorzeile                        }break;
+                           }// switch cursorzeile  
+                         
+                         }break;
                            manuellcounter=0;
                         } // if manuellcounter
-                        
+                        */
                         //display_kanaldiagramm (char_x, uchar_y, level, expo, uint8_t typ )
                         // level: 0-3 expo: 0-3
                         //display_kanaldiagramm (64, 7, curr_levelarray[curr_kanal], curr_expoarray[curr_kanal], 1);
