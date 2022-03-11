@@ -167,7 +167,7 @@ float pothi = POTHI; // max pot
 float ppmlo = PPMLO; // min ppm
 float ppmhi = PPMHI; // max ppm
 
-
+volatile uint16_t pot0 = 0;
 
 volatile unsigned char char_x = 0;
 volatile unsigned char char_y = 0;
@@ -197,7 +197,7 @@ volatile uint8_t              curr_levelarray[8];
 volatile uint8_t              curr_expoarray[8];
 volatile uint8_t              curr_mixarray[8]={};
 volatile uint8_t              curr_funktionarray[8];
-volatile uint8_t             curr_devicearray[8] = {};
+volatile uint8_t             curr_statusarray[8] = {};
 volatile uint8_t             curr_ausgangarray[8];
 volatile int8_t              curr_trimmungarray[8];
 volatile int8_t              curr_richtung; // Bits fuer Richtung
@@ -404,21 +404,12 @@ void servoimpulsfunktion(void) //
       servostatus |= (1<<PAUSE);
       servostatus |= (1<<ADC_OK); // ADCFenster starten
       
-      
-      
-      
-      
-      
-      //OSZI_B_HI();
-      //OSZI_C_LO();
-
    }
    kanalimpulsTimer.begin(kanalimpulsfunktion,IMPULSBREITE); // neuer Kanalimpuls
    
 }
 
 // MARK: readSettings
-uint8_t eeprombytelesen(uint16_t readadresse) ;// 300 us ohne lcd_anzeige
 
 void read_Ext_EEPROM_Settings(void)
 {
@@ -441,7 +432,7 @@ void read_Ext_EEPROM_Settings(void)
     // startadresse fuer Settings des models
     for (pos=0;pos<8;pos++)
     {
-       curr_levelarray[pos] = eeprombytelesen(readstartadresse+pos);
+       curr_levelarray[pos] = EEPROM.read(readstartadresse+pos);
        
     }
     _delay_us(100);
@@ -450,16 +441,16 @@ void read_Ext_EEPROM_Settings(void)
     readstartadresse = TASK_OFFSET  + EXPO_OFFSET + modelindex*SETTINGBREITE;
     for (pos=0;pos<8;pos++)
     {
-       curr_expoarray[pos] = eeprombytelesen(readstartadresse+pos);
+       curr_expoarray[pos] = EEPROM.read(readstartadresse+pos);
        
     }
     _delay_us(100);
    
    
    // Mix lesen
-   cli();
+   //cli();
     readstartadresse = TASK_OFFSET  + MIX_OFFSET + modelindex*SETTINGBREITE;
-   sei();
+   //sei();
    /*
    lcd_gotoxy(0,0);
    //lcd_putc('+');
@@ -478,7 +469,7 @@ void read_Ext_EEPROM_Settings(void)
        //OSZI_D_LO;
        }
        //cli();
-       curr_mixarray[pos] = eeprombytelesen(readstartadresse+pos);
+       curr_mixarray[pos] = EEPROM.read(readstartadresse+pos);
        //OSZI_D_HI;
 
     }
@@ -534,14 +525,14 @@ void read_Ext_EEPROM_Settings(void)
 // MARK: writeSettings
 void write_Ext_EEPROM_Settings(void)
 {
-   return;
+   
    // Halt einschalten
-   masterstatus |= (1<<HALT_BIT); // Halt-Bit aktiviert Task bei ausgeschaltetem Slave
+  // masterstatus |= (1<<HALT_BIT); // Halt-Bit aktiviert Task bei ausgeschaltetem Slave
 //   MASTER_PORT &= ~(1<<SUB_BUSY_PIN);
    
    
-   lcd_clr_line(1);
-   lcd_putint(eepromsavestatus);
+//   lcd_clr_line(1);
+//   lcd_putint(eepromsavestatus);
    //EE_CS_LO;
    _delay_us(LOOPDELAY);
    uint16_t writestartadresse=0;
@@ -676,7 +667,7 @@ void write_Ext_EEPROM_Settings(void)
 
 uint8_t eeprombytelesen(uint16_t readadresse) // 300 us ohne lcd_anzeige
 {
-   return;
+  
    //OSZI_B_LO;
    readdata = EEPROM.read(readadresse);
    //OSZI_B_HI;
@@ -774,7 +765,7 @@ uint8_t eeprompartlesen(uint16_t readadresse) //   us ohne lcd_anzeige
 
 uint8_t eeprombyteschreiben(uint8_t code, uint16_t writeadresse,uint8_t eeprom_writedatabyte) //   1 ms ohne lcd-anzeige
 {
-   return;
+   //return;
    //OSZI_B_LO;
    EEPROM.write(writeadresse,eeprom_writedatabyte);
    
@@ -881,7 +872,7 @@ uint8_t eeprombyteschreiben(uint8_t code, uint16_t writeadresse,uint8_t eeprom_w
 
 uint16_t eeprompartschreiben(void) // 23 ms
 {
-   return;
+   //return;
    //OSZI_B_LO;
      uint16_t result = 0;
    
@@ -961,17 +952,38 @@ uint8_t  decodeUSBChannelSettings(uint8_t buffer[USB_DATENBREITE])
    uint8_t kanalindex =  buffer[USB_DATA_OFFSET + modelindex * KANALSETTINGBREITE] & 0x70; // Bits 4,5,6
    
    
-   uint8_t on = buffer[USB_DATA_OFFSET + modelindex * KANALSETTINGBREITE] & 0x08; // Bit 3
+   uint8_t on = (buffer[USB_DATA_OFFSET + modelindex * KANALSETTINGBREITE] & 0x08) >>8; // Bit 3
    uint8_t pos = USB_DATA_OFFSET;
+    // Byte 0: Modell, ON, Kanalindex, RI
+   
    for (uint8_t kanal = 0;kanal < 8;kanal++)
    {
       for (uint8_t dataindex = 0;dataindex < 4;dataindex++)
       {
          kanalsettingarray[modelindex][kanal][dataindex] = buffer[pos + dataindex];
-         
       }
+      /*
+      // aktuelle Werte setzen
+      curr_statusarray[kanal] = buffer[pos] + STATUS_OFFSET; // Modell, ON, Kanal, RI
+      curr_levelarray[kanal] = buffer[pos + LEVEL_OFFSET]; // level A, level B
+      curr_expoarray[kanal] = buffer[pos + EXPO_OFFSET]; // expo A, expo B
+      
+     
+      curr_funktionarray[kanal] = buffer[pos + FUNKTION_OFFSET]; // funktion, device
+      */
+      Serial.printf("Kanal: %d \n",kanal);
+      for (uint8_t i = 0;i<4;i++)
+      {
+         Serial.printf("%d ", kanalsettingarray[modelindex][kanal][i]);
+      }
+      Serial.printf("\n");
+      
+      
+      //Serial.printf("Kanal: %d \nkanalsettingarray: %d \n",kanal, kanalsettingarray[modelindex][kanal]);
       pos += KANALSETTINGBREITE;
       
+   
+   
    }
    
    return 1;
@@ -1305,6 +1317,10 @@ void loop()
    
    if (sinceupdatesceen > 200) 
    {
+     // RawHID.send(sendbuffer, 50);
+     
+      
+      
       //displaystatus |= (1<<UHR_UPDATE);
       //Serial.printf("updatesceen\n");
       //update_screen();
@@ -1314,7 +1330,7 @@ void loop()
    
    if (sinceblink > 500) 
    {   
-  
+      //Serial.printf("send usb: pot0 %d\n",pot0);
       
       //digitalWrite(OSZI_PULS_A, !digitalRead(OSZI_PULS_A));
       manuellcounter++;
@@ -1451,13 +1467,18 @@ void loop()
                
                //Serial.printf("+B+");
                uint16_t potwert = adc->adc0->analogRead(adcpinarray[i]);
+               //uint16_t potwert = adc->adc0->analogRead(14);
                //float ppmfloat = PPMLO + quot *(float(potwert) - POTLO);
 
                float ppmfloat = PPMLO + quotarray[i] *(float(potwert) - potgrenzearray[i][0]);
                uint16_t ppmint = uint16_t(ppmfloat);
+               if (i == 0)
+               {
+                  pot0 = ppmint;
+               }
                sendbuffer[DATAOFFSET + 2*i] = (ppmint & 0x00FF); // LO
                sendbuffer[DATAOFFSET + 2*i + 1] = (ppmint & 0xFF00)>>8; // Hi
-               
+               //Serial.printf("pot0 %d\n",pot0);
                uint16_t expo  = 0;  
                uint16_t ppmabs  = 0;  
                uint16_t expoint  = 0;  
@@ -1470,16 +1491,13 @@ void loop()
                   int16_t ppmabs = uint16_t(ppmapsfloat);
                   //int16_t ppmabs = abs( ppmint - servomittearray[i]); // Abweichung PPM von mitte
                   
-                  
                   if (ppmabs > 0x200) // 512
                   {
                      //Serial.printf("servo %d ppmabs zu gross: %d\n",ppmabs);
                      ppmabs = 0x200;
                   }
                   
-                  
                   expo  = expoarray[0][ppmabs] * expoquot;
-                  
                   
                   if (ppmint < servomittearray[i])
                   {
@@ -1530,7 +1548,7 @@ void loop()
       {
          if (!(tastaturstatus & (1<<TASTEOK)))
          {
-            Serial.printf("*AA*");
+            //Serial.printf("*AA*");
             //Tastenindex = Tastenwahl(Tastenwert); // taste pressed
             Tastenwertdiff = Tastenwert - lastTastenwert;
             if (Tastenwert > lastTastenwert)
@@ -1545,7 +1563,7 @@ void loop()
             //Serial.printf("*BB*");
             if (Tastenwertdiff < 6)
             {
-               Serial.printf("*C*");
+               //Serial.printf("*C*");
                if (tastaturcounter < ADCTIMEOUT)
                {
                   //Serial.printf("D");
@@ -1569,12 +1587,12 @@ void loop()
              
             else
             {
-               Serial.printf("F");
+               //Serial.printf("F");
                tastaturcounter = 0;
             }
             //Serial.printf("TASTEOK end\n");
          }   // TASTEOK 
-         Serial.printf("Tastenwert end\n");
+         //Serial.printf("Tastenwert end\n");
       }
       else
       {
@@ -1591,13 +1609,20 @@ void loop()
       
      // if (displaystatus & (1<<UHR_UPDATE))
       {
-         OSZI_D_LO();
+         //OSZI_D_LO();
          if (curr_screen == 0)
          {
             update_time(updatecounter & 0x0f);
          }
+         if (updatecounter & 0x80)
+         {
+            pot0 = sendbuffer[9]<<8 | sendbuffer[8];
+            //Serial.printf("send usb: pot0 %d\n",pot0);
+   //         uint8_t senderfolg = RawHID.send(pot0, 50);
+            //Serial.printf("senderfolg: %d\n",senderfolg);
+         }
          updatecounter++;
-         OSZI_D_HI();
+         //OSZI_D_HI();
          
          displaystatus &= ~(1<<UHR_UPDATE);
          
@@ -1605,8 +1630,8 @@ void loop()
          
       }
       //usb_rawhid_send((void*)sendbuffer, 50);
-   //   uint8_t senderfolg = RawHID.send(sendbuffer, 50);
-   //   Serial.printf("usb senderfolg: %d \n");
+      //uint8_t senderfolg = RawHID.send(sendbuffer, 50);
+      //Serial.printf("usb senderfolg: %d \n");
 
       servostatus |= (1<<USB_OK);
    }
@@ -1615,7 +1640,7 @@ void loop()
    
    if (tastaturstatus & (1<<TASTEOK))
    {
-      Serial.printf("U Tastenindex: %d\n",Tastenindex);
+      //Serial.printf("U Tastenindex: %d\n",Tastenindex);
       programmstatus |= (1<<UPDATESCREEN);
       //tastaturstatus &= ~(1<<TASTEOK);
       //Tastenindex = 0;
@@ -1928,7 +1953,7 @@ void loop()
                                     }
                                  }break;
                                     
-                                 case 1: // Richtung
+                                 case 1: // expo
                                  {
                                     eepromsavestatus |= (1<<SAVE_EXPO);
                                     //if (curr_settingarray[curr_kanal][1] & 0x80)
@@ -2158,17 +2183,17 @@ void loop()
                                  case 0: // L_V index 1
                                  {
                                     // Kanalnummer decrement
-                                    if (((curr_devicearray[1]& 0x07)))
+                                    if (((curr_statusarray[1]& 0x70))) // bit 4-6
                                     {
-                                       curr_devicearray[1]-= 0x01;
+                                       curr_statusarray[1]-= 0x10;
                                     }
                                  }break;
                                     
                                  case 1: // R_V index 3
                                  {
-                                    if (((curr_devicearray[3]& 0x07)))
+                                    if (((curr_statusarray[3]& 0x07)))
                                     {
-                                       curr_devicearray[3]-= 0x01;
+                                       curr_statusarray[3]-= 0x01;
                                     }
                                  }break;
                               }// switch curr_cursorspalte
@@ -2180,18 +2205,18 @@ void loop()
                               {
                                  case 0: // L_H index 0
                                  {
-                                    if (((curr_devicearray[0]& 0x07)))
+                                    if (((curr_statusarray[0]& 0x07)))
                                     {
                                        // Kanalnummer fuer Device decrement
-                                       curr_devicearray[0]-= 0x01;
+                                       curr_statusarray[0]-= 0x01;
                                     }
                                  }break;
                                     
                                  case 1: // R_H index 2
                                  {
-                                    if (((curr_devicearray[2]& 0x07)))
+                                    if (((curr_statusarray[2]& 0x07)))
                                     {
-                                       curr_devicearray[2]-= 0x01;
+                                       curr_statusarray[2]-= 0x01;
                                     }
                                  }break;
                               }// switch curr_cursorspalte
@@ -2203,18 +2228,18 @@ void loop()
                               {
                                  case 0: // S_L index 4
                                  {
-                                    if (((curr_devicearray[4]& 0x07)))
+                                    if (((curr_statusarray[4]& 0x07)))
                                     {
                                        // Kanalnummer fuer Device increment
-                                       curr_devicearray[4]-= 0x01;
+                                       curr_statusarray[4]-= 0x01;
                                     }
                                  }break;
                                     
                                  case 1: // S_R index 5
                                  {
-                                    if (((curr_devicearray[5]& 0x07)))
+                                    if (((curr_statusarray[5]& 0x07)))
                                     {
-                                       curr_devicearray[5]-= 0x01;
+                                       curr_statusarray[5]-= 0x01;
                                     }
                                  }break;
                               }// switch curr_cursorspalte
@@ -2361,10 +2386,10 @@ void loop()
             if (tastaturstatus & (1<<UPDATEOK))
             {
                
-               Serial.printf("H%d update curscreen: %d\n",Tastenindex,curr_screen);
+               //Serial.printf("H%d update curscreen: %d\n",Tastenindex,curr_screen);
                tastaturstatus &= ~(1<<UPDATEOK);
                update_screen();
-               Serial.printf("H%d update curscreen end %d\n");
+               //Serial.printf("H%d update curscreen end %d\n");
             }
 
          }break;
@@ -2832,7 +2857,7 @@ void loop()
                if (tastaturstatus & (1<<UPDATEOK))
                {
                  
-                  Serial.printf("H4 update curscreen: %d\n",curr_screen);
+                  //Serial.printf("H4 update curscreen: %d\n",curr_screen);
                   tastaturstatus &= ~(1<<UPDATEOK);
                   update_screen();
                }
@@ -2856,7 +2881,7 @@ void loop()
                      {
                         // lcd_gotoxy(14,2);
                         // lcd_puts("*H5*");
-                        Serial.printf("*H5* \t");
+                     //Serial.printf("*H5* \t");
                         
                         
                         tastaturstatus &=  ~(1<<AKTIONOK);
@@ -2897,12 +2922,12 @@ void loop()
                                  //lcd_gotoxy(2,2);
                                  //lcd_putint1(settingstartcounter);
                                  settingstartcounter++; // counter fuer klicks
-                                 Serial.printf("settingstartcounter: %d\n",settingstartcounter);
+                                 //Serial.printf("settingstartcounter: %d\n",settingstartcounter);
                                  if (settingstartcounter == 3)
                                  {
                                     //lcd_gotoxy(2,2);
                                     //lcd_putc('3');
-                                    Serial.printf("*** settingstartcounter 3\n");
+                                    //Serial.printf("*** settingstartcounter 3\n");
                                     programmstatus &= ~(1<< SETTINGWAIT);
                                     programmstatus |=(1<<UPDATESCREEN);
                                     settingstartcounter=0;
@@ -2911,17 +2936,17 @@ void loop()
                                     // Umschalten
                                     display_clear();
                                     //lcd_putc('D');
-                                    Serial.printf("*H5*D \t");
+                                   // Serial.printf("*H5*D \t");
                                    setsettingscreen();
                                     //lcd_putc('E');
-                                    Serial.printf("*H5*E \t");
+                                    //Serial.printf("*H5*E \t");
                                     curr_screen = SETTINGSCREEN;
                                     curr_cursorspalte=0;
                                     curr_cursorzeile=0;
                                     last_cursorspalte=0;
                                     last_cursorzeile=0;
                                     blink_cursorpos=0xFFFF;
-                                    Serial.printf("*H5*F \n");
+                                   // Serial.printf("*H5*F \n");
                                     manuellcounter = 1;
                                  } // if settingcounter <
                                  //manuellcounter = 0;
@@ -3021,10 +3046,10 @@ void loop()
                                     curr_cursorzeile=0;
                                     last_cursorspalte=0;
                                     last_cursorzeile=0;
-                                    Serial.printf("T5 Kanalscreen start\n");
+                                    //Serial.printf("T5 Kanalscreen start\n");
                                     setcanalscreen();
                                     manuellcounter=0;
-                                    Serial.printf("T5 zu Kanalscreen end tastaturstatus: %d\n",tastaturstatus);
+                                    //Serial.printf("T5 zu Kanalscreen end tastaturstatus: %d\n",tastaturstatus);
                                  }
                                  
                                  
@@ -3090,12 +3115,12 @@ void loop()
                            }// switch curr_cursorzeile
                         
                         } // if manuellcounter
-                        Serial.printf("T5 end\n");
+                        //Serial.printf("T5 end\n");
                      }break;
                         
                      case KANALSCREEN: // Kanal
                      {
-                        Serial.printf("T5 Trimmscreen\n");
+                        Serial.printf("T5 Kanalscreen\n");
 #pragma mark  5 KANALSCREEN
                         if (manuellcounter)
                         {
@@ -3119,7 +3144,6 @@ void loop()
                                     }break;
                                     case 1: // Richtung
                                     {
-                                       
                                        blink_cursorpos =  cursorpos[0][1]; // richtungpfeilcursor
                                        
                                     }break;
@@ -3317,7 +3341,7 @@ void loop()
                   if (tastaturstatus & (1<<UPDATEOK))
                   {
                      
-                     Serial.printf("H%d update curscreen: %d\n",Tastenindex,curr_screen);
+                     //Serial.printf("H%d update curscreen: %d\n",Tastenindex,curr_screen);
                      tastaturstatus &= ~(1<<UPDATEOK);
                      update_screen();
                   }
@@ -3326,7 +3350,7 @@ void loop()
                } // if A
                
                
-               Serial.printf("T end T5\n");
+               //Serial.printf("T end T5\n");
             } break; // 5
             
             
@@ -3661,7 +3685,7 @@ void loop()
             if (tastaturstatus & (1<<UPDATEOK))
             {
                
-               Serial.printf("H%d update curscreen: %d\n",Tastenindex,curr_screen);
+               //Serial.printf("H%d update curscreen: %d\n",Tastenindex,curr_screen);
                tastaturstatus &= ~(1<<UPDATEOK);
                update_screen();
             }
@@ -3678,12 +3702,12 @@ void loop()
             //manuellcounter=0; // timeout zuruecksetzen
             //lcd_gotoxy(14,2);
             //lcd_puts("*7*");
-            Serial.printf("*** T7 ***\n");
+            //Serial.printf("*** T7 ***\n");
             if (curr_screen) // nicht homescreen
             {
                if (tastaturstatus & (1<<AKTIONOK))
                {
-                  Serial.printf("*** T7 AKTIONOK***\n");
+                  //Serial.printf("*** T7 AKTIONOK***\n");
                   tastaturstatus &=  ~(1<<AKTIONOK);
                   tastaturstatus |= (1<<UPDATEOK);
 
@@ -3758,7 +3782,7 @@ void loop()
                         
                      case SETTINGSCREEN: // Settings
                      {
-                        Serial.printf("T7  settingscreen\n");
+                        //Serial.printf("T7  settingscreen\n");
                         programmstatus &= ~(1<< SETTINGWAIT);
                         if ((blink_cursorpos == 0xFFFF) && manuellcounter)
                         {
@@ -3782,7 +3806,7 @@ void loop()
                            }
                            else
                            {
-                              Serial.printf("H\n");
+                              //Serial.printf("H\n");
                               //
                               //
                               curr_screen=HOMESCREEN;
@@ -3984,7 +4008,7 @@ void loop()
                   
                   if (tastaturstatus & (1<<UPDATEOK))
                   {
-                     Serial.printf("H%d update curscreen: %d\n",Tastenindex,curr_screen);
+                     //Serial.printf("H%d update curscreen: %d\n",Tastenindex,curr_screen);
                      tastaturstatus &= ~(1<<UPDATEOK);
                      update_screen();
                   }
@@ -4059,7 +4083,7 @@ void loop()
                      if ((blink_cursorpos == 0xFFFF) && manuellcounter) // kein Blinken
                      {
                         uint8_t cur = (posregister[curr_cursorzeile+1][curr_cursorspalte]&0xFF00)>>8;
-                        Serial.printf("H8 curr_cursorzeile: %d curr_cursorspalte: %d\n",curr_cursorzeile,curr_cursorspalte);
+                        //Serial.printf("H8 curr_cursorzeile: %d curr_cursorspalte: %d\n",curr_cursorzeile,curr_cursorspalte);
                         /*
                          lcd_gotoxy(5,1);
                          lcd_puthex(curr_cursorzeile);
@@ -4456,17 +4480,17 @@ void loop()
                                  case 0: // L_V index 1
                                  {
                                     // Kanalnummer im Devicearray increment
-                                    if (((curr_devicearray[1]& 0x07))<8)
+                                    if (((curr_statusarray[1]& 0x07))<8)
                                     {
-                                       curr_devicearray[1]+= 0x01;
+                                       curr_statusarray[1]+= 0x01;
                                     }
                                  }break;
                                     
                                  case 1: // R_V index 3
                                  {
-                                    if (((curr_devicearray[3]& 0x07))<8)
+                                    if (((curr_statusarray[3]& 0x07))<8)
                                     {
-                                       curr_devicearray[3]+= 0x01;
+                                       curr_statusarray[3]+= 0x01;
                                     }
                                  }break;
                               }// switch curr_cursorspalte
@@ -4478,18 +4502,18 @@ void loop()
                               {
                                  case 0: // L_H index 0
                                  {
-                                    if (((curr_devicearray[0]& 0x07))<8)
+                                    if (((curr_statusarray[0]& 0x07))<8)
                                     {
                                        // Kanalnummer fuer Device increment
-                                       curr_devicearray[0]+= 0x01;
+                                       curr_statusarray[0]+= 0x01;
                                     }
                                  }break;
                                     
                                  case 1: // R_H index 2
                                  {
-                                    if (((curr_devicearray[2]& 0x07))<8)
+                                    if (((curr_statusarray[2]& 0x07))<8)
                                     {
-                                       curr_devicearray[2]+= 0x01;
+                                       curr_statusarray[2]+= 0x01;
                                     }
                                  }break;
                               }// switch curr_cursorspalte
@@ -4503,18 +4527,18 @@ void loop()
                               {
                                  case 0: // S_L index 4
                                  {
-                                    if (((curr_devicearray[4]& 0x07))<8)
+                                    if (((curr_statusarray[4]& 0x07))<8)
                                     {
                                        // Kanalnummer fuer Device increment
-                                       curr_devicearray[4]+= 0x01;
+                                       curr_statusarray[4]+= 0x01;
                                     }
                                  }break;
                                     
                                  case 1: // S_R index 5
                                  {
-                                    if (((curr_devicearray[5]& 0x07))<8)
+                                    if (((curr_statusarray[5]& 0x07))<8)
                                     {
-                                       curr_devicearray[5]+= 0x01;
+                                       curr_statusarray[5]+= 0x01;
                                     }
                                  }break;
                               }// switch curr_cursorspalte
@@ -4655,7 +4679,7 @@ void loop()
                if (tastaturstatus & (1<<UPDATEOK))
                {
                   
-                  Serial.printf("H%d update curscreen: %d\n",Tastenindex,curr_screen);
+                  //Serial.printf("H%d update curscreen: %d\n",Tastenindex,curr_screen);
                   tastaturstatus &= ~(1<<UPDATEOK);
                   update_screen();
                }
@@ -4711,12 +4735,12 @@ void loop()
             break;
       } // switch Tastenindex
       
-      Serial.printf("V end Tastatur tastaturstatus: %d\n",tastaturstatus);
+  //    Serial.printf("V end Tastatur tastaturstatus: %d\n",tastaturstatus);
  //     programmstatus |= (1<<UPDATESCREEN);
       if (tastaturstatus & (1<<UPDATEOK))
       {
          
-         Serial.printf("Tastenindex update curscreen: %d\n",curr_screen);
+         //Serial.printf("Tastenindex update curscreen: %d\n",curr_screen);
          tastaturstatus &= ~(1<<UPDATEOK);
 //         update_screen();
       }
@@ -4729,7 +4753,7 @@ void loop()
    if (servostatus & (1<<USB_OK))
    {
 #pragma mark - start_usb
-      if (sinceusb > 100)   
+      //if (sinceusb > 100)   
       {
          OSZI_D_LO();
          //Serial.printf("usb\n");
@@ -4743,8 +4767,12 @@ void loop()
          //   noInterrupts();
             
             code = buffer[0];
-            
-            
+            /*
+            for (uint8_t i = 0;i<32;i++)
+            {
+               Serial.printf("%d\t",buffer[i]);
+            }
+            */
             Serial.printf("\n***************************************  --->    rawhid_recv start code HEX: %02X\n",code);
             //Serial.printf("code: %d\n",code);
             usb_recv_counter++;
@@ -4769,7 +4797,7 @@ void loop()
                   
                }break;
                   
-// MARK: F4 read Sendersettings
+                  // MARK: F4 read Sendersettings
                case 0xF4: // Fix Sendersettings
                {
                   /*
@@ -4778,7 +4806,7 @@ void loop()
                    AUSGANG_OFFSET     0x80 // 128
                    
                    */
-                  Serial.printf("0xF4");
+                  Serial.printf("0xF4\n");
                   for (uint8_t i=0;i<32;i++)
                   {
                      Serial.printf("\t%d",buffer[i]);
@@ -4788,21 +4816,22 @@ void loop()
                      }
                   }
                   Serial.printf("\n");
-
+                  
                   uint8_t erfolg = decodeUSBChannelSettings(buffer);
                   
-                  
-                  
-                  
+                                  
                   uint8_t modelindex =0;
                   modelindex = buffer[USB_DATA_OFFSET + modelindex * KANALSETTINGBREITE] & 0x03; // Bit 0,1 welches model soll gelesen werden
-
+                  Serial.printf("modelindex: %d ",modelindex);
                   uint8_t kanalindex =  buffer[USB_DATA_OFFSET + modelindex * KANALSETTINGBREITE] & 0x70; // Bits 4,5,6
-                   uint8_t pos=0;
-                  
+                  uint8_t pos=0;
+                  Serial.printf("kanalindex: %d ",kanalindex);
                   uint8_t on = buffer[USB_DATA_OFFSET + modelindex * KANALSETTINGBREITE] & 0x08; // Bit 3
-                  
+                  Serial.printf("on: %d ",on);
                   // level
+                  
+                  
+                  
                   break;
                   
                   // funktion lesen
@@ -4840,12 +4869,64 @@ void loop()
                   usb_rawhid_send((void*)sendbuffer, 50);
                   
                }
+                  
+                  // MARK: FD read Sendersettings
+               case 0xFD: // read Sendersettings
+               {
+                  /*
+                   FUNKTION_OFFSET    0x60 // 96
+                   DEVICE_OFFSET      0x70 // 122
+                   AUSGANG_OFFSET     0x80 // 128
+                   
+                   */
+                  
+                  
+                  uint8_t modelindex =0;
+                  modelindex = buffer[3]; // welches model soll gelesen werden
+                  uint8_t pos=0;
+                  
+                  // funktion lesen
+                  uint16_t readstartadresse = TASK_OFFSET  + FUNKTION_OFFSET + modelindex*SETTINGBREITE;
+                  // startadresse fuer Settings des models
+                  for (pos=0;pos<8;pos++)
+                  {
+                     sendbuffer[EE_PARTBREITE + pos] = eeprombytelesen(readstartadresse+pos); // ab 0x60 32
+                  }
+                  
+                  // device lesen
+                  readstartadresse = TASK_OFFSET  + DEVICE_OFFSET + modelindex*SETTINGBREITE;
+                  //Im Sendbuffer ab pos 0x08 (8)
+                  for (pos=0;pos<8;pos++)
+                  {
+                     sendbuffer[EE_PARTBREITE + 0x08 + pos] = eeprombytelesen(readstartadresse+pos); // ab 0x28 40
+                  }
+                  
+                  // Ausgang lesen
+                  readstartadresse = TASK_OFFSET  + AUSGANG_OFFSET + modelindex*SETTINGBREITE;
+                  
+                  //Im Sendbuffer ab pos 0x10 (16)
+                  for (pos=0;pos<8;pos++)
+                  {
+                     sendbuffer[EE_PARTBREITE + 0x10 + pos] = eeprombytelesen(readstartadresse+pos); // ab 0x30 48
+                     
+                  }
+                  
+                  sendbuffer[1] = readstartadresse & 0x00FF;
+                  sendbuffer[2] = (readstartadresse & 0xFF00)>>8;
+                  sendbuffer[3] = modelindex;
+                  
+                  sendbuffer[0] = 0xFD;
+                  
+                  usb_rawhid_send((void*)sendbuffer, 50);
+                  
+               }
+                  
 #pragma mark default
                default:
                {
-                  RawHID.send(sendbuffer, 50);
+                  //RawHID.send(sendbuffer, 50);
                   //usb_rawhid_send((void*)sendbuffer, 50);
-                  Serial.printf("usb send\n");
+                  //Serial.printf("usb send\n");
                }break; // default
                   
                   

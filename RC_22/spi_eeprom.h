@@ -5,6 +5,11 @@
 //  Created by Ruedi Heimlicher on 28.07.2013.
 //
 //
+#include <stdio.h>
+#include <util/delay.h>
+#include <inttypes.h>
+#include <stdlib.h>
+
 
 #ifndef RC_EE_spi_ram_h
 #define RC_EE_spi_ram_h
