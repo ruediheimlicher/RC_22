@@ -3012,7 +3012,7 @@ void loop()
                      case SETTINGSCREEN: // 5 setting
                      {
 #pragma mark  5 SETTINGSCREEN
-                        Serial.printf("display T5 Settingscreen curr_cursorzeile: %d\n",curr_cursorzeile);
+                        Serial.printf("display T5 Settingscreen curr_cursorzeile: %d manuellcounter%d\n",curr_cursorzeile,manuellcounter);
                         if (manuellcounter)
                         {
                            switch (curr_cursorzeile)
@@ -3047,7 +3047,11 @@ void loop()
                                     last_cursorspalte=0;
                                     last_cursorzeile=0;
                                     //Serial.printf("T5 Kanalscreen start\n");
-                                    setcanalscreen();
+                                    //OSZI_D_LO();
+                                    
+                                    setkanalscreen();
+                                    
+                                    //OSZI_D_HI();
                                     manuellcounter=0;
                                     //Serial.printf("T5 zu Kanalscreen end tastaturstatus: %d\n",tastaturstatus);
                                  }
@@ -3870,7 +3874,7 @@ void loop()
                            last_cursorspalte=0;
                            last_cursorzeile=0;
                            blink_cursorpos = 0xFFFF;
-                           setcanalscreen();
+                           setkanalscreen();
                            
                            manuellcounter=0;
                         }
@@ -3895,7 +3899,7 @@ void loop()
                            last_cursorspalte=0;
                            last_cursorzeile=0;
                            blink_cursorpos = 0xFFFF;
-                           setcanalscreen();
+                           setkanalscreen();
                            
                            manuellcounter=0;
                         }
@@ -4755,7 +4759,7 @@ void loop()
 #pragma mark - start_usb
       //if (sinceusb > 100)   
       {
-         OSZI_D_LO();
+         //OSZI_D_LO();
          //Serial.printf("usb\n");
          sinceusb = 0;
          r = RawHID.recv(buffer, 0); 
@@ -4936,7 +4940,7 @@ void loop()
        //     code=0;
          }// r > 0
          /**   End USB-routinen   ***********************/
-         OSZI_D_HI();
+         //OSZI_D_HI();
       } // since usb
 
       
