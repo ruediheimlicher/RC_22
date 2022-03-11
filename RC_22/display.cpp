@@ -99,6 +99,12 @@ extern volatile uint16_t  cursorpos[8][8]; // Aktueller screen: werte fuer page 
 
 // 
 extern volatile uint16_t              updatecounter; // Zaehler fuer Einschalten
+
+extern OSZI_A_HI();
+extern OSZI_A_LO();
+extern OSZI_D_HI();
+extern OSZI_D_LO();
+
 /*
  write_dogm(0x40,A0);// Display start line set --> 0
  write_dogm(0xA1,A0);  // ADC set --> reverse
@@ -420,9 +426,11 @@ void setsettingscreen(void)
 }// setsettingscreen
 
 
-void setcanalscreen(void)
+void setkanalscreen()
 {
-  // Serial.printf("setcanalscreen curr_screen: %d\n",curr_screen);
+   //OSZI_D_LO();
+   //Serial.printf("setkanalscreen curr_screen: %d\n",curr_screen);
+   
    resetRegister();
    blink_cursorpos=0xFFFF;
    
@@ -432,7 +440,6 @@ void setcanalscreen(void)
    posregister[0][3] =  itemtab[3] |    (1 << 8); // RichtungPfeil
    
    posregister[0][4] =  itemtab[5] |    (1 << 8); // funktion
-   
    
    posregister[0][5] =  itemtab[8] |    (4 << 8); // typ symbol
 
@@ -608,7 +615,7 @@ void setcanalscreen(void)
     display_write_str(menubuffer,1);
 */
    
-
+   OSZI_D_HI();
    
 }
 
@@ -707,6 +714,7 @@ void setausgangscreen(void)
 
 void setmixscreen(void)
 {
+   OSZI_D_LO();
    uint8_t delta=6;
    resetRegister();
    blink_cursorpos=0xFFFF;
@@ -778,6 +786,7 @@ void setmixscreen(void)
     0x23, Kanal 2,3
     0x02, Typ 2: Butterfly
 */
+   OSZI_D_HI();
 }
 
 void setzuteilungscreen(void)

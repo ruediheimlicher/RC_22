@@ -129,7 +129,7 @@ volatile unsigned char char_width_mul = 0;
 void sethomescreen(void);
 void setsettingscreen(void);
 void setausgangscreen(void);
-void setcanalscreen(void);
+void setkanalscreen(void);
 void settrimmscreen(void);
 void setmixscreen(void);
 void setsavescreen(void);
