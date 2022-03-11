@@ -424,6 +424,7 @@ void setcanalscreen(void)
 {
   // Serial.printf("setcanalscreen curr_screen: %d\n",curr_screen);
    resetRegister();
+   
    blink_cursorpos=0xFFFF;
    
    posregister[0][0] =  itemtab[0] |    (1 << 8); // Kanaltext
@@ -542,6 +543,7 @@ void setcanalscreen(void)
    char_x = posregister[1][4] & 0x00FF;
    display_write_int((curr_levelarray[curr_kanal] & 0x70)>>4,1);
 
+   
   
    // Bezeichnung Expo anzeigen
    
