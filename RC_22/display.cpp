@@ -99,6 +99,10 @@ extern volatile uint16_t  cursorpos[8][8]; // Aktueller screen: werte fuer page 
 
 // 
 extern volatile uint16_t              updatecounter; // Zaehler fuer Einschalten
+
+extern void OSZI_D_LO();
+extern void OSZI_D_HI();
+
 /*
  write_dogm(0x40,A0);// Display start line set --> 0
  write_dogm(0xA1,A0);  // ADC set --> reverse
@@ -422,6 +426,7 @@ void setsettingscreen(void)
 
 void setcanalscreen(void)
 {
+   //OSZI_D_LO();
   // Serial.printf("setcanalscreen curr_screen: %d\n",curr_screen);
    resetRegister();
    blink_cursorpos=0xFFFF;
@@ -507,41 +512,6 @@ void setcanalscreen(void)
   
    char_height_mul = 1;
 
-   
-   // Bezeichnung Level anzeigen
-   char_y= (posregister[1][0] & 0xFF00)>>8;
-   char_x = posregister[1][0] & 0x00FF;
-   
-   display_write_str(KanalTable[2],1); // Level
-   
-   char_height_mul = 1;
- 
-   // Level A text
-   char_y= (posregister[1][1] & 0xFF00)>>8;
-   char_x = posregister[1][1] & 0x00FF;
-   //display_write_str(KanalTable[4],1); // A
- 
-   // Level A wert
-   char_y= (posregister[1][2] & 0xFF00)>>8;
-   char_x = posregister[1][2] & 0x00FF;
-   char_width_mul = 1;
-   display_write_int((curr_levelarray[curr_kanal] & 0x07),1);
-   
-   
-   char_width_mul = 1;
-   char_height_mul = 1;
-   
-   // Level B text
-   char_y= (posregister[1][3] & 0xFF00)>>8;
-   char_x = posregister[1][3] & 0x00FF;
-   
-   // Level B wert
-   char_width_mul = 1;
-   char_y= (posregister[1][4] & 0xFF00)>>8;
-   char_x = posregister[1][4] & 0x00FF;
-   display_write_int((curr_levelarray[curr_kanal] & 0x70)>>4,1);
-
-  
    // Bezeichnung Expo anzeigen
    
    //strcpy(menubuffer, (&(KanalTable[3]))); // Expotext
@@ -576,7 +546,42 @@ void setcanalscreen(void)
    char_width_mul = 1;
    //display_write_int((expowert & 0x03),1);
    display_write_int((curr_expoarray[curr_kanal] & 0x30)>>4,1);
+
+   // Bezeichnung Level anzeigen
+   char_y= (posregister[1][0] & 0xFF00)>>8;
+   char_x = posregister[1][0] & 0x00FF;
    
+   display_write_str(KanalTable[2],1); // Level
+   
+   char_height_mul = 1;
+ 
+   // Level A text
+   char_y= (posregister[1][1] & 0xFF00)>>8;
+   char_x = posregister[1][1] & 0x00FF;
+   //display_write_str(KanalTable[4],1); // A
+ 
+   // Level A wert
+   char_y= (posregister[1][2] & 0xFF00)>>8;
+   char_x = posregister[1][2] & 0x00FF;
+   char_width_mul = 1;
+   display_write_int((curr_levelarray[curr_kanal] & 0x07),1);
+   
+   
+   char_width_mul = 1;
+   char_height_mul = 1;
+   
+   // Level B text
+   char_y= (posregister[1][3] & 0xFF00)>>8;
+   char_x = posregister[1][3] & 0x00FF;
+   
+   // Level B wert
+   char_width_mul = 1;
+   char_y= (posregister[1][4] & 0xFF00)>>8;
+   char_x = posregister[1][4] & 0x00FF;
+   display_write_int((curr_levelarray[curr_kanal] & 0x70)>>4,1);
+
+   
+     
    // Typ anzeigen nur symbol
    
    /*
@@ -608,7 +613,7 @@ void setcanalscreen(void)
     display_write_str(menubuffer,1);
 */
    
-
+  // OSZI_D_HI();
    
 }
 
@@ -1042,6 +1047,11 @@ void update_motorzeit(void)
     
 }
 
+void update_blinkzeit(void)
+{
+   
+}
+
 void update_sendezeit(void)
 {
    
@@ -1382,7 +1392,7 @@ uint8_t refresh_screen(void)
          
       case KANALSCREEN: // Kanal
       {
-    //     if (programmstatus & (1<< UPDATESCREEN))
+         if (programmstatus & (1<< UPDATESCREEN))
          {
             programmstatus &= ~(1<< UPDATESCREEN);
             
@@ -1410,7 +1420,7 @@ uint8_t refresh_screen(void)
             
             char_y= (posregister[0][4] & 0xFF00)>>8;
             char_x = posregister[0][4] & 0x00FF;
-            display_write_str(FunktionTable[(curr_funktionarray[curr_kanal]&0x07)],2);
+            //display_write_str(FunktionTable[(curr_funktionarray[curr_kanal]&0x07)],2);
             
             // levelwert A anzeigen
             char_y= (posregister[1][2] & 0xFF00)>>8;
@@ -1491,7 +1501,6 @@ uint8_t refresh_screen(void)
             char_height_mul = 1;
             char_width_mul = 1;
             
-            //display_kanaldiagramm (64, 7, curr_settingarray[curr_kanal][0], curr_settingarray[curr_kanal][1], 1);
             display_kanaldiagramm_var(64+OFFSET_6_UHR, 6, curr_levelarray[curr_kanal], curr_expoarray[curr_kanal], 1);
          
             
@@ -2420,7 +2429,10 @@ uint8_t update_screen(void)
             char_height_mul = 1;
             char_width_mul = 1;
             
-            //display_kanaldiagramm (64, 7, curr_settingarray[curr_kanal][0], curr_settingarray[curr_kanal][1], 1);
+            //display_kanaldiagramm (64+OFFSET_6_UHR, 6, curr_levelarray[curr_kanal], curr_expoarray[curr_kanal], 1);
+            
+            // uint8_t display_kanaldiagramm_var (uint8_t char_x0, uint8_t char_y0, uint8_t level, uint8_t expo, uint8_t typ )
+            
             display_kanaldiagramm_var(64+OFFSET_6_UHR, 6, curr_levelarray[curr_kanal], curr_expoarray[curr_kanal], 1);
          
             
@@ -3064,6 +3076,22 @@ void display_cursorweg(void)
    display_write_symbol(pfeilwegrechts);
 }
 
+void display_setcursorblink(uint8_t zeit)
+{
+   uint16_t cursorposition = cursorpos[curr_cursorzeile][curr_cursorspalte];
+   char_y= (cursorposition & 0xFF00)>>8;
+   char_x = cursorposition & 0x00FF;
+      if (zeit%2)
+      {
+         display_write_symbol(pfeilvollrechts);
+      }
+      else
+      {
+         display_write_symbol(pfeilwegrechts);
+      }
+
+   
+}
 //##############################################################################################
 // Trimmanzeige
 //
@@ -3559,7 +3587,10 @@ uint8_t display_kanaldiagramm_var (uint8_t char_x0, uint8_t char_y0, uint8_t lev
          wertYB =(8-(level & 0x07))*wertYB/8; // Level
       }
       
+      
       pageB = char_y0-(wertYB/8);
+      
+      
       
       for (k=char_y0; k >char_y0-5; k--)
       {
@@ -3567,7 +3598,7 @@ uint8_t display_kanaldiagramm_var (uint8_t char_x0, uint8_t char_y0, uint8_t lev
          display_go_to(char_x0+col,k);
          if (k == pageB) // Auf dieser Page liegt der Wert
          {
-            if (col%3==0)
+            if (col%4==0)
             {
                display_write_byte(DATEN,(1<<(char_y0-wertYB%8))|0x80); //Punkt zeichnen
             }
@@ -3578,7 +3609,8 @@ uint8_t display_kanaldiagramm_var (uint8_t char_x0, uint8_t char_y0, uint8_t lev
             
             
          }
-         else if (col%3==0)
+            
+         else if (col%4==0)
          {
             display_write_byte(DATEN,0x80); //Punkt zeichnen
          }
@@ -3586,7 +3618,7 @@ uint8_t display_kanaldiagramm_var (uint8_t char_x0, uint8_t char_y0, uint8_t lev
          {
             display_write_byte(DATEN,0x00); //Punkte entfernen
          }
-         
+          
          // Seite A (links)
          
          display_go_to(char_x0-col,k);

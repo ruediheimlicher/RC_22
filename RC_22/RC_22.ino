@@ -1250,9 +1250,10 @@ void loop()
       sincelastseccond = 0;
       
       sendesekunde++;
-      if (curr_screen == 0)
+      if (curr_screen )
       {
-      //update_sendezeit();
+         //update_sendezeit();
+         //display_setcursorblink(sendesekunde);
       }
       //Serial.printf("motorsekunde: %d programmstatus: %d manuellcounter: %d\n",motorsekunde, programmstatus, manuellcounter);
       
@@ -1443,6 +1444,7 @@ void loop()
    }// sinceblink
    
 // MARK:  -  ADC_OK
+   
    
    if (servostatus & (1<<ADC_OK)) // 20us pro kanal ohne printf
    {
@@ -2929,7 +2931,7 @@ void loop()
                                     //lcd_putc('3');
                                     //Serial.printf("*** settingstartcounter 3\n");
                                     programmstatus &= ~(1<< SETTINGWAIT);
-                                    programmstatus |=(1<<UPDATESCREEN);
+                         //           programmstatus |= (1<<UPDATESCREEN);
                                     settingstartcounter=0;
                                     startcounter=0;
                                     eepromsavestatus = 0;
@@ -3012,7 +3014,7 @@ void loop()
                      case SETTINGSCREEN: // 5 setting
                      {
 #pragma mark  5 SETTINGSCREEN
-                        Serial.printf("display T5 Settingscreen curr_cursorzeile: %d\n",curr_cursorzeile);
+                        //Serial.printf("display T5 Settingscreen curr_cursorzeile: %d\n",curr_cursorzeile);
                         if (manuellcounter)
                         {
                            switch (curr_cursorzeile)
@@ -3047,7 +3049,9 @@ void loop()
                                     last_cursorspalte=0;
                                     last_cursorzeile=0;
                                     //Serial.printf("T5 Kanalscreen start\n");
+                                    OSZI_D_LO();
                                     setcanalscreen();
+                                    OSZI_D_HI();
                                     manuellcounter=0;
                                     //Serial.printf("T5 zu Kanalscreen end tastaturstatus: %d\n",tastaturstatus);
                                  }
@@ -4755,7 +4759,7 @@ void loop()
 #pragma mark - start_usb
       //if (sinceusb > 100)   
       {
-         OSZI_D_LO();
+         //OSZI_D_LO();
          //Serial.printf("usb\n");
          sinceusb = 0;
          r = RawHID.recv(buffer, 0); 
@@ -4936,7 +4940,7 @@ void loop()
        //     code=0;
          }// r > 0
          /**   End USB-routinen   ***********************/
-         OSZI_D_HI();
+         //OSZI_D_HI();
       } // since usb
 
       
