@@ -397,15 +397,16 @@ void servoimpulsfunktion(void) //
       //servoimpulsTimer.update(impulstimearray[servoindex]); // zu spaet: timer ist schon in neuem Intervall
       digitalWriteFast(IMPULSPIN,HIGH); // neuer impuls
       OSZI_B_HI();
+      kanalimpulsTimer.begin(kanalimpulsfunktion,IMPULSBREITE); // neuer Kanalimpuls
    }
    else  // Paket beenden
    {
       servoimpulsTimer.end();
       servostatus |= (1<<PAUSE);
       servostatus |= (1<<ADC_OK); // ADCFenster starten
-      
+      //digitalWriteFast(IMPULSPIN,LOW);
    }
-   kanalimpulsTimer.begin(kanalimpulsfunktion,IMPULSBREITE); // neuer Kanalimpuls
+   //kanalimpulsTimer.begin(kanalimpulsfunktion,IMPULSBREITE); // neuer Kanalimpuls
    
 }
 
@@ -1255,6 +1256,7 @@ void loop()
          //update_sendezeit();
          //display_setcursorblink(sendesekunde);
       }
+      Serial.printf("update Kanalscreen CC\n");
       //Serial.printf("motorsekunde: %d programmstatus: %d manuellcounter: %d\n",motorsekunde, programmstatus, manuellcounter);
       
       if (sendesekunde == 60)
@@ -1575,7 +1577,7 @@ void loop()
                   {
                      
                      Tastenindex = Tastenwahl(Tastenwert); // taste pressed
-                     Serial.printf("Tastenwert: %d Tastenindex: %d\n",Tastenwert,Tastenindex);
+                     //Serial.printf("Tastenwert: %d Tastenindex: %d\n",Tastenwert,Tastenindex);
                      tastaturstatus |= (1<<TASTEOK);
                      tastaturstatus |= (1<<AKTIONOK);
                      programmstatus |= (1<< LEDON);
@@ -1893,14 +1895,6 @@ void loop()
 #pragma mark 2 KANALSCREEN                    
                   case KANALSCREEN: // Kanalsettings
                   {
-                     /*
-                      lcd_gotoxy(5,1);
-                      lcd_puthex(curr_cursorzeile);
-                      lcd_putc('*');
-                      lcd_puthex((blink_cursorpos & 0xFF00)>>8); // Zeile
-                      lcd_putc('*');
-                      //lcd_putc('*');
-                      */
                      if (blink_cursorpos == 0xFFFF && manuellcounter) // Kein Blinken
                         
                      {
@@ -1940,7 +1934,7 @@ void loop()
                         //switch((blink_cursorpos & 0xFF00)>>8) // zeile
                         switch(curr_cursorzeile) // zeile
                         {
-                           case 0: // Kanal
+                           case 0: // Kanalnummer
                            {
                               //uint8_t tempspalte = (blink_cursorpos & 0x00FF);
                               //lcd_puthex(curr_cursorspalte);
@@ -1953,42 +1947,42 @@ void loop()
                                     {
                                        curr_kanal--;
                                     }
+                                    
                                  }break;
                                     
-                                 case 1: // expo
+                                 case 1: // Richtung toggle
                                  {
                                     eepromsavestatus |= (1<<SAVE_EXPO);
                                     //if (curr_settingarray[curr_kanal][1] & 0x80)
-                                    if (curr_expoarray[curr_kanal] & 0x80)
+                                    if (curr_statusarray[curr_kanal] & 0x80)
                                     {
-                                       curr_expoarray[curr_kanal] &= ~0x80;
+                                       curr_statusarray[curr_kanal] &= ~0x80;
                                     }
                                     else
                                     {
-                                       curr_expoarray[curr_kanal] |= 0x80;
+                                       curr_statusarray[curr_kanal] |= 0x80;
                                     }
                                  }break;
                                     
                                  case 2: // Funktion
                                  {
-                                    //lcd_gotoxy(5,1);
-                                    //lcd_putc('*');
-                                    //Bezeichnung von: FunktionTable[curr_funktionarray[curr_kanal]]
-                                    //uint8_t tempfunktion = curr_funktionarray[curr_kanal]& 0x07; // Bit 0-3
-                                    //lcd_puthex(tempfunktion);
-                                    //lcd_putc('*');
-                                    
-                                    //tempfunktion--; // decrementieren
-                                    //tempfunktion &= 0x07; // Begrenzen auf 0-7
-                                    //lcd_puthex(tempfunktion);
-                                    //curr_funktionarray[curr_kanal] |= tempfunktion; // cycle in FunktionTable
+                                     //Bezeichnung von: FunktionTable[curr_funktionarray[curr_kanal]]
+                                    // Funktion ist bit 0-2, Steuerdevice ist bit 4-6!!
                                     eepromsavestatus |= (1<<SAVE_FUNKTION);
                                     uint8_t tempfunktion = curr_funktionarray[curr_kanal]&0x07; //bit 0-2
-                                    tempfunktion--;
-                                    tempfunktion &= 0x07;
+                                    Serial.printf("T2 curr_funktionarray vor: %d\n",curr_funktionarray[curr_kanal]);
+                                    Serial.printf("T2 zeile %d spalte %d  tempfunktion vor: %d\n",curr_cursorzeile,curr_cursorspalte,tempfunktion);
+ 
+                                    if (tempfunktion) // noch nicht 0
+                                    {
+                                       tempfunktion--;
+                                    }
                                     
-                                    curr_funktionarray[curr_kanal] = (curr_funktionarray[curr_kanal]&0xF0)|tempfunktion; // cycle in FunktionTable
                                     
+                                    curr_funktionarray[curr_kanal] = (curr_funktionarray[curr_kanal]&0xF0)|tempfunktion; // cycle in FunktionTable: Bit 4-7 BitOR mit tempfunktion
+                                    Serial.printf("T2 zeile %d spalte %d  tempfunktion nach: %d\n",curr_cursorzeile,curr_cursorspalte,tempfunktion);
+                                    Serial.printf("T2 curr_funktionarray nach: %d\n",curr_funktionarray[curr_kanal]);
+
                                  }break;
                                     
                                     
@@ -1997,7 +1991,7 @@ void loop()
                               
                            }break;
                               
-                           case  1: // level
+                           case  1: // Zeile level
                            {
                               eepromsavestatus |= (1<<SAVE_LEVEL);
                               switch (curr_cursorspalte)
@@ -2037,7 +2031,7 @@ void loop()
                               {
                                  case 0: // expowert A
                                  {
-                                    if ((curr_expoarray[curr_kanal] & 0x70)>>4)
+                                    if ((curr_expoarray[curr_kanal] & 0x70)>>4) // noch nicht 0
                                     {
                                        curr_expoarray[curr_kanal] -= 0x10;
                                     }
@@ -2045,18 +2039,18 @@ void loop()
                                     
                                  case 1: // Expowert B
                                  {
-                                    if ((curr_expoarray[curr_kanal] & 0x07))
+                                    if ((curr_expoarray[curr_kanal] & 0x07)) // noch nicht 0
                                     {
-                                       curr_expoarray[curr_kanal] -= 0x01;
+                                      // curr_expoarray[curr_kanal] -= 0x01;
                                     }
                                  }break;
                                     
                                  case 2: //
                                  {
-                                    curr_cursorspalte = 1; // fehler, back
+                                   //curr_cursorspalte = 1; // fehler, back
                                  }break;
                                     
-                              }// switch tempspalte
+                              }// switch curr_cursorspalte
                            }break;
                               
                            case  4:
@@ -4234,34 +4228,36 @@ void loop()
                                        curr_kanal++;
                                     }
                                  }break;
-                                 case 1: // Richtung
+                                 case 1: // Richtung toggle
                                  {
                                     eepromsavestatus |= (1<<SAVE_EXPO);
-                                    if (curr_expoarray[curr_kanal] & 0x80)
+                                    if (curr_statusarray[curr_kanal] & 0x80) // Bit 7 gesetzt
                                     {
-                                       curr_expoarray[curr_kanal] &= ~0x80;
+                                       curr_statusarray[curr_kanal] &= ~0x80;
                                     }
                                     else
                                     {
-                                       curr_expoarray[curr_kanal] |= 0x80;
+                                       curr_statusarray[curr_kanal] |= 0x80;
                                     }
                                  }break;
                                     
                                  case 2: // Funktion
                                  {
                                     eepromsavestatus |= (1<<SAVE_FUNKTION);
-                                    //lcd_gotoxy(5,1);
-                                    //lcd_putc('*');
-                                    //Bezeichnung von: FunktionTable[curr_funktionarray[curr_kanal]]&0x07
+                                     //Bezeichnung von: FunktionTable[curr_funktionarray[curr_kanal]]&0x07
                                     // Funktion ist bit 0-2, Steuerdevice ist bit 4-6!!
                                     uint8_t tempfunktion = curr_funktionarray[curr_kanal]&0x07; //bit 0-2
+                                    Serial.printf("T8 curr_funktionarray vor: %d\n",curr_funktionarray[curr_kanal]);
+                                    Serial.printf("T8 zeile %d spalte %d  tempfunktion vor: %d\n",curr_cursorzeile,curr_cursorspalte,tempfunktion);
                                     tempfunktion++;
-                                    tempfunktion &= 0x07;
+                                    tempfunktion += 2;
+                                    tempfunktion &= 0x07; // < 8
                                     
                                     //lcd_puthex(tempfunktion);
-                                    curr_funktionarray[curr_kanal] = (curr_funktionarray[curr_kanal]&0xF0)|tempfunktion; // cycle in FunktionTable
-                                    
-                                    
+                                    curr_funktionarray[curr_kanal] = (curr_funktionarray[curr_kanal]&0xF0)|tempfunktion; // cycle in FunktionTable, Bit 4-7 BitOR mit tempfunktion
+                                    Serial.printf("T8 zeile %d spalte %d  tempfunktion nach: %d\n",curr_cursorzeile,curr_cursorspalte,tempfunktion);
+                                    Serial.printf("T8 curr_funktionarray nach: %d\n",curr_funktionarray[curr_kanal]);
+
                                     /*
                                      if (tempfunktion<8)
                                      {
@@ -4274,7 +4270,7 @@ void loop()
                               
                            }break;
                               
-                           case  1: // Level
+                           case  1: // Zeile Level
                            {
                               eepromsavestatus |= (1<<SAVE_LEVEL);
                               
@@ -4283,15 +4279,16 @@ void loop()
                                  case 0: // Levelwert A
                                  {
                                     Serial.printf("8 Levelwert A curr level: %d\n",curr_levelarray[curr_kanal] );
-                                    if (((curr_levelarray[curr_kanal] & 0x70)>>4)<5)
+                                    if (((curr_levelarray[curr_kanal] & 0x70)>>4)<4) // noch weiterer Wert da
                                     {
                                        curr_levelarray[curr_kanal] += 0x10;
                                     }
                                     
                                  }break;
+                                    
                                  case 1: // Levelwert B
                                  {
-                                    if (((curr_levelarray[curr_kanal] & 0x07))<5)
+                                    if (((curr_levelarray[curr_kanal] & 0x07))<4) // noch weiterer Wert da
                                     {
                                        curr_levelarray[curr_kanal] += 0x01;
                                     }
@@ -4300,10 +4297,10 @@ void loop()
                                     
                                  case 2: //
                                  {
-                                    curr_cursorspalte = 1; // fehler, back
+                                    //curr_cursorspalte = 1; // fehler, back
                                     
                                  }break;
-                              }// switch tempspalte
+                              }// switch curr_cursorspalte
                            }break;
                               
                            case  2: // Expo
@@ -4313,7 +4310,7 @@ void loop()
                               {
                                  case 0: // Expowert A
                                  {
-                                    if (((curr_expoarray[curr_kanal] & 0x70)>>4)<3)
+                                    if (((curr_expoarray[curr_kanal] & 0x70)>>4)<4) // noch mehr Werte da
                                     {
                                        curr_expoarray[curr_kanal] += 0x10;
                                     }
@@ -4321,7 +4318,7 @@ void loop()
                                     
                                  case 1: // Expowert B
                                  {
-                                    if (((curr_expoarray[curr_kanal] & 0x07))<3)
+                                    if (((curr_expoarray[curr_kanal] & 0x07))<4)
                                     {
                                        curr_expoarray[curr_kanal] += 0x01;
                                     }
@@ -4329,7 +4326,7 @@ void loop()
                                     
                                  case 2: //
                                  {
-                                    curr_cursorspalte = 1; // fehler, back
+                                   // curr_cursorspalte = 1; // fehler, back
                                     
                                  }break;
                               }// switch tempspalte
@@ -4750,12 +4747,13 @@ void loop()
       }
 
       tastaturstatus &= ~(1<<TASTEOK);
- 
+      Serial.printf("update Kanalscreen AA\n");
    } // if Tastaturok
        
    // 
    if (servostatus & (1<<USB_OK))
    {
+      //Serial.printf("update Kanalscreen BB\n");
 #pragma mark - start_usb
       //if (sinceusb > 100)   
       {

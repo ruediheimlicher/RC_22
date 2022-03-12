@@ -98,14 +98,14 @@ const char* SichernTable[]  = {frage,sichern,abbrechen};
 
 // Funktion
 
-const char funktion0[]  = "Seite \0";
-const char funktion1[]  = "Hoehe \0";
-const char funktion2[]  = "Quer   \0";
-const char funktion3[]  = "Motor \0";
-const char funktion4[]  = "Quer L\0";
-const char funktion5[]  = "Quer R\0";
-const char funktion6[]  = "Lande \0";
-const char funktion7[]  = "Aux    \0";
+const char funktion0[]  = "Seite";
+const char funktion1[]  = "Hoehe";
+const char funktion2[]  = "Quer";
+const char funktion3[]  = "Motor";
+const char funktion4[]  = "Quer L";
+const char funktion5[]  = "Quer R";
+const char funktion6[]  = "Lande";
+const char funktion7[]  = "Aux  ";
 
 const char *FunktionTable[]  = {funktion0, funktion1, funktion2, funktion3, funktion4, funktion5, funktion6, funktion7};
 

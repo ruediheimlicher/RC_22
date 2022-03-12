@@ -2351,8 +2351,13 @@ uint8_t update_screen(void)
             
             char_y= (posregister[0][4] & 0xFF00)>>8;
             char_x = posregister[0][4] & 0x00FF;
-            display_write_str(FunktionTable[(curr_funktionarray[curr_kanal]&0x07)],2);
             
+            Serial.printf("update Kanalscreen curr_funktionarray vor: %d\n",curr_funktionarray[curr_kanal]);
+            
+            display_write_str(FunktionTable[(curr_funktionarray[curr_kanal]&0x07)],2);
+            Serial.printf("update Kanalscreen A \n");
+        //    display_write_str(FunktionTable[3],2);
+
             // levelwert A anzeigen
             char_y= (posregister[1][2] & 0xFF00)>>8;
             char_x = posregister[1][2] & 0x00FF;
@@ -2384,7 +2389,6 @@ uint8_t update_screen(void)
             if (curr_kanal < 4) 
             {
                if (((curr_statusarray[curr_kanal] & 0x70)>>4)%2 == 0) // waagrecht, gerade Kanalnummer, 0 - 3
-                  
                {
                   if (curr_statusarray[curr_kanal] & 0x80) // Bit 7 fuer Richtung
                   {
@@ -2396,7 +2400,7 @@ uint8_t update_screen(void)
                   }
                   
                }
-               else // senkrecht
+               else if (((curr_statusarray[curr_kanal] & 0x70)>>4)%2 == 1)// senkrecht
                {
                   if  (curr_statusarray[curr_kanal] & 0x80) // Bit 7 fuer Richtung
                   {
@@ -2409,7 +2413,7 @@ uint8_t update_screen(void)
                   
                }
             } // if kanal < 4
-
+            Serial.printf("update Kanalscreen B\n");
             // Typ anzeigen
             char_y= (posregister[3][1] & 0xFF00)>>8;
             char_x = posregister[3][1] & 0x00FF;
@@ -2439,9 +2443,9 @@ uint8_t update_screen(void)
             char_height_mul = 1;
             
            // display_trimmanzeige_horizontal (14+OFFSET_6_UHR, 7,-15);
-
+            Serial.printf("update Kanalscreen C\n");
          }
-         
+         Serial.printf("update Kanalscreen D\n");
          // Blinken
          //Serial.printf("update_screen blink_cursorpos: %d z: %d",blink_cursorpos,sendesekunde);
          if (blink_cursorpos == 0xFFFF) // Kein Blinken des Cursors
@@ -2485,7 +2489,7 @@ uint8_t update_screen(void)
             
          }
          char_height_mul = 1;
-         
+         Serial.printf("update Kanalscreen E\n");
       }break;
          
       case MIXSCREEN:
