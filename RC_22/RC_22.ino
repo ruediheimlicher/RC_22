@@ -46,11 +46,12 @@
 //#include "spi_eeprom.h"
 #include "display.h"
 #include "expo.h"
+
 #include <EEPROM.h>
 // Display
 
 
-
+extern const char *FunktionTable[];
 
 // Define structures and classes
 
@@ -193,12 +194,12 @@ volatile uint16_t                posregister[8][8]={}; // Aktueller screen: wert
 
 volatile uint16_t                cursorpos[8][8]={}; // Aktueller screen: werte fuer page und darauf liegende col fuer den cursor
 
-volatile uint8_t              curr_levelarray[8];
-volatile uint8_t              curr_expoarray[8];
-volatile uint8_t              curr_mixarray[8]={};
-volatile uint8_t              curr_funktionarray[8];
-volatile uint8_t             curr_statusarray[8] = {};
-volatile uint8_t             curr_ausgangarray[8];
+volatile uint8_t              curr_levelarray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
+volatile uint8_t              curr_expoarray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
+volatile uint8_t              curr_mixarray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
+volatile uint8_t              curr_funktionarray[8] = {};//{0x00,0x11,0x22,0x33,0x44,0x55,0x66,0x77};
+volatile uint8_t             curr_statusarray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
+volatile uint8_t             curr_ausgangarray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
 volatile int8_t              curr_trimmungarray[8];
 volatile int8_t              curr_richtung; // Bits fuer Richtung
 volatile int8_t              curr_on; // Bits fuer on
@@ -979,13 +980,9 @@ uint8_t  decodeUSBChannelSettings(uint8_t buffer[USB_DATENBREITE])
       }
       Serial.printf("\n");
       
-      
       //Serial.printf("Kanal: %d \nkanalsettingarray: %d \n",kanal, kanalsettingarray[modelindex][kanal]);
       pos += KANALSETTINGBREITE;
-      
-   
-   
-   }
+    }
    
    return 1;
    
@@ -1010,12 +1007,12 @@ void servopaketfunktion(void) // start Abschnitt
    servoindex = 0; // Index des aktuellen impulses
    if (servostatus & (1<<RUN))
    {
-   servoimpulsTimer.begin(servoimpulsfunktion,impulstimearray[servoindex]);
-   
-   kanalimpulsTimer.begin(kanalimpulsfunktion, IMPULSBREITE); // neuer Kanalimpuls
-   digitalWriteFast(IMPULSPIN,HIGH);
-   OSZI_B_LO();
-   paketcounter++;
+      servoimpulsTimer.begin(servoimpulsfunktion,impulstimearray[servoindex]);
+      
+      kanalimpulsTimer.begin(kanalimpulsfunktion, IMPULSBREITE); // neuer Kanalimpuls
+      digitalWriteFast(IMPULSPIN,HIGH);
+      OSZI_B_LO();
+      paketcounter++;
       
    }
 }
@@ -1221,7 +1218,7 @@ void loop()
       Serial.printf("first run\n");
       servostatus |= (1<<RUN);
       // Mitte lesen
-      Serial.printf("Mitte lesen quot: %.4f expoquot:  %.4f\n",quot, expoquot);
+      //Serial.printf("Mitte lesen quot: %.4f expoquot:  %.4f\n",quot, expoquot);
       for (uint8_t i=0;i<NUM_SERVOS;i++)
       {
          if (adcpinarray[i] < 0xFF) // PIN belegt
@@ -1233,8 +1230,8 @@ void loop()
             
             float ppmfloat = PPMLO + quot *(float(potwert)-POTLO);
             uint16_t ppmint = uint16_t(ppmfloat);
-            Serial.printf("i: %d potwert: %d ppmint: %d potmitte: %.4f\n",i,potwert,ppmint,potmitte);
-            Serial.printf("i: %d potgrenzearray[i][0]: %d potgrenzearray[i][1]: %d quotarray[]: %.3f\n",i,potgrenzearray[i][0],potgrenzearray[i][1],quotarray[i]);
+            //Serial.printf("i: %d potwert: %d ppmint: %d potmitte: %.4f\n",i,potwert,ppmint,potmitte);
+            //Serial.printf("i: %d potgrenzearray[i][0]: %d potgrenzearray[i][1]: %d quotarray[]: %.3f\n",i,potgrenzearray[i][0],potgrenzearray[i][1],quotarray[i]);
 
             servomittearray[i] = ppmint;
 
@@ -1256,7 +1253,7 @@ void loop()
          //update_sendezeit();
          //display_setcursorblink(sendesekunde);
       }
-      Serial.printf("update Kanalscreen CC\n");
+      //Serial.printf("update Kanalscreen CC\n");
       //Serial.printf("motorsekunde: %d programmstatus: %d manuellcounter: %d\n",motorsekunde, programmstatus, manuellcounter);
       
       if (sendesekunde == 60)
@@ -1419,6 +1416,7 @@ void loop()
             //       read_Ext_EEPROM_Settings();// zuruecksetzen
             
             sethomescreen();
+            
             programmstatus &= ~(1<<UPDATESCREEN);
          }
          else 
@@ -1636,7 +1634,7 @@ void loop()
       //usb_rawhid_send((void*)sendbuffer, 50);
       //uint8_t senderfolg = RawHID.send(sendbuffer, 50);
       //Serial.printf("usb senderfolg: %d \n");
-
+      //Serial.printf("+B+\n");
       servostatus |= (1<<USB_OK);
    }
    
@@ -3148,6 +3146,7 @@ void loop()
                                     case 2: // funktion
                                     {
                                        blink_cursorpos =  cursorpos[0][2];
+                                    
                                     }break;
                                        
                                        
@@ -4246,15 +4245,24 @@ void loop()
                                     eepromsavestatus |= (1<<SAVE_FUNKTION);
                                      //Bezeichnung von: FunktionTable[curr_funktionarray[curr_kanal]]&0x07
                                     // Funktion ist bit 0-2, Steuerdevice ist bit 4-6!!
+                                    uint8_t funktionwert = curr_funktionarray[curr_kanal];
+                                    char* funktionstring = FunktionTable[funktionwert];
+                                    Serial.printf("T8 funktionwert: %d funktionstring: %s\n" ,funktionwert,funktionstring);
+
                                     uint8_t tempfunktion = curr_funktionarray[curr_kanal]&0x07; //bit 0-2
                                     Serial.printf("T8 curr_funktionarray vor: %d\n",curr_funktionarray[curr_kanal]);
                                     Serial.printf("T8 zeile %d spalte %d  tempfunktion vor: %d\n",curr_cursorzeile,curr_cursorspalte,tempfunktion);
                                     tempfunktion++;
-                                    tempfunktion += 2;
+                                   funktionwert = curr_funktionarray[curr_kanal];
+                                    funktionstring = FunktionTable[funktionwert];
+                                    Serial.printf("T8 nach *** funktionwert: %d funktionstring: %s\n" ,funktionwert,funktionstring);
+
+                                    //tempfunktion += 2;
                                     tempfunktion &= 0x07; // < 8
                                     
                                     //lcd_puthex(tempfunktion);
-                                    curr_funktionarray[curr_kanal] = (curr_funktionarray[curr_kanal]&0xF0)|tempfunktion; // cycle in FunktionTable, Bit 4-7 BitOR mit tempfunktion
+                         //           curr_funktionarray[curr_kanal] = (curr_funktionarray[curr_kanal]&0xF0)|tempfunktion; // cycle in FunktionTable, Bit 4-7 BitOR mit tempfunktion
+                                    curr_funktionarray[curr_kanal] = 3;
                                     Serial.printf("T8 zeile %d spalte %d  tempfunktion nach: %d\n",curr_cursorzeile,curr_cursorspalte,tempfunktion);
                                     Serial.printf("T8 curr_funktionarray nach: %d\n",curr_funktionarray[curr_kanal]);
 
@@ -4743,7 +4751,7 @@ void loop()
          
          //Serial.printf("Tastenindex update curscreen: %d\n",curr_screen);
          tastaturstatus &= ~(1<<UPDATEOK);
-//         update_screen();
+         //update_screen();
       }
 
       tastaturstatus &= ~(1<<TASTEOK);
@@ -4753,7 +4761,7 @@ void loop()
    // 
    if (servostatus & (1<<USB_OK))
    {
-      //Serial.printf("update Kanalscreen BB\n");
+      //Serial.printf("USB OK\n");
 #pragma mark - start_usb
       //if (sinceusb > 100)   
       {
@@ -4943,5 +4951,6 @@ void loop()
 
       
       servostatus &= ~(1<<USB_OK);
+      //Serial.printf("USB OK end\n");
    }// usb
 } // loop
