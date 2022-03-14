@@ -4267,58 +4267,12 @@ void loop()
                                     
                                  case 2: // Funktion
                                  {
-                                    
-                                    //eepromsavestatus |= (1<<SAVE_FUNKTION);
-                                     //Bezeichnung von: FunktionTable[curr_funktionarray[curr_kanal]]&0x07
-                                    // Funktion ist bit 0-2, Steuerdevice ist bit 4-6!!
-                                    Serial.printf("T8 curr_funktionarray vor: %d\n",curr_funktionarray[curr_kanal]);
-                                    //curr_funktionarray[curr_kanal] = 1;
-                                    Serial.printf("T8 curr_funktionarray nach: %d\n",curr_funktionarray[curr_kanal]);
-                                    
-                                    if (curr_devicearray[curr_kanal] < 4)
+                                    eepromsavestatus |= (1<<SAVE_FUNKTION);
+                                      if (curr_devicearray[curr_kanal] < 4)
                                     {
                                        curr_devicearray[curr_kanal] += 0x01;
                                     }
-                                    
-                                    if (curr_funktionarray[curr_kanal] < 4)
-                                    {
-                                       //curr_funktionarray[curr_kanal] += 0x01;
-                                    }
-                                    Serial.printf("T8 curr_funktionarray nach: %d\n",curr_funktionarray[curr_kanal]);
-                                    break;
-                                    /*
-                                    uint8_t funktionwert = curr_funktionarray[curr_kanal];
-                                    char* funktionstring = FunktionTable[funktionwert];
-                                    Serial.printf("T8 funktionwert: %d funktionstring: %s\n" ,funktionwert,funktionstring);
-                                    break;
-                                    */
-                                    /*
-                                    uint8_t tempfunktion = curr_funktionarray[curr_kanal]&0x07; //bit 0-2
-                                    Serial.printf("T8 curr_funktionarray vor: %d\n",curr_funktionarray[curr_kanal]);
-                                    Serial.printf("T8 zeile %d spalte %d  tempfunktion vor: %d\n",curr_cursorzeile,curr_cursorspalte,tempfunktion);
-                                    tempfunktion++;
-                                    funktionwert = curr_funktionarray[curr_kanal];
-                                    funktionstring = FunktionTable[funktionwert];
-                                    Serial.printf("T8 nach *** funktionwert: %d funktionstring: %s\n" ,funktionwert,funktionstring);
-
-                                    //tempfunktion += 2;
-                                    tempfunktion &= 0x07; // < 8
-                                    */
-          
-                                    
-                                    //lcd_puthex(tempfunktion);
-                         //           curr_funktionarray[curr_kanal] = (curr_funktionarray[curr_kanal]&0xF0)|tempfunktion; // cycle in FunktionTable, Bit 4-7 BitOR mit tempfunktion
-                                    //curr_funktionarray[curr_kanal] = 3;
-                                    //Serial.printf("T8 zeile %d spalte %d  tempfunktion nach: %d\n",curr_cursorzeile,curr_cursorspalte,tempfunktion);
-                                    //Serial.printf("T8 curr_funktionarray nach: %d\n",curr_funktionarray[curr_kanal]);
-
-                                    /*
-                                     if (tempfunktion<8)
-                                     {
-                                     curr_funktionarray[curr_kanal] += 1;
-                                     }
-                                     */
-                                 }break;
+                                      }break;
                                     
                               }// switch tempspalte
                               

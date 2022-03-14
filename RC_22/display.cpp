@@ -35,25 +35,25 @@ extern volatile uint8_t expob;
 
 //extern  volatile uint8_t cursortab[10] = {0+OFFSET_6_UHR,24+OFFSET_6_UHR,40+OFFSET_6_UHR,52+OFFSET_6_UHR,64+OFFSET_6_UHR,76+OFFSET_6_UHR,88+OFFSET_6_UHR,100+OFFSET_6_UHR,108+OFFSET_6_UHR,0};
 
-#define cursortab0 4
-#define cursortab1 28
-#define cursortab2 48
-#define cursortab3 56
-#define cursortab4 68
-#define cursortab5 80
-#define cursortab6 92
-#define cursortab7 112
+#define cursortab0 2
+#define cursortab1 26
+#define cursortab2 46
+#define cursortab3 54
+#define cursortab4 66
+#define cursortab5 78
+#define cursortab6 90
+#define cursortab7 110
 extern  volatile uint8_t cursortab[10] = {cursortab0,cursortab1,cursortab2,cursortab3,cursortab4,cursortab5,cursortab6,cursortab7,cursortab0,cursortab0};
 //extern volatile uint8_t itemtab[10] = {8+OFFSET_6_UHR,32+OFFSET_6_UHR,48+OFFSET_6_UHR,60+OFFSET_6_UHR,72+OFFSET_6_UHR,84+OFFSET_6_UHR,96+OFFSET_6_UHR,108+OFFSET_6_UHR,116+OFFSET_6_UHR,0+OFFSET_6_UHR};
 
-#define itemtab0  12
-#define itemtab1  36
-#define itemtab2  52
-#define itemtab3  54
-#define itemtab4  76
-#define itemtab5  90
-#define itemtab6  112
-#define itemtab7  120
+#define itemtab0  10
+#define itemtab1  34
+#define itemtab2  50
+#define itemtab3  62
+#define itemtab4  74
+#define itemtab5  88
+#define itemtab6  110
+#define itemtab7  118
 extern volatile uint8_t itemtab[10] = {itemtab0,itemtab1,itemtab2,itemtab3,itemtab4,itemtab5,itemtab6,itemtab7,itemtab0,itemtab0};
 
 
@@ -232,23 +232,23 @@ void sethomescreen(void)
    //Serial.printf("sethomescreen start\n");
    resetRegister();
    blink_cursorpos=0xFFFF;
-   posregister[0][0] = itemtab[5] | (1 << 8);// Laufzeit Anzeige
+   posregister[0][0] = itemtab[5] | (1 << 10);// Laufzeit Anzeige
    
    
-   posregister[1][0] = (0+OFFSET_6_UHR) | (0x05 << 8); // Text Motorzeit
-   posregister[1][1] = (0+OFFSET_6_UHR) | (0x06 << 8); // Anzeige Motorzeit
+   posregister[1][0] = (0+OFFSET_6_UHR) | (0x05 << 10); // Text Motorzeit
+   posregister[1][1] = (0+OFFSET_6_UHR) | (0x06 << 10); // Anzeige Motorzeit
    
    
-   posregister[2][0] = (60+OFFSET_6_UHR) | (0x05 << 8); // Text Stoppuhr
-   posregister[2][1] = (60+OFFSET_6_UHR) | (0x06 << 8); // Anzeige Stoppuhr
+   posregister[2][0] = (60+OFFSET_6_UHR) | (0x05 << 10); // Text Stoppuhr
+   posregister[2][1] = (60+OFFSET_6_UHR) | (0x06 << 10); // Anzeige Stoppuhr
    
    
-   posregister[3][0] = (60+OFFSET_6_UHR) | (0x07 << 8); // Text Akku
-   posregister[3][1] = (84+OFFSET_6_UHR) | (0x08 << 8); // Anzeige Akku
+   posregister[3][0] = (60+OFFSET_6_UHR) | (0x07 << 10); // Text Akku
+   posregister[3][1] = (84+OFFSET_6_UHR) | (0x08 << 10); // Anzeige Akku
 
-   posregister[4][0] = (0+OFFSET_6_UHR) | (2 << 8); // Name Modell
-   posregister[4][1] = (80+OFFSET_6_UHR) | (3 << 8); // Text Setting
-   posregister[4][2] = (100+OFFSET_6_UHR) | (3 << 8); // Anzeige Setting
+   posregister[4][0] = (0+OFFSET_6_UHR) | (2 << 10); // Name Modell
+   posregister[4][1] = (80+OFFSET_6_UHR) | (3 << 10); // Text Setting
+   posregister[4][2] = (100+OFFSET_6_UHR) | (3 << 10); // Anzeige Setting
 
    
    // positionen lesen
@@ -277,11 +277,11 @@ void sethomescreen(void)
    
    // Stoppuhrtext schreiben
    char_x = (posregister[2][0] & 0x00FF);
-   char_y= (posregister[2][0] & 0xFF00)>>8;
+   char_y= (posregister[2][0] & 0xFF00)>> 10;
    display_write_str(TitelTable[2],2);
    
    // Stoppzeit schreiben
-   char_y= (posregister[2][1] & 0xFF00)>>8;
+   char_y= (posregister[2][1] & 0xFF00)>> 10;
    char_x = (posregister[2][1] & 0x00FF);
    char_height_mul = 2;
    char_width_mul = 2;
@@ -292,13 +292,13 @@ void sethomescreen(void)
    
    // Motorzeittext schreiben
    char_x = (posregister[1][0] & 0x00FF);
-   char_y= ((posregister[1][0] & 0xFF00)>>8);
+   char_y= ((posregister[1][0] & 0xFF00)>> 10);
    char_height_mul = 1;
    display_write_str(TitelTable[3],2);
    char_height_mul = 2;
    char_width_mul = 2;
 
-   char_y= (posregister[1][1] & 0xFF00)>>8;
+   char_y= (posregister[1][1] & 0xFF00)>> 10;
    char_x = posregister[1][1] & 0x00FF;
    // display_write_min_sek(motorsekunde,2);
    display_write_stopzeit(motorsekunde,motorminute, 2);
@@ -308,7 +308,7 @@ void sethomescreen(void)
   
    
    // Modell schreiben
-   char_y= (posregister[4][0] & 0xFF00)>>8;
+   char_y= (posregister[4][0] & 0xFF00)>> 10;
    char_x = posregister[4][0] & 0x00FF;
    //display_write_prop_str(char_y,char_x,0,titelbuffer,2);
    char_height_mul = 2;
@@ -316,10 +316,10 @@ void sethomescreen(void)
 
    char_height_mul = 1;
    //strcpy(titelbuffer, ((TitelTable[5])));
-   char_y= (posregister[4][1] & 0xFF00)>>8;
+   char_y= (posregister[4][1] & 0xFF00)>> 10;
    char_x = posregister[4][1] & 0x00FF;
    display_write_str(TitelTable[5],2);
-   char_y= (posregister[4][2] & 0xFF00)>>8;
+   char_y= (posregister[4][2] & 0xFF00)>> 10;
    char_x = posregister[4][2] & 0x00FF;
    display_write_int(curr_setting,2);
    
@@ -329,7 +329,7 @@ void sethomescreen(void)
    char_width_mul = 1;
 
    // Batteriespannung
-   char_y= ((posregister[3][0] & 0xFF00)>>8)+1;
+   char_y= ((posregister[3][0] & 0xFF00)>> 10)+1;
    char_x = posregister[3][0] & 0x00FF;
    char_height_mul = 1;
    display_write_str(TitelTable[6],2);
@@ -358,28 +358,28 @@ void setsettingscreen(void)
    
   
    // 2. Zeile
-   posregister[0][0] =  itemtab[0] |    (2 << 8); //Modellname
-   posregister[0][1] =  itemtab[0] |    (2 << 8); //
+   posregister[0][0] =  itemtab[0] |    (2 << 10); //Modellname
+   posregister[0][1] =  itemtab[0] |    (2 << 10); //
 
-   posregister[0][2] =  itemtab[5] |    (3 << 8); // settingtext
-   posregister[0][3] =  itemtab[7] |    (3 << 8); // settingnummer
+   posregister[0][2] =  itemtab[5] |    (3 << 10); // settingtext
+   posregister[0][3] =  itemtab[7] |    (3 << 10); // settingnummer
    
-   posregister[1][0] =  itemtab[0] |    (4 << 8); // Kanaltext
+   posregister[1][0] =  itemtab[0] |    (4 << 10); // Kanaltext
    
-   posregister[2][0] =  itemtab[0] |    (5 << 8); // mixtext
+   posregister[2][0] =  itemtab[0] |    (5 << 10); // mixtext
 
-   posregister[3][0] =  itemtab[0] |    (6 << 8); // Zuteilungtext
+   posregister[3][0] =  itemtab[0] |    (6 << 10); // Zuteilungtext
  
-   posregister[4][0] =  itemtab[0] |    (7 << 8); // Zuteilungtext
+   posregister[4][0] =  itemtab[0] |    (7 << 10); // Zuteilungtext
    
-   cursorpos[0][0] = cursortab[0] |    (2 << 8); // modellcursor lo: tab hi: page
+   cursorpos[0][0] = cursortab[0] |    (2 << 10); // modellcursor lo: tab hi: page
    // cursorpos fuer model zeile/colonne
    
-   cursorpos[0][1] = cursortab[5] |    (3 << 8); //  cursorpos fuer setting
-   cursorpos[1][0] = cursortab[0] |    (4 << 8);  // cursorpos fuer kanal
-   cursorpos[2][0] = cursortab[0] |    (5 << 8);  // cursorpos fuer mix
-   cursorpos[3][0] = cursortab[0] |    (6 << 8);  // cursorpos fuer zuteilung
-   cursorpos[4][0] = cursortab[0] |    (7 << 8);  // cursorpos fuer zuteilung
+   cursorpos[0][1] = cursortab[5] |    (3 << 10); //  cursorpos fuer setting
+   cursorpos[1][0] = cursortab[0] |    (4 << 10);  // cursorpos fuer kanal
+   cursorpos[2][0] = cursortab[0] |    (5 << 10);  // cursorpos fuer mix
+   cursorpos[3][0] = cursortab[0] |    (6 << 10);  // cursorpos fuer zuteilung
+   cursorpos[4][0] = cursortab[0] |    (7 << 10);  // cursorpos fuer zuteilung
   
    
    char_x=itemtab[0];
@@ -394,19 +394,19 @@ void setsettingscreen(void)
    
    //display_write_prop_str(char_y,char_x,0,menubuffer,2);
    
-   char_y= (posregister[0][0] & 0xFF00)>>8;
+   char_y= (posregister[0][0] & 0xFF00)>> 10;
    char_x = posregister[0][0] & 0x00FF;
 
    display_write_str(ModelTable[curr_model],1);
    char_height_mul = 2;
    char_width_mul = 1;
 
-   char_y= (cursorpos[0][0] & 0xFF00)>>8;
+   char_y= (cursorpos[0][0] & 0xFF00)>> 10;
    char_x = cursorpos[0][0] & 0x00FF;
    display_write_symbol(pfeilvollrechts);
    
    // 2. Zeile Set mit Nummer
-   char_y= (posregister[0][2] & 0xFF00)>>8;
+   char_y= (posregister[0][2] & 0xFF00)>> 10;
    char_x = posregister[0][2] & 0x00FF;
    
    char_height_mul = 1;
@@ -414,30 +414,30 @@ void setsettingscreen(void)
    
 
    // Kanal-Zeile
-   char_y= (posregister[1][0] & 0xFF00)>>8;
+   char_y= (posregister[1][0] & 0xFF00)>> 10;
    char_x = posregister[1][0] & 0x00FF;
    //char_x=0;
    display_write_str(SettingTable[3],2);
    
-   char_y= (posregister[1][1] & 0xFF00)>>8;
+   char_y= (posregister[1][1] & 0xFF00)>> 10;
    char_x = posregister[1][1] & 0x00FF;
 //   display_write_int(curr_kanal,2);
 
    
    // Mix-Zeile
-   char_y= (posregister[2][0] & 0xFF00)>>8;
+   char_y= (posregister[2][0] & 0xFF00)>> 10;
    char_x = posregister[2][0] & 0x00FF;
    //char_x=0;
    display_write_str(SettingTable[4],2);
    
    // Zuteilung-Zeile
-   char_y= (posregister[3][0] & 0xFF00)>>8;
+   char_y= (posregister[3][0] & 0xFF00)>> 10;
    char_x = posregister[3][0] & 0x00FF;
    //char_x=0;
    display_write_str(SettingTable[5],2);
  
    // Output-Zeile
-   char_y= (posregister[4][0] & 0xFF00)>>8;
+   char_y= (posregister[4][0] & 0xFF00)>> 10;
    char_x = posregister[4][0] & 0x00FF;
    //char_x=0;
    display_write_str(SettingTable[6],2);
@@ -452,217 +452,224 @@ void setcanalscreen(void)
   // Serial.printf("setcanalscreen curr_screen: %d\n",curr_screen);
    for (uint8_t i=0;i<10;i++)
    {
-      Serial.printf("%d it %d cur %d\n",i,itemtab[i],cursortab[i]); 
+      Serial.printf("%d cur %d item %d\n",i,cursortab[i],itemtab[i]); 
    }
+   /*
+    #define itemtab0  12
+    #define itemtab1  36
+    #define itemtab2  52
+    #define itemtab3  64
+    #define itemtab4  76
+    #define itemtab5  90
+    #define itemtab6  110
+    #define itemtab7  118
+
+    */
    resetRegister();
    blink_cursorpos=0xFFFF;
    
    // bit 0-6: kolonne  bit 7: zeile
    
-   posregister[0][0] =  itemtab[0] |    (1 << 8); // Kanaltext    Zeile 1
-   posregister[0][1] =  itemtab[1] |    (1 << 8); // Kanalnummer
-   posregister[0][2] =  itemtab[2] |    (1 << 8); // Richtungtext
-   posregister[0][3] =  itemtab[3] |    (1 << 8); // RichtungPfeil
-   posregister[0][4] =  itemtab[4] |    (1 << 8); // funktion
-   posregister[0][5] =  itemtab[5] |    (4 << 8); // typ symbol
-   
+   posregister[0][0] =  itemtab[0] |    (1 << 10); // Kanaltext    Zeile 1
+   posregister[0][1] =  itemtab[1] |    (1 << 10); // Kanalnummer
+   posregister[0][2] =  itemtab[2] |    (1 << 10); // Richtungtext
+   posregister[0][3] =  itemtab[3] |    (1 << 10); // RichtungPfeil
+   posregister[0][4] =  itemtab[4] |    (1 << 10); // funktion
+   posregister[0][5] =  itemtab[5] |    (1 << 10); // typ symbol
+   posregister[0][6] =  itemtab[6] |    (1 << 10); // 
+   posregister[0][7] =  itemtab[7] |    (1 << 10); // 
    for (uint8_t pos = 0;pos < 6; pos++)
    {
       Serial.printf("pos: %d posregister: %d  itemtab: %d \n",pos, posregister[0][pos],itemtab[pos]);
    }
    // level
-   posregister[1][0] =  itemtab[2] |    (2 << 8); // Leveltext
+   posregister[1][0] =  itemtab[2] |    (2 << 10); // Leveltext
    
-   posregister[1][1] =  itemtab[3] |    (2 << 8); // Level A text
-   posregister[1][2] =  itemtab[0] |    (2 << 8); // Level A wert
-   posregister[1][3] =  itemtab[6] |    (2 << 8); // Level B text
-   posregister[1][4] =  itemtab[7] |    (2 << 8); // Level B wert
+   posregister[1][1] =  itemtab[3] |    (2 << 10); // Level A text
+   posregister[1][2] =  itemtab[0] |    (2 << 10); // Level A wert
+   posregister[1][3] =  itemtab[5] |    (2 << 10); // Level B text
+   posregister[1][4] =  itemtab[6] |    (2 << 10); // Level B text
+   posregister[1][4] =  itemtab[6] |    (2 << 10); // Level B wert
    
    // expo
-   posregister[2][0] =  itemtab[2] |    (3 << 8); // expotext
+   posregister[2][0] =  itemtab[2] |    (3 << 10); // expotext
    
-   posregister[2][1] =  itemtab[3] |    (3 << 8); // expo A text
-   posregister[2][2] =  itemtab[0] |    (3 << 8); // expo A wert
-   posregister[2][3] =  itemtab[6] |    (3 << 8); // expo B text
-   posregister[2][4] =  itemtab[7] |    (3 << 8); // expo B wert
+   posregister[2][1] =  itemtab[3] |    (3 << 10); // expo A text
+   posregister[2][2] =  itemtab[0] |    (3 << 10); // expo A wert
+   posregister[2][3] =  itemtab[6] |    (3 << 10); // expo B text
+   posregister[2][4] =  itemtab[6] |    (3 << 10); // expo B wert
    
    // typ
-   posregister[3][0] =  itemtab[6] |    (4 << 8); // typtext
-   posregister[3][1] =  itemtab[8] |    (4 << 8); // typ symbol
-   //posregister[3][2] =  itemtab[3] |    (8 << 8); //
-   //posregister[3][3] =  itemtab[4] |    (8 << 8); //
+   posregister[3][0] =  itemtab[6] |    (4 << 10); // typtext
+   posregister[3][1] =  itemtab[8] |    (4 << 10); // typ symbol
+   //posregister[3][2] =  itemtab[3] |    (8 << 10); //
+   //posregister[3][3] =  itemtab[4] |    (8 << 10); //
 
    
-   cursorpos[0][0] =cursortab[0] |   (1 << 8); // cursorpos fuer Kanal zeile/colonne
-   cursorpos[0][1] =cursortab[2] |   (1 << 8); // cursorpos fuer Richtung
+   cursorpos[0][0] =cursortab[0] |   (1 << 10); // cursorpos fuer Kanal zeile/colonne
+   cursorpos[0][1] =cursortab[2] |   (1 << 10); // cursorpos fuer Richtung
    
-   cursorpos[0][2] =cursortab[5] |   (1 << 8); // cursorpos fuer Funktion
+   cursorpos[0][2] =cursortab[5] |   (1 << 10); // cursorpos fuer Funktion
 
    
-   cursorpos[1][0] =cursortab[0] |   (2 << 8); // cursorpos fuer Levelwert A
-   cursorpos[1][1] =cursortab[7] |   (2 << 8);// cursorpos fuer Levelwert B
+   cursorpos[1][0] =cursortab[0] |   (2 << 10); // cursorpos fuer Levelwert A
+   cursorpos[1][1] =cursortab[7] |   (2 << 10);// cursorpos fuer Levelwert B
 
-   cursorpos[2][0] =cursortab[0] |   (3 << 8); // cursorpos fuer Expowert A
-   cursorpos[2][1] =cursortab[7] |   (3 << 8); // cursorpos fuer Expowert B
+   cursorpos[2][0] =cursortab[0] |   (3 << 10); // cursorpos fuer Expowert A
+   cursorpos[2][1] =cursortab[7] |   (3 << 10); // cursorpos fuer Expowert B
 
    
-   cursorpos[3][0] =cursortab[0] |   (4 << 8); // cursorpos fuer Expo
-   cursorpos[3][0] =cursortab[0] |   (1 << 8); // cursorpos fuer Art
+   cursorpos[3][0] =cursortab[0] |   (4 << 10); // cursorpos fuer Expo
+   cursorpos[3][0] =cursortab[0] |   (1 << 10); // cursorpos fuer Art
    
-   cursorpos[4][0] =cursortab[0] |   (1 << 8); // cursorpos fuer Art
+   cursorpos[4][0] =cursortab[0] |   (1 << 10); // cursorpos fuer Art
    
 //   Serial.printf("posregister[1]: %d posregister[2]%d ",posregister[1][0],posregister[2][0]);
 //   Serial.printf("posregister[1]: %d posregister[2]%d ",posregister[1][1],posregister[2][1]);
 //  Serial.printf("posregister[1]: %d posregister[2]%d ",posregister[1][2],posregister[2][2]);
  
-   
-   char_y= (posregister[0][0] & 0xFF00)>>8;
+   // Kanal bezeichnung zeigen
+   char_y= (posregister[0][0] & 0xFF00)>> 10;
    char_x = posregister[0][0] & 0x00FF;
    char_height_mul = 1;
    char_width_mul = 1;
-   
-   // Kanal bezeichnung zeigen
    display_write_str(KanalTable[0],2); // Kan:
    
+   // kanalnummer
+   char_y= (posregister[0][1] & 0xFF00)>> 10;
+   char_x = posregister[0][1] & 0x00FF;
    char_height_mul = 1;
-   
-   
-   
+   char_width_mul = 1;
+   display_write_int(curr_kanal,2);
+
 // Richtung Bezeichnung anzeigen 
-   char_y= (posregister[0][2] & 0xFF00)>>8;
+   char_y= (posregister[0][2] & 0xFF00)>> 10;
    char_x = posregister[0][2] & 0x00FF;
    display_write_str(KanalTable[1],2); // Ri:
+   
+   // Richtungspfeil
+   char_y= (posregister[0][3] & 0xFF00)>> 10;
+   char_x = posregister[0][3] & 0x00FF;
+   
+   if (curr_kanal < 4) 
+   {
+      if (((curr_statusarray[curr_kanal] & 0x70)>>4)%2 == 0) // waagrecht, gerade Kanalnummer, 0 - 3
+      {
+         if (curr_statusarray[curr_kanal] & 0x80) // Bit 7 fuer Richtung
+         {
+            display_write_propsymbol(proprichtungright);
+            //display_write_propsymbol(proprichtungup);
+         }
+         else
+         {
+            display_write_propsymbol(proprichtungleft);
+         }
+         
+      }
+      else if (((curr_statusarray[curr_kanal] & 0x70)>>4)%2 == 1)// senkrecht
+      {
+         if  (curr_statusarray[curr_kanal] & 0x80) // Bit 7 fuer Richtung
+         {
+            display_write_propsymbol(proprichtungup);
+         }
+         else
+         {
+            display_write_propsymbol(proprichtungdown);
+         }
+         
+      }
+   } // if kanal < 4
+
+   
+   
    
    char_height_mul = 1;
 
    // Funktion Bezeichnung anzeigen
-   char_y= ((posregister[0][3] & 0xFF00)>>8);
-   char_x = posregister[0][3] & 0x00FF;
-   //display_write_str(KanalTable[2],2);
+   char_y= ((posregister[0][4] & 0xFF00)>> 10);
+   char_x = posregister[0][4] & 0x00FF;
+  // display_write_str(KanalTable[2],2); Fkt. nicht zeigen
    
    
+   // Funktion anzeigen
    uint8_t funktionwert = curr_devicearray[curr_kanal];
    char* funktionstring = FunktionTable[curr_devicearray[curr_kanal]];
    
-   Serial.printf("kanal: %d funktionwert: %d funktionstring: %s\n" ,curr_kanal, funktionwert,funktionstring);
-//   char_y= ((posregister[0][4] & 0xFF00)>>8) + 2;
-//   char_x = (posregister[0][4] & 0x00FF) + 2;
+   //Serial.printf("kanal: %d funktionwert: %d funktionstring: %s\n" ,curr_kanal, funktionwert,funktionstring);
+ //  char_y= ((posregister[0][5] & 0xFF00)>> 10) + 2;
+ //  char_x = (posregister[0][5] & 0x00FF) + 2;
    //display_write_str(funktionstring,2);
    
-   display_write_int(curr_devicearray[curr_kanal],1);
-   
-   /*
-   //display_write_str(FunktionTable[curr_kanal],2); // 0: Seite, 1: Hoehe usw
-   //display_write_str(FunktionTable[4],2);
-   
-   char* funktionstring = FunktionTable[funktionwert];
-   Serial.printf("funktionwert: %d funktionstring: %s\n" ,funktionwert,funktionstring);
-   display_write_str(FunktionTable[(curr_funktionarray[curr_kanal]&0x07)],2);
-   char_height_mul = 1;
-
-   */
    //strcpy(menubuffer, (&(KanalTable[3]))); // Expotext
-   char_y= (posregister[2][0] & 0xFF00)>>8;
-   char_x = posregister[2][0] & 0x00FF;
-   //char_x = 74;
-   char_width_mul = 1;
-   //Serial.printf("Expo charx: %d chary: %d Expo: %s\n",char_x, char_y,KanalTable[3]);
-   display_write_str(KanalTable[3],1);
    
-   // Bezeichnung Level anzeigen
-   char_y= (posregister[1][0] & 0xFF00)>>8;
+   // Niveau-Bezeichnung "Level" anzeigen
+   char_y= (posregister[1][0] & 0xFF00)>> 10;
    char_x = posregister[1][0] & 0x00FF;
+   display_write_str(KanalTable[3],1); // Level
+
+   // Niveau-Bezeichnung "Expo" anzeigen
+   char_y= (posregister[2][0] & 0xFF00)>> 10;
+   char_x = posregister[2][0] & 0x00FF;
+   char_width_mul = 1;
+   display_write_str(KanalTable[4],1); // "Expo"
    
-   display_write_str(KanalTable[2],1); // Level
-   
+    
    char_height_mul = 1;
  
    // Level A text
-   char_y= (posregister[1][1] & 0xFF00)>>8;
+   char_y= (posregister[1][1] & 0xFF00)>> 10;
    char_x = posregister[1][1] & 0x00FF;
    //display_write_str(KanalTable[4],1); // A
  
    // Level A wert
-   char_y= (posregister[1][2] & 0xFF00)>>8;
+   char_y= (posregister[1][2] & 0xFF00)>> 10;
    char_x = posregister[1][2] & 0x00FF;
    char_width_mul = 1;
-   display_write_int((curr_levelarray[curr_kanal] & 0x07),1);
-   
+   display_write_int(8-((curr_levelarray[curr_kanal] & 0x70)>>4),1);
+   display_write_str("/8\0",1);
    
    char_width_mul = 1;
    char_height_mul = 1;
    
    // Level B text
-   char_y= (posregister[1][3] & 0xFF00)>>8;
+   char_y= (posregister[1][3] & 0xFF00)>> 10;
    char_x = posregister[1][3] & 0x00FF;
    
    // Level B wert
    char_width_mul = 1;
-   char_y= (posregister[1][4] & 0xFF00)>>8;
+   char_y= (posregister[1][4] & 0xFF00)>> 10;
    char_x = posregister[1][4] & 0x00FF;
-   display_write_int((curr_levelarray[curr_kanal] & 0x70)>>4,1);
-
+   display_write_int((8-(curr_levelarray[curr_kanal] & 0x07)),1);
+   display_write_str("/8\0",1);
    // Bezeichnung Expo anzeigen
-      
+   
    // expo A text
-   char_y= (posregister[2][1] & 0xFF00)>>8;
+   char_y= (posregister[2][1] & 0xFF00)>> 10;
    char_x = posregister[2][1] & 0x00FF;
    
    // expo A wert
-   char_y= (posregister[2][2] & 0xFF00)>>8;
+   char_y= (posregister[2][2] & 0xFF00)>> 10;
    char_x = posregister[2][2] & 0x00FF;
    char_width_mul = 1;
-   display_write_int((curr_expoarray[curr_kanal] & 0x07),1);
-   
+   display_write_int((curr_expoarray[curr_kanal] & 0x70)>>4,1);
+   display_write_str("/8\0",1);
    
    
    // expo B text
-   char_y= (posregister[2][3] & 0xFF00)>>8;
+   char_y= (posregister[2][3] & 0xFF00)>> 10;
    char_x = posregister[2][3] & 0x00FF;
    char_width_mul = 1;
    
    // expo B wert
-   char_y= (posregister[2][4] & 0xFF00)>>8;
+   char_y= (posregister[2][4] & 0xFF00)>> 10;
    char_x = posregister[2][4] & 0x00FF;
    char_width_mul = 1;
-   //display_write_int((expowert & 0x03),1);
-   display_write_int((curr_expoarray[curr_kanal] & 0x30)>>4,1);
+ //  display_write_int((curr_expoarray[curr_kanal] & 0x07),1);
+  // display_write_str("/8\0",1);
 
 
      
-   // Typ anzeigen nur symbol
-   
-   /*
-   strcpy(menubuffer, (&(KanalTable[6]))); // Arttext
-   char_y= (posregister[3][0] & 0xFF00)>>8;
-   char_x = posregister[3][0] & 0x00FF;
-   char_width_mul = 1;
-   display_write_str(menubuffer,2);
-   */
-   
-   
-   // Art wert > updatescreen
- /*
-   uint8_t kanaltyp =(expowert & 0x0C)>>2;
-   //strcpy(menubuffer, (&(KanalTable[2]))); // Art wert
-   char_y= (posregister[3][1] & 0xFF00)>>8;
-   char_x = posregister[3][1] & 0x00FF;
-   char_width_mul = 1;
-   display_write_int(kanaltyp,1);
-
-   // Art Name
-  
-
-   strcpy(menubuffer, (&(KanalTypTable[kanaltyp]))); // Art wert
-   
-   char_y= (posregister[3][3] & 0xFF00)>>8;
-   char_x = posregister[3][3] & 0x00FF;
-   char_width_mul = 1;
-    display_write_str(menubuffer,1);
-*/
-   
-  // OSZI_D_HI();
-   
+    
 }
 
 void setausgangscreen(void)
@@ -671,56 +678,56 @@ void setausgangscreen(void)
    uint8_t delta=2;
    curr_impuls= 0;
    blink_cursorpos=0xFFFF;
-   posregister[0][0] =  itemtab[0] |    (3 << 8); //
-   posregister[0][1] =  itemtab[1] |    (3 << 8); //
-//   posregister[0][2] =  itemtab[4] |    (1 << 8); //
-//   posregister[0][3] =  itemtab[5] |    (1 << 8); //
+   posregister[0][0] =  itemtab[0] |    (3 << 10); //
+   posregister[0][1] =  itemtab[1] |    (3 << 10); //
+//   posregister[0][2] =  itemtab[4] |    (1 << 10); //
+//   posregister[0][3] =  itemtab[5] |    (1 << 10); //
    
    // level
-   posregister[1][0] =  itemtab[0] |    (4 << 8); //
-   posregister[1][1] =  itemtab[1] |    (4 << 8); //
-//   posregister[1][2] =  itemtab[3] |    (1 << 8); //
-//   posregister[1][3] =  itemtab[5] |    (1 << 8); //
-//   posregister[1][4] =  itemtab[6] |    (1 << 8); //
+   posregister[1][0] =  itemtab[0] |    (4 << 10); //
+   posregister[1][1] =  itemtab[1] |    (4 << 10); //
+//   posregister[1][2] =  itemtab[3] |    (1 << 10); //
+//   posregister[1][3] =  itemtab[5] |    (1 << 10); //
+//   posregister[1][4] =  itemtab[6] |    (1 << 10); //
    
    //
-   posregister[2][0] =  itemtab[0] |    (5 << 8); //
-   posregister[2][1] =  itemtab[1] |    (5 << 8); //
-//   posregister[2][2] =  itemtab[3] |    (5 << 8); //
-//   posregister[2][3] =  itemtab[5] |    (5 << 8); //
-//   posregister[2][4] =  itemtab[6] |    (5 << 8); //
+   posregister[2][0] =  itemtab[0] |    (5 << 10); //
+   posregister[2][1] =  itemtab[1] |    (5 << 10); //
+//   posregister[2][2] =  itemtab[3] |    (5 << 10); //
+//   posregister[2][3] =  itemtab[5] |    (5 << 10); //
+//   posregister[2][4] =  itemtab[6] |    (5 << 10); //
 
-   posregister[3][0] =  itemtab[0] |    (6 << 8); //
-   posregister[3][1] =  itemtab[1] |    (6 << 8); //
-   //   posregister[2][2] =  itemtab[3] |    (5 << 8); //
-   //   posregister[2][3] =  itemtab[5] |    (5 << 8); //
-   //   posregister[2][4] =  itemtab[6] |    (5 << 8); //
+   posregister[3][0] =  itemtab[0] |    (6 << 10); //
+   posregister[3][1] =  itemtab[1] |    (6 << 10); //
+   //   posregister[2][2] =  itemtab[3] |    (5 << 10); //
+   //   posregister[2][3] =  itemtab[5] |    (5 << 10); //
+   //   posregister[2][4] =  itemtab[6] |    (5 << 10); //
 
-   posregister[4][0] =  itemtab[0] |    (7 << 8); //
-   posregister[4][1] =  itemtab[1] |    (7 << 8); //
-   //   posregister[2][2] =  itemtab[3] |    (5 << 8); //
-   //   posregister[2][3] =  itemtab[5] |    (5 << 8); //
-   //   posregister[2][4] =  itemtab[6] |    (5 << 8); //
+   posregister[4][0] =  itemtab[0] |    (7 << 10); //
+   posregister[4][1] =  itemtab[1] |    (7 << 10); //
+   //   posregister[2][2] =  itemtab[3] |    (5 << 10); //
+   //   posregister[2][3] =  itemtab[5] |    (5 << 10); //
+   //   posregister[2][4] =  itemtab[6] |    (5 << 10); //
 
-//   posregister[5][0] =  itemtab[0] |    (8 << 8); //
- //  posregister[5][1] =  itemtab[1] |    (8 << 8); //
+//   posregister[5][0] =  itemtab[0] |    (8 << 10); //
+ //  posregister[5][1] =  itemtab[1] |    (8 << 10); //
 
    // typ
    
    
-   cursorpos[0][0] =cursortab[0] |   (3 << 8); // cursorpos fuer
-   cursorpos[1][0] =cursortab[0] |   (4 << 8); // cursorpos fuer
-   cursorpos[2][0] =cursortab[0] |   (5 << 8); // cursorpos fuer
-   cursorpos[3][0] =cursortab[0] |   (6 << 8); // cursorpos fuer
-   cursorpos[4][0] =cursortab[0] |   (7 << 8); // cursorpos fuer
-  // cursorpos[5][0] =cursortab[0] |   (8 << 8); // cursorpos fuer
+   cursorpos[0][0] =cursortab[0] |   (3 << 10); // cursorpos fuer
+   cursorpos[1][0] =cursortab[0] |   (4 << 10); // cursorpos fuer
+   cursorpos[2][0] =cursortab[0] |   (5 << 10); // cursorpos fuer
+   cursorpos[3][0] =cursortab[0] |   (6 << 10); // cursorpos fuer
+   cursorpos[4][0] =cursortab[0] |   (7 << 10); // cursorpos fuer
+  // cursorpos[5][0] =cursortab[0] |   (8 << 10); // cursorpos fuer
 
-   cursorpos[0][1] =cursortab[1] |   (3 << 8); // cursorpos fuer
-   cursorpos[1][1] =cursortab[1] |   (4 << 8); // cursorpos fuer
-   cursorpos[2][1] =cursortab[1] |   (5 << 8); // cursorpos fuer
-   cursorpos[3][1] =cursortab[1] |   (6 << 8); // cursorpos fuer
-   cursorpos[4][1] =cursortab[1] |   (7 << 8); // cursorpos fuer
-  // cursorpos[5][1] =cursortab[1] |   (8 << 8); // cursorpos fuer
+   cursorpos[0][1] =cursortab[1] |   (3 << 10); // cursorpos fuer
+   cursorpos[1][1] =cursortab[1] |   (4 << 10); // cursorpos fuer
+   cursorpos[2][1] =cursortab[1] |   (5 << 10); // cursorpos fuer
+   cursorpos[3][1] =cursortab[1] |   (6 << 10); // cursorpos fuer
+   cursorpos[4][1] =cursortab[1] |   (7 << 10); // cursorpos fuer
+  // cursorpos[5][1] =cursortab[1] |   (8 << 10); // cursorpos fuer
 
    
    //strcpy(menubuffer,(&(SettingTable[6]))); // Ausgang
@@ -765,37 +772,37 @@ void setmixscreen(void)
    blink_cursorpos=0xFFFF;
    
    // Mix 0
-   posregister[0][0] =  itemtab[0] |    (4 << 8); //
-   posregister[0][1] =  itemtab[1] |    (4 << 8); //
-   posregister[0][2] =  (itemtab[2]-delta) |    (4 << 8); //
-   posregister[0][3] =  itemtab[3] |    (4 << 8); //
-   posregister[0][4] =  itemtab[4] |    (4 << 8); //
-   posregister[0][5] =  (itemtab[5]+delta) |    (4 << 8); //
-   posregister[0][6] =  itemtab[6] |    (4 << 8); // Level B wert
-   posregister[0][7] =  itemtab[7] |    (4 << 8); // Level B wert
+   posregister[0][0] =  itemtab[0] |    (4 << 10); //
+   posregister[0][1] =  itemtab[1] |    (4 << 10); //
+   posregister[0][2] =  (itemtab[2]-delta) |    (4 << 10); //
+   posregister[0][3] =  itemtab[3] |    (4 << 10); //
+   posregister[0][4] =  itemtab[4] |    (4 << 10); //
+   posregister[0][5] =  (itemtab[5]+delta) |    (4 << 10); //
+   posregister[0][6] =  itemtab[6] |    (4 << 10); // Level B wert
+   posregister[0][7] =  itemtab[7] |    (4 << 10); // Level B wert
    
    // Mix 1
-   posregister[1][0] =  itemtab[0] |    (5 << 8); // Leveltext
-   posregister[1][1] =  itemtab[1] |    (5 << 8); // Level A text
-   posregister[1][2] =  (itemtab[2]-delta)  |    (5 << 8); // Level A wert
-   posregister[1][3] =  itemtab[3] |    (5 << 8); // Level B text
-   posregister[1][4] =  itemtab[4] |    (5 << 8); // Level B wert
-   posregister[1][5] =  (itemtab[5]+delta)  |  (5 << 8); // Level B wert
-   posregister[1][6] =  itemtab[6] |    (5 << 8); // Level B wert
-   posregister[1][7] =  itemtab[7] |    (5 << 8); // Level B wert
+   posregister[1][0] =  itemtab[0] |    (5 << 10); // Leveltext
+   posregister[1][1] =  itemtab[1] |    (5 << 10); // Level A text
+   posregister[1][2] =  (itemtab[2]-delta)  |    (5 << 10); // Level A wert
+   posregister[1][3] =  itemtab[3] |    (5 << 10); // Level B text
+   posregister[1][4] =  itemtab[4] |    (5 << 10); // Level B wert
+   posregister[1][5] =  (itemtab[5]+delta)  |  (5 << 10); // Level B wert
+   posregister[1][6] =  itemtab[6] |    (5 << 10); // Level B wert
+   posregister[1][7] =  itemtab[7] |    (5 << 10); // Level B wert
    
    
-   cursorpos[0][0] =cursortab[0] |   (4 << 8); // cursorpos fuer
-   cursorpos[0][1] =(cursortab[2]-delta) |   (4 << 8); // cursorpos fuer
-   cursorpos[0][2] =(cursortab[5]+delta) |   (4 << 8); // cursorpos fuer Mix 0
+   cursorpos[0][0] =cursortab[0] |   (4 << 10); // cursorpos fuer
+   cursorpos[0][1] =(cursortab[2]-delta) |   (4 << 10); // cursorpos fuer
+   cursorpos[0][2] =(cursortab[5]+delta) |   (4 << 10); // cursorpos fuer Mix 0
    
-   cursorpos[1][0] =cursortab[0] |   (5 << 8); // cursorpos fuer
-   cursorpos[1][1] =(cursortab[2]-delta) |   (5 << 8); // cursorpos fuer
-   cursorpos[1][2] =(cursortab[5]+delta) |   (5 << 8); // cursorpos fuer Mix 0
+   cursorpos[1][0] =cursortab[0] |   (5 << 10); // cursorpos fuer
+   cursorpos[1][1] =(cursortab[2]-delta) |   (5 << 10); // cursorpos fuer
+   cursorpos[1][2] =(cursortab[5]+delta) |   (5 << 10); // cursorpos fuer Mix 0
 
-   cursorpos[2][0] =cursortab[0] |   (5 << 8); // cursorpos fuer
-   cursorpos[2][1] =(cursortab[2]-delta) |   (5 << 8); // cursorpos fuer
-   cursorpos[2][2] =(cursortab[5]+delta) |   (5 << 8); // cursorpos fuer Mix 0
+   cursorpos[2][0] =cursortab[0] |   (5 << 10); // cursorpos fuer
+   cursorpos[2][1] =(cursortab[2]-delta) |   (5 << 10); // cursorpos fuer
+   cursorpos[2][2] =(cursortab[5]+delta) |   (5 << 10); // cursorpos fuer Mix 0
 
  
    //strcpy(menubuffer, (&(MixTable[0]))); // titel
@@ -852,39 +859,39 @@ void setzuteilungscreen(void)
    blink_cursorpos=0xFFFF;
    
    // vertikal l
-   posregister[0][0] =  22 |    (3 << 8); //
-   posregister[0][1] =  32 |    (3 << 8); //
+   posregister[0][0] =  22 |    (3 << 10); //
+   posregister[0][1] =  32 |    (3 << 10); //
    
    // vertikal r
-   posregister[0][2] =  82 |    (3 << 8); //
-   posregister[0][3] =  92 |    (3 << 8); //
+   posregister[0][2] =  82 |    (3 << 10); //
+   posregister[0][3] =  92 |    (3 << 10); //
    
    
    // horizontal l
-   posregister[1][0] =  10 |    (4 << 8); //
-   posregister[1][1] =  10 |    (5 << 8); //
+   posregister[1][0] =  10 |    (4 << 10); //
+   posregister[1][1] =  10 |    (5 << 10); //
   
    // horizontal r
-   posregister[1][2] =  70 |    (4 << 8); //
-   posregister[1][3] =  70 |    (5 << 8); //
+   posregister[1][2] =  70 |    (4 << 10); //
+   posregister[1][3] =  70 |    (5 << 10); //
 
    // Schieber l
-   posregister[2][0] =  20 |    (8 << 8); //
-   posregister[2][1] =  30 |    (8 << 8); //
+   posregister[2][0] =  20 |    (8 << 10); //
+   posregister[2][1] =  30 |    (8 << 10); //
    
    // Schieber r
-   posregister[2][2] =  80 |    (8 << 8); //
-   posregister[2][3] =  90 |    (8 << 8); //
+   posregister[2][2] =  80 |    (8 << 10); //
+   posregister[2][3] =  90 |    (8 << 10); //
    
    
-   cursorpos[0][0] = 12 |  (3 << 8); //
-   cursorpos[0][1] = 72 |  (3 << 8); //
+   cursorpos[0][0] = 12 |  (3 << 10); //
+   cursorpos[0][1] = 72 |  (3 << 10); //
 
-   cursorpos[1][0] = 0 |  (4 << 8); //
-   cursorpos[1][1] = 60 |  (4 << 8); //
+   cursorpos[1][0] = 0 |  (4 << 10); //
+   cursorpos[1][1] = 60 |  (4 << 10); //
 
-   cursorpos[2][0] = 10 |  (8 << 8); //
-   cursorpos[2][1] = 70 |  (8 << 8); //
+   cursorpos[2][0] = 10 |  (8 << 10); //
+   cursorpos[2][1] = 70 |  (8 << 10); //
 
    
    //strcpy(menubuffer, (&(ZuteilungTable[0]))); // titel
@@ -949,42 +956,42 @@ void setzuteilungscreen(void)
    }
    /*
    strcpy(menubuffer, (&(DeviceTable[1]))); // L_V
-   char_y= (posregister[0][0] & 0xFF00)>>8;;
+   char_y= (posregister[0][0] & 0xFF00)>> 10;;
    char_x = posregister[0][0] & 0x00FF ;
    char_height_mul = 1;
    char_width_mul = 1;
    display_write_str(menubuffer,1);
 
    strcpy(menubuffer, (&(DeviceTable[3]))); // R_V
-   char_y= (posregister[0][2] & 0xFF00)>>8;;
+   char_y= (posregister[0][2] & 0xFF00)>> 10;;
    char_x = posregister[0][2] & 0x00FF ;
    char_height_mul = 1;
    char_width_mul = 1;
    display_write_str(menubuffer,1);
   
    strcpy(menubuffer, (&(DeviceTable[2]))); // L_H
-   char_y= (posregister[1][0] & 0xFF00)>>8;;
+   char_y= (posregister[1][0] & 0xFF00)>> 10;;
    char_x = posregister[1][0] & 0x00FF ;
    char_height_mul = 1;
    char_width_mul = 1;
    display_write_str(menubuffer,1);
 
    strcpy(menubuffer, (&(DeviceTable[0]))); // L_R
-   char_y= (posregister[1][2] & 0xFF00)>>8;;
+   char_y= (posregister[1][2] & 0xFF00)>> 10;;
    char_x = posregister[1][2] & 0x00FF ;
    char_height_mul = 1;
    char_width_mul = 1;
    display_write_str(menubuffer,1);
  
    strcpy(menubuffer, (&(DeviceTable[4]))); // S_L
-   char_y= (posregister[2][0] & 0xFF00)>>8;;
+   char_y= (posregister[2][0] & 0xFF00)>> 10;;
    char_x = posregister[2][0] & 0x00FF ;
    char_height_mul = 1;
    char_width_mul = 1;
    display_write_str(menubuffer,1);
 
    strcpy(menubuffer, (&(DeviceTable[5]))); // S_R
-   char_y= (posregister[2][2] & 0xFF00)>>8;;
+   char_y= (posregister[2][2] & 0xFF00)>> 10;;
    char_x = posregister[2][2] & 0x00FF ;
    char_height_mul = 1;
    char_width_mul = 1;
@@ -1004,14 +1011,14 @@ void setsavescreen(void)
    
    
    
-   posregister[0][0] =  itemtab[0] |     (4 << 8); // Aenderungen sichern
-   posregister[0][1] =  itemtab[3] |    (4 << 8); //
-//   posregister[0][2] =  itemtab[4] |    (3 << 8); // Abbrechen
-//   posregister[0][3] =  itemtab[6] |    (3 << 8); //
+   posregister[0][0] =  itemtab[0] |     (4 << 10); // Aenderungen sichern
+   posregister[0][1] =  itemtab[3] |    (4 << 10); //
+//   posregister[0][2] =  itemtab[4] |    (3 << 10); // Abbrechen
+//   posregister[0][3] =  itemtab[6] |    (3 << 10); //
    
    
-   cursorpos[0][0] = cursortab[0] |    (4 << 8); // sichern
-   cursorpos[0][1] = cursortab[3] |    (4 << 8); //  abbrechen
+   cursorpos[0][0] = cursortab[0] |    (4 << 10); // sichern
+   cursorpos[0][1] = cursortab[3] |    (4 << 10); //  abbrechen
   
    strcpy(menubuffer, ((SichernTable[0]))); // titel
    char_y= 1;
@@ -1024,14 +1031,14 @@ void setsavescreen(void)
    display_write_str(menubuffer,2);
    display_write_symbol(fragezeichen);
 
-   char_y= (posregister[0][0] & 0xFF00)>>8;
+   char_y= (posregister[0][0] & 0xFF00)>> 10;
    char_x = posregister[0][0] & 0x00FF;
    strcpy(menubuffer, ((SichernTable[1]))); // sichern
    char_height_mul = 1;
    display_write_str(menubuffer,2);
    
    
-   char_y= (posregister[0][1] & 0xFF00)>>8;
+   char_y= (posregister[0][1] & 0xFF00)>> 10;
    char_x = posregister[0][1] & 0x00FF;
    strcpy(menubuffer, ((SichernTable[2]))); // Abbrechen
    display_write_str(menubuffer,2);
@@ -1048,21 +1055,21 @@ void settrimmscreen(void)
    blink_cursorpos=0xFFFF;
    
     
-   posregister[0][0] =  itemtab[0] |   (2 << 8); //Vertikal links
-   posregister[0][1] =  itemtab[4] |   (2 << 8); //Vertikal rechts
+   posregister[0][0] =  itemtab[0] |   (2 << 10); //Vertikal links
+   posregister[0][1] =  itemtab[4] |   (2 << 10); //Vertikal rechts
    
-   posregister[1][0] =  itemtab[0] |    (5 << 8); // Horizontal links
-   posregister[1][1] =  itemtab[4] |    (5 << 8); // Horizontal rechts
+   posregister[1][0] =  itemtab[0] |    (5 << 10); // Horizontal links
+   posregister[1][1] =  itemtab[4] |    (5 << 10); // Horizontal rechts
    
-   cursorpos[0][0] = cursortab[0] |    (2 << 8); // cursorpos fuer Vertikal links
-   cursorpos[0][1] = cursortab[4] |    (2 << 8); //  cursorpos fuer Vertikal rechts
-   cursorpos[1][0] = cursortab[0] |    (4 << 8);  //cursorpos fuer Horizontal links
-   cursorpos[1][1] = cursortab[0] |    (5 << 8);  //cursorpos fuer Horizontal rechts
+   cursorpos[0][0] = cursortab[0] |    (2 << 10); // cursorpos fuer Vertikal links
+   cursorpos[0][1] = cursortab[4] |    (2 << 10); //  cursorpos fuer Vertikal rechts
+   cursorpos[1][0] = cursortab[0] |    (4 << 10);  //cursorpos fuer Horizontal links
+   cursorpos[1][1] = cursortab[0] |    (5 << 10);  //cursorpos fuer Horizontal rechts
    
-   cursorpos[3][0] = cursortab[0] |    (6 << 8);  // cursorpos fuer save
+   cursorpos[3][0] = cursortab[0] |    (6 << 10);  // cursorpos fuer save
 
    char_x = posregister[0][0] & 0x00FF;
-   char_y= (posregister[0][0] & 0xFF00)>>8;
+   char_y= (posregister[0][0] & 0xFF00)>> 10;
    char_height_mul = 1;
    char_width_mul = 1;
 
@@ -1076,7 +1083,7 @@ void update_motorzeit(void)
    
    /*
    char_x = posregister[0][0] & 0x00FF;
-   char_y= (posregister[0][0] & 0xFF00)>>8;
+   char_y= (posregister[0][0] & 0xFF00)>> 10;
    char_height_mul = 1;
    char_width_mul = 1;
    */
@@ -1087,7 +1094,7 @@ void update_motorzeit(void)
    // Motorzeit aktualisieren
    char_height_mul = 2;
    char_width_mul = 2;
-   char_y= (posregister[1][1] & 0xFF00)>>8;
+   char_y= (posregister[1][1] & 0xFF00)>> 10;
    char_x = posregister[1][1] & 0x00FF;
    //display_write_min_sek(motorsekunde,2);
    display_write_stopzeit(motorsekunde,motorminute, 2);
@@ -1104,7 +1111,7 @@ void update_sendezeit(void)
 {
    
    char_x = posregister[0][0] & 0x00FF;
-   char_y= (posregister[0][0] & 0xFF00)>>8;
+   char_y= (posregister[0][0] & 0xFF00)>> 10;
    char_height_mul = 1;
    char_width_mul = 1;
    display_write_zeit(sendesekunde&0xFF,sendeminute,sendestunde, 2);
@@ -1115,7 +1122,7 @@ void update_stopzeit(void)
 {
    
    // Stoppzeit aktualisieren
-   char_y= (posregister[2][1] & 0xFF00)>>8;
+   char_y= (posregister[2][1] & 0xFF00)>> 10;
    char_x = posregister[2][1] & 0x00FF;
    char_height_mul = 2;
    char_width_mul = 2;
@@ -1134,7 +1141,7 @@ void update_time(uint8_t code)
          //sendezeit aktualisieren
          
          char_x = posregister[0][0] & 0x00FF;
-         char_y= (posregister[0][0] & 0xFF00)>>8;
+         char_y= (posregister[0][0] & 0xFF00)>> 10;
          char_height_mul = 1;
          char_width_mul = 1;
          
@@ -1145,7 +1152,7 @@ void update_time(uint8_t code)
    case 1: // Stopzeit
       {
          // Stoppzeit aktualisieren
-         char_y= (posregister[2][1] & 0xFF00)>>8;
+         char_y= (posregister[2][1] & 0xFF00)>> 10;
          char_x = posregister[2][1] & 0x00FF;
          char_height_mul = 2;
          char_width_mul = 2;
@@ -1158,7 +1165,7 @@ void update_time(uint8_t code)
          // Motorzeit aktualisieren
          char_height_mul = 2;
          char_width_mul = 2;
-         char_y= (posregister[1][1] & 0xFF00)>>8;
+         char_y= (posregister[1][1] & 0xFF00)>> 10;
          char_x = posregister[1][1] & 0x00FF;
          display_write_stopzeit(motorsekunde,motorminute, 2);
 
@@ -1168,7 +1175,7 @@ void update_time(uint8_t code)
       {
          
          // Batteriespannung aktualisieren
-         char_y= (posregister[3][1] & 0xFF00)>>8;
+         char_y= (posregister[3][1] & 0xFF00)>> 10;
          char_x = posregister[3][1] & 0x00FF;
          char_height_mul = 1;
          char_width_mul = 1;
@@ -1209,7 +1216,7 @@ void update_akku(void)
 void update_batteriespannung(void)
 {
    // Batteriespannung aktualisieren
-   char_y= (posregister[3][1] & 0xFF00)>>8;
+   char_y= (posregister[3][1] & 0xFF00)>> 10;
    char_x = posregister[3][1] & 0x00FF;
    char_height_mul = 1;
    char_width_mul = 1;
@@ -1258,11 +1265,11 @@ uint8_t refresh_screen(void)
          
          // Stoppuhrtext schreiben
          char_x = (posregister[2][0] & 0x00FF);
-         char_y= (posregister[2][0] & 0xFF00)>>8;
+         char_y= (posregister[2][0] & 0xFF00)>> 10;
          display_write_str(TitelTable[2],2);
          
          // Stoppzeit schreiben
-         char_y= (posregister[2][1] & 0xFF00)>>8;
+         char_y= (posregister[2][1] & 0xFF00)>> 10;
          char_x = (posregister[2][1] & 0x00FF);
          char_height_mul = 2;
          char_width_mul = 2;
@@ -1273,13 +1280,13 @@ uint8_t refresh_screen(void)
          
          // Motorzeittext schreiben
          char_x = (posregister[1][0] & 0x00FF);
-         char_y= ((posregister[1][0] & 0xFF00)>>8);
+         char_y= ((posregister[1][0] & 0xFF00)>> 10);
          char_height_mul = 1;
          display_write_str(TitelTable[3],2);
          char_height_mul = 2;
          char_width_mul = 2;
 
-         char_y= (posregister[1][1] & 0xFF00)>>8;
+         char_y= (posregister[1][1] & 0xFF00)>> 10;
          char_x = posregister[1][1] & 0x00FF;
          // display_write_min_sek(motorsekunde,2);
          display_write_stopzeit(motorsekunde,motorminute, 2);
@@ -1289,7 +1296,7 @@ uint8_t refresh_screen(void)
         
          
          // Modell schreiben
-         char_y= (posregister[4][0] & 0xFF00)>>8;
+         char_y= (posregister[4][0] & 0xFF00)>> 10;
          char_x = posregister[4][0] & 0x00FF;
          //display_write_prop_str(char_y,char_x,0,titelbuffer,2);
          char_height_mul = 2;
@@ -1297,10 +1304,10 @@ uint8_t refresh_screen(void)
 
          char_height_mul = 1;
          //strcpy(titelbuffer, ((TitelTable[5])));
-         char_y= (posregister[4][1] & 0xFF00)>>8;
+         char_y= (posregister[4][1] & 0xFF00)>> 10;
          char_x = posregister[4][1] & 0x00FF;
          display_write_str(TitelTable[5],2);
-         char_y= (posregister[4][2] & 0xFF00)>>8;
+         char_y= (posregister[4][2] & 0xFF00)>> 10;
          char_x = posregister[4][2] & 0x00FF;
          display_write_int(curr_setting,2);
          
@@ -1310,7 +1317,7 @@ uint8_t refresh_screen(void)
          char_width_mul = 1;
 
          // Batteriespannung
-         char_y= ((posregister[3][0] & 0xFF00)>>8)+1;
+         char_y= ((posregister[3][0] & 0xFF00)>> 10)+1;
          char_x = posregister[3][0] & 0x00FF;
          char_height_mul = 1;
          display_write_str(TitelTable[6],2);
@@ -1348,7 +1355,7 @@ uint8_t refresh_screen(void)
             
             // Modellname
          //   strcpy(menubuffer, (ModelTable[curr_model]));
-            char_y= (posregister[0][0] & 0xFF00)>>8;
+            char_y= (posregister[0][0] & 0xFF00)>> 10;
             char_x = posregister[0][0] & 0x00FF;
             char_height_mul = 2;
             char_width_mul = 1;
@@ -1357,7 +1364,7 @@ uint8_t refresh_screen(void)
             
             // settingnummer
             char_height_mul = 1;
-            char_y= (posregister[0][3] & 0xFF00)>>8;
+            char_y= (posregister[0][3] & 0xFF00)>> 10;
             char_x = posregister[0][3] & 0x00FF;
             display_write_int(curr_setting,2);
          }
@@ -1365,7 +1372,7 @@ uint8_t refresh_screen(void)
          if (blink_cursorpos == 0xFFFF) // Kein Blinken des Cursors
          {
             
-            char_y= (cursorposition & 0xFF00)>>8;
+            char_y= (cursorposition & 0xFF00)>> 10;
             char_x = cursorposition & 0x00FF;
             if (curr_cursorzeile==0) // Modellname
             {
@@ -1392,7 +1399,7 @@ uint8_t refresh_screen(void)
          else // Cursor blinkt an blink_cursorpos
          {
             
-            char_y= (blink_cursorpos & 0xFF00)>>8;
+            char_y= (blink_cursorpos & 0xFF00)>> 10;
             char_x = blink_cursorpos & 0x00FF;
             if (sendesekunde%2)
             {
@@ -1447,7 +1454,7 @@ uint8_t refresh_screen(void)
 #pragma mark refresh KANALSCREEN
             Serial.printf("refresh KANALSCREEN: %d\n",curr_screen);
             // kanalnummer
-            char_y= (posregister[0][1] & 0xFF00)>>8;
+            char_y= (posregister[0][1] & 0xFF00)>> 10;
             char_x = posregister[0][1] & 0x00FF;
             char_height_mul = 1;
             char_width_mul = 1;
@@ -1455,7 +1462,7 @@ uint8_t refresh_screen(void)
             
             // Richtungspfeil anzeigen
             
-            char_y= (posregister[0][3] & 0xFF00)>>8;
+            char_y= (posregister[0][3] & 0xFF00)>> 10;
             char_x = posregister[0][3] & 0x00FF;
             char_height_mul = 1;
             char_width_mul = 1;
@@ -1466,12 +1473,12 @@ uint8_t refresh_screen(void)
             //strcpy(menubuffer, ((FunktionTable[(curr_funktionarray[curr_kanal]&0x07)])));
             
             
-            char_y= (posregister[0][4] & 0xFF00)>>8;
+            char_y= (posregister[0][4] & 0xFF00)>> 10;
             char_x = posregister[0][4] & 0x00FF;
             //display_write_str(FunktionTable[(curr_funktionarray[curr_kanal]&0x07)],2);
             
             // levelwert A anzeigen
-            char_y= (posregister[1][2] & 0xFF00)>>8;
+            char_y= (posregister[1][2] & 0xFF00)>> 10;
             char_x = posregister[1][2] & 0x00FF;
             display_write_int((8-(curr_levelarray[curr_kanal] & 0x07)),1);
             //display_write_int(8-((curr_settingarray[curr_kanal][0] & 0x70)>>4),1);
@@ -1480,7 +1487,7 @@ uint8_t refresh_screen(void)
             display_write_str("/8\0",1);
             
             // levelwert B anzeigen
-            char_y= (posregister[1][4] & 0xFF00)>>8;
+            char_y= (posregister[1][4] & 0xFF00)>> 10;
             char_x = posregister[1][4] & 0x00FF;
             
             display_write_int(8-((curr_levelarray[curr_kanal] & 0x70)>>4),1);
@@ -1488,18 +1495,18 @@ uint8_t refresh_screen(void)
             
             
             // expowert A anzeigen
-            char_y= (posregister[2][2] & 0xFF00)>>8;
+            char_y= (posregister[2][2] & 0xFF00)>> 10;
             char_x = posregister[2][2] & 0x00FF;
             display_write_int((curr_expoarray[curr_kanal] & 0x07),1);
             
             
             // expowert B anzeigen
-            char_y= (posregister[2][4] & 0xFF00)>>8;
+            char_y= (posregister[2][4] & 0xFF00)>> 10;
             char_x = posregister[2][4] & 0x00FF;
             display_write_int((curr_expoarray[curr_kanal] & 0x70)>>4,1);
             
             
-            char_y= (posregister[0][3] & 0xFF00)>>8;
+            char_y= (posregister[0][3] & 0xFF00)>> 10;
             char_x = posregister[0][3] & 0x00FF;
             
             if (curr_kanal < 4) 
@@ -1531,7 +1538,7 @@ uint8_t refresh_screen(void)
                }
             } // if kanal < 4
             // Typ anzeigen
-            char_y= (posregister[3][1] & 0xFF00)>>8;
+            char_y= (posregister[3][1] & 0xFF00)>> 10;
             char_x = posregister[3][1] & 0x00FF;
             char_height_mul = 1;
             char_width_mul = 1;
@@ -1562,7 +1569,7 @@ uint8_t refresh_screen(void)
          //Serial.printf("update_screen blink_cursorpos: %d z: %d",blink_cursorpos,sendesekunde);
          if (blink_cursorpos == 0xFFFF) // Kein Blinken des Cursors
          {
-            char_y= (cursorposition & 0xFF00)>>8;
+            char_y= (cursorposition & 0xFF00)>> 10;
             char_x = cursorposition & 0x00FF;
             if ((curr_cursorspalte <=3)&& (curr_cursorzeile<=2)) //Erste Zeile, Kanalnummer
             {
@@ -1579,7 +1586,7 @@ uint8_t refresh_screen(void)
          else // Cursor blinkt an blink_cursorpos
          {
             
-            char_y= (blink_cursorpos & 0xFF00)>>8;
+            char_y= (blink_cursorpos & 0xFF00)>> 10;
             char_x = blink_cursorpos & 0x00FF;
             if ((curr_cursorspalte <=1)&& (curr_cursorzeile==1)) //Erste Zeile, Kanalnummer
             {
@@ -1631,7 +1638,7 @@ uint8_t refresh_screen(void)
             
             //strcpy(menubuffer, (&(MixTypTable[mixtyp]))); // Typtext
             
-            char_y= (posregister[0][0] & 0xFF00)>>8;
+            char_y= (posregister[0][0] & 0xFF00)>> 10;
             char_x = posregister[0][0] & 0x00FF;
             display_write_str(MixTypTable[mixtyp],2); // Mix-Typ
             uint8_t canalnummera=0,canalnummerb=0;
@@ -1639,7 +1646,7 @@ uint8_t refresh_screen(void)
             if (mixtyp)
             {
                //Kanal A
-               char_y= (posregister[0][2] & 0xFF00)>>8;
+               char_y= (posregister[0][2] & 0xFF00)>> 10;
                char_x = posregister[0][2] & 0x00FF;
                
                // Funktion anzeigen
@@ -1663,7 +1670,7 @@ uint8_t refresh_screen(void)
 
                
                //Kanal B
-               char_y= (posregister[0][5] & 0xFF00)>>8;
+               char_y= (posregister[0][5] & 0xFF00)>> 10;
                char_x = (posregister[0][5] & 0x00FF);
                
                // Funktion anzeigen
@@ -1687,11 +1694,11 @@ uint8_t refresh_screen(void)
             }
             else // Mix 0 ist OFF
             {
-               char_y= (posregister[0][2] & 0xFF00)>>8;
+               char_y= (posregister[0][2] & 0xFF00)>> 10;
                char_x = posregister[0][2] & 0x00FF;
                display_write_str(" -\0",1);
                display_write_str("   OFF     \0",1);
-               char_y= (posregister[0][5] & 0xFF00)>>8;
+               char_y= (posregister[0][5] & 0xFF00)>> 10;
                char_x = (posregister[0][5] & 0x00FF);
                display_write_str(" -\0",1);
                display_write_str("   OFF    \0",1);
@@ -1703,7 +1710,7 @@ uint8_t refresh_screen(void)
             mixtyp = curr_mixarray[3]& 0x03; // von ungeradem Index
             mixtyp &= 0x03; // nur 4 Typen
             //strcpy(menubuffer, (&(MixTypTable[mixtyp]))); // Leveltext
-            char_y= (posregister[1][0] & 0xFF00)>>8;
+            char_y= (posregister[1][0] & 0xFF00)>> 10;
             char_x = posregister[1][0] & 0x00FF;
             display_write_str(MixTypTable[mixtyp],2); // Mix-Typ
             
@@ -1711,7 +1718,7 @@ uint8_t refresh_screen(void)
             {
                
                //Kanal A
-               char_y= (posregister[1][2] & 0xFF00)>>8;
+               char_y= (posregister[1][2] & 0xFF00)>> 10;
                char_x = posregister[1][2] & 0x00FF;
                
                // Funktion anzeigen
@@ -1734,7 +1741,7 @@ uint8_t refresh_screen(void)
                
                
                //Kanal B
-               char_y= (posregister[1][5] & 0xFF00)>>8;
+               char_y= (posregister[1][5] & 0xFF00)>> 10;
                char_x = (posregister[1][5] & 0x00FF);
                canalnummerb = (curr_mixarray[2] & 0x0F);
                
@@ -1758,11 +1765,11 @@ uint8_t refresh_screen(void)
             }
             else // Mix 1 ist OFF
             {
-               char_y= (posregister[1][2] & 0xFF00)>>8;
+               char_y= (posregister[1][2] & 0xFF00)>> 10;
                char_x = posregister[1][2] & 0x00FF;
                display_write_str(" -\0",1);
                display_write_str("   OFF     \0",1);
-               char_y= (posregister[1][5] & 0xFF00)>>8;
+               char_y= (posregister[1][5] & 0xFF00)>> 10;
                char_x = (posregister[1][5] & 0x00FF);
                display_write_str(" -\0",1);
                display_write_str("   OFF    \0",1);
@@ -1777,7 +1784,7 @@ uint8_t refresh_screen(void)
          // Cursor anzeigen
          if (blink_cursorpos == 0xFFFF) // Kein Blinken des Cursors
          {
-            char_y= (cursorposition & 0xFF00)>>8;
+            char_y= (cursorposition & 0xFF00)>> 10;
             char_x = cursorposition & 0x00FF;
             char_height_mul = 1;
             display_write_symbol(pfeilvollrechts);
@@ -1786,7 +1793,7 @@ uint8_t refresh_screen(void)
          else // Cursor blinkt an blink_cursorpos
          {
             
-            char_y= (blink_cursorpos & 0xFF00)>>8;
+            char_y= (blink_cursorpos & 0xFF00)>> 10;
             char_x = blink_cursorpos & 0x00FF;
             char_height_mul = 1;
             
@@ -1827,7 +1834,7 @@ uint8_t refresh_screen(void)
             // Device 1: L_V
             
             // Display-Position Nummer
-            char_y= (posregister[0][0] & 0xFF00)>>8;
+            char_y= (posregister[0][0] & 0xFF00)>> 10;
             char_x = (posregister[0][0] & 0x00FF);
             
             // Kanalnummer: aktueller Wert in curr_statusarray
@@ -1835,7 +1842,7 @@ uint8_t refresh_screen(void)
             display_write_int(canalnummer,1);// Kanalnummer ,
             
             // Display-Position Funktion
-            char_y= (posregister[0][1] & 0xFF00)>>8;
+            char_y= (posregister[0][1] & 0xFF00)>> 10;
             char_x = (posregister[0][1] & 0x00FF);
             // Funktionnummer: aktueller wert in curr_funktionarray auf Zeile canalnummer
             uint8_t funktionnummer= curr_funktionarray[canalnummer]&0x07;
@@ -1850,7 +1857,7 @@ uint8_t refresh_screen(void)
             
             // Device 3: R_V
             // Display-Position Nummer
-            char_y = (posregister[0][2] & 0xFF00)>>8;
+            char_y = (posregister[0][2] & 0xFF00)>> 10;
             char_x = (posregister[0][2] & 0x00FF);
 
             // Kanalnummer: aktueller Wert in curr_statusarray
@@ -1858,7 +1865,7 @@ uint8_t refresh_screen(void)
             display_write_int(canalnummer,1);// Kanalnummer R_V,
             
             // Display-Position Funktion
-            char_y= (posregister[0][3] & 0xFF00)>>8;
+            char_y= (posregister[0][3] & 0xFF00)>> 10;
             char_x = (posregister[0][3] & 0x00FF);
             funktionnummer= curr_funktionarray[canalnummer]&0x07;
             
@@ -1874,7 +1881,7 @@ uint8_t refresh_screen(void)
 
             // Device 0: L_H
             
-            char_y = (posregister[1][0] & 0xFF00)>>8;
+            char_y = (posregister[1][0] & 0xFF00)>> 10;
             char_x = (posregister[1][0] & 0x00FF);
             canalnummer = ((curr_statusarray[0]& 0x07));
             display_write_int(canalnummer,1);// Kanalnummer L_H,
@@ -1883,7 +1890,7 @@ uint8_t refresh_screen(void)
             // index der Devicenummer in curr_funktionarray einsetzen: bit 4-6
             curr_funktionarray[canalnummer] = 0x00 | (curr_funktionarray[canalnummer]&0x0F);
             
-            char_y = (posregister[1][1] & 0xFF00)>>8;
+            char_y = (posregister[1][1] & 0xFF00)>> 10;
             char_x = (posregister[1][1] & 0x00FF);
             //strcpy(menubuffer, (&(FunktionTable[funktionnummer]))); // L_H
             display_write_str(FunktionTable[funktionnummer],1);
@@ -1891,7 +1898,7 @@ uint8_t refresh_screen(void)
             
             // Device 2: R_H
             
-            char_y = (posregister[1][2] & 0xFF00)>>8;
+            char_y = (posregister[1][2] & 0xFF00)>> 10;
             char_x = (posregister[1][2] & 0x00FF);
             canalnummer =((curr_statusarray[2]& 0x07));
             display_write_int(canalnummer,1);// Kanalnummer R_H,
@@ -1900,7 +1907,7 @@ uint8_t refresh_screen(void)
             // index der Devicenummer in curr_funktionarray einsetzen: bit 4-6
             curr_funktionarray[canalnummer] = 0x20 | (curr_funktionarray[canalnummer]&0x0F);
             
-            char_y = (posregister[1][3] & 0xFF00)>>8;
+            char_y = (posregister[1][3] & 0xFF00)>> 10;
             char_x = (posregister[1][3] & 0x00FF);
             //strcpy(menubuffer, (&(FunktionTable[funktionnummer]))); // R_H
             display_write_str(FunktionTable[funktionnummer],1);
@@ -1909,19 +1916,19 @@ uint8_t refresh_screen(void)
             // Device 4: Schieber L
             
             // Position Nummer
-            char_y = (posregister[2][0] & 0xFF00)>>8;
+            char_y = (posregister[2][0] & 0xFF00)>> 10;
             char_x = (posregister[2][0] & 0x00FF);
             canalnummer = ((curr_statusarray[4]& 0x07));
             display_write_int(canalnummer,1);// Schieber l,
             funktionnummer= curr_funktionarray[canalnummer]&0x07;
             // Position Funktion
-            char_y = (posregister[2][1] & 0xFF00)>>8;
+            char_y = (posregister[2][1] & 0xFF00)>> 10;
             char_x = (posregister[2][1] & 0x00FF);
             //strcpy(menubuffer, (&(FunktionTable[funktionnummer]))); // S_L
             display_write_str(FunktionTable[funktionnummer],1);
             
             // Device 5: Schieber R
-            char_y = (posregister[2][2] & 0xFF00)>>8;
+            char_y = (posregister[2][2] & 0xFF00)>> 10;
             char_x = (posregister[2][2] & 0x00FF);
             canalnummer = ((curr_statusarray[5]& 0x07));
             display_write_int(canalnummer,1);// Schieber l,
@@ -1931,7 +1938,7 @@ uint8_t refresh_screen(void)
             
 
             // Position Funktion
-            char_y = (posregister[2][3] & 0xFF00)>>8;
+            char_y = (posregister[2][3] & 0xFF00)>> 10;
             char_x = (posregister[2][3] & 0x00FF);
             //strcpy(menubuffer, (&(FunktionTable[funktionnummer]))); // S_R
             display_write_str(FunktionTable[funktionnummer],1);
@@ -1941,7 +1948,7 @@ uint8_t refresh_screen(void)
          // Cursor anzeigen
          if (blink_cursorpos == 0xFFFF) // Kein Blinken des Cursors
          {
-            char_y= (cursorposition & 0xFF00)>>8;
+            char_y= (cursorposition & 0xFF00)>> 10;
             char_x = cursorposition & 0x00FF;
             char_height_mul = 1;
             display_write_symbol(pfeilvollrechts);
@@ -1950,7 +1957,7 @@ uint8_t refresh_screen(void)
          else // Cursor blinkt an blink_cursorpos
          {
             
-            char_y= (blink_cursorpos & 0xFF00)>>8;
+            char_y= (blink_cursorpos & 0xFF00)>> 10;
             char_x = blink_cursorpos & 0x00FF;
             char_height_mul = 1;
             
@@ -2061,7 +2068,7 @@ uint8_t refresh_screen(void)
          // Cursor anzeigen
          if (blink_cursorpos == 0xFFFF) // Kein Blinken des Cursors
          {
-            char_y= ((cursorposition & 0xFF00)>>8);;//-cursoroffset;
+            char_y= ((cursorposition & 0xFF00)>> 10);;//-cursoroffset;
             char_x = cursorposition & 0x00FF;
             char_height_mul = 1;
             display_write_symbol(pfeilvollrechts);
@@ -2070,7 +2077,7 @@ uint8_t refresh_screen(void)
          else // Cursor blinkt an blink_cursorpos
          {
             
-            char_y= ((blink_cursorpos & 0xFF00)>>8);//-cursoroffset;
+            char_y= ((blink_cursorpos & 0xFF00)>> 10);//-cursoroffset;
             char_x = blink_cursorpos & 0x00FF;
             char_height_mul = 1;
             
@@ -2095,7 +2102,7 @@ uint8_t refresh_screen(void)
       {
          if (blink_cursorpos == 0xFFFF) // Kein Blinken des Cursors
          {
-            char_y= (cursorposition & 0xFF00)>>8;
+            char_y= (cursorposition & 0xFF00)>> 10;
             char_x = cursorposition & 0x00FF;
             if ((curr_cursorspalte <=3)&& (curr_cursorzeile<=2)) //Erste Zeile, Kanalnummer
             {
@@ -2112,7 +2119,7 @@ uint8_t refresh_screen(void)
          else // Cursor blinkt an blink_cursorpos
          {
             
-            char_y= (blink_cursorpos & 0xFF00)>>8;
+            char_y= (blink_cursorpos & 0xFF00)>> 10;
             char_x = blink_cursorpos & 0x00FF;
             if ((curr_cursorspalte <=1)&& (curr_cursorzeile==1)) //Erste Zeile, Kanalnummer
             {
@@ -2147,7 +2154,7 @@ uint8_t refresh_screen(void)
       {
          if (blink_cursorpos == 0xFFFF) // Kein Blinken des Cursors
          {
-            char_y= (cursorposition & 0xFF00)>>8;
+            char_y= (cursorposition & 0xFF00)>> 10;
             char_x = cursorposition & 0x00FF;
             
             display_write_symbol(pfeilvollrechts);
@@ -2156,7 +2163,7 @@ uint8_t refresh_screen(void)
          else // Cursor blinkt an blink_cursorpos
          {
             
-            char_y= (blink_cursorpos & 0xFF00)>>8;
+            char_y= (blink_cursorpos & 0xFF00)>> 10;
             char_x = blink_cursorpos & 0x00FF;
             
             if (sendesekunde%2)
@@ -2200,14 +2207,14 @@ uint8_t update_screen(void)
          /*
          //Laufzeit
          char_x = posregister[0][0] & 0x00FF;
-         char_y= (posregister[0][0] & 0xFF00)>>8;
+         char_y= (posregister[0][0] & 0xFF00)>> 10;
          char_height_mul = 1;
          char_width_mul = 1;
          display_write_zeit(motorsekunde&0xFF,motorminute,motorstunde, 2);
 
          //display_write_min_sek(motorsekunde, 2);
           // Stoppzeit aktualisieren
-         char_y= (posregister[2][1] & 0xFF00)>>8;
+         char_y= (posregister[2][1] & 0xFF00)>> 10;
          char_x = posregister[2][1] & 0x00FF;
          char_height_mul = 2;
          char_width_mul = 2;
@@ -2219,14 +2226,14 @@ uint8_t update_screen(void)
          // Motorzeit aktualisieren
 //         char_height_mul = 2;
 //         char_width_mul = 2;
-         char_y= (posregister[1][1] & 0xFF00)>>8;
+         char_y= (posregister[1][1] & 0xFF00)>> 10;
          char_x = posregister[1][1] & 0x00FF;
          {
             display_write_stopzeit_BM(motorsekunde,motorminute);
          }
  */
          // Batteriespannung aktualisieren
-         char_y= (posregister[3][1] & 0xFF00)>>8;
+         char_y= (posregister[3][1] & 0xFF00)>> 10;
          char_x = posregister[3][1] & 0x00FF;
          char_height_mul = 1;
          char_width_mul = 1;
@@ -2241,10 +2248,10 @@ uint8_t update_screen(void)
          char_y = 4;
          
          //display_write_int(Tastenwert&0x00FF,2);
-         display_write_int((tastentransfer&0xFF00)>>8,2);
+         display_write_int((tastentransfer&0xFF00)>> 10,2);
          display_write_int((tastentransfer&0x00FF),2);
          char_x=40;
-         display_write_int((batteriespannung&0xFF00)>>8,2);
+         display_write_int((batteriespannung&0xFF00)>> 10,2);
          display_write_propchar('*',1);
          display_write_int((batteriespannung&0x00FF),2);
          */
@@ -2280,7 +2287,7 @@ uint8_t update_screen(void)
             
             // Modellname
          //   strcpy(menubuffer, (ModelTable[curr_model]));
-            char_y= (posregister[0][0] & 0xFF00)>>8;
+            char_y= (posregister[0][0] & 0xFF00)>> 10;
             char_x = posregister[0][0] & 0x00FF;
             char_height_mul = 2;
             char_width_mul = 1;
@@ -2289,14 +2296,14 @@ uint8_t update_screen(void)
             
             // settingnummer
             char_height_mul = 1;
-            char_y= (posregister[0][3] & 0xFF00)>>8;
+            char_y= (posregister[0][3] & 0xFF00)>> 10;
             char_x = posregister[0][3] & 0x00FF;
             display_write_int(curr_setting,2);
          }
          
          if (blink_cursorpos == 0xFFFF) // Kein Blinken des Cursors
          {
-            char_y= (cursorposition & 0xFF00)>>8;
+            char_y= (cursorposition & 0xFF00)>> 10;
             char_x = cursorposition & 0x00FF;
             if (curr_cursorzeile==0) // Modellname
             {
@@ -2323,7 +2330,7 @@ uint8_t update_screen(void)
          else // Cursor blinkt an blink_cursorpos
          {
             
-            char_y= (blink_cursorpos & 0xFF00)>>8;
+            char_y= (blink_cursorpos & 0xFF00)>> 10;
             char_x = blink_cursorpos & 0x00FF;
             if (sendesekunde%2)
             {
@@ -2378,92 +2385,61 @@ uint8_t update_screen(void)
             
 #pragma mark update KANALSCREEN
             Serial.printf("update KANALSCREEN: %d\n",curr_screen);
-            // kanalnummer
+           
             for (uint8_t i=0;i<8;i++)
             {
           //     Serial.printf("i: %d  curr_funktionarray %d: \n",i,curr_funktionarray[i]);
             }
-
-            char_y= (posregister[0][2] & 0xFF00)>>8;
-            char_x = posregister[0][2] & 0x00FF;
+            // kanalnummer
+            char_y= (posregister[0][1] & 0xFF00)>> 10;
+            char_x = posregister[0][1] & 0x00FF;
             char_height_mul = 1;
             char_width_mul = 1;
             display_write_int(curr_kanal,2);
             
             // Richtungspfeil anzeigen
-            
-            char_y= (posregister[0][3] & 0xFF00)>>8;
+            char_y= (posregister[0][3] & 0xFF00)>> 10;
             char_x = posregister[0][3] & 0x00FF;
             char_height_mul = 1;
             char_width_mul = 1;
             
-            
-            // Funktion anzeigen // Bit 0-2 !!
-            // !! Funktion ist bit 0-2 , Steuerdevice ist bit 4-6!!
-            //strcpy(menubuffer, ((FunktionTable[(curr_funktionarray[curr_kanal]&0x07)])));
-  
-            //Serial.printf("update Kanalscreen curr_funktionarray vor: %d\n",curr_funktionarray[curr_kanal]);
-
-            Serial.printf("update Kanalscreen device: %d\n",curr_devicearray[curr_kanal]&0x07);
-            char* funktionstring = FunktionTable[curr_devicearray[curr_kanal]];
-            Serial.printf("update Kanalscreen funktionstring: %s\n",funktionstring);
-
-            char_y= (posregister[0][4] & 0xFF00)>>8;
-            char_x = posregister[0][4] & 0x00FF;
-       
+            // Funktion anzeigen
+             char* funktionstring = FunktionTable[curr_devicearray[curr_kanal]];
+            //Serial.printf("update Kanalscreen funktionstring: %s\n",funktionstring);
+            char_y= (posregister[0][5] & 0xFF00)>> 10;
+            char_x = posregister[0][5] & 0x00FF;
             display_write_str(funktionstring,2);
             
             
-            
-   //         Serial.printf("update Kanalscreen bez: %s\n",FunktionTable[(curr_devicearray[curr_kanal]&0x07)]);
-
-        //    char_y= (posregister[0][4] & 0xFF00)>>8;
-         //   char_x = posregister[0][4] & 0x00FF;
-            /*
-
-             //Serial.printf("update Kanalscreen bez: %s\n",FunktionTable[(curr_funktionarray[curr_kanal]&0x07)]);
-            //display_write_str(FunktionTable[(curr_funktionarray[curr_kanal]&0x07)],2);
-            //Serial.printf("update Kanalscreen A \n");
-            //display_write_str(KanalTable[2],2);
-
-            char* funktionstring = FunktionTable[curr_devicearray[curr_kanal]];
-            
-            //display_write_str(funktionstring,2);
-            
-            Serial.printf("update Kanalscreen curr_funktionarray : %d funktionstring: %s\n",curr_funktionarray[curr_kanal],funktionstring);
-            
-            
-    //        display_write_int(curr_funktionarray[curr_kanal],1);
-            
-            */
-            
+              
             // levelwert A anzeigen
-            char_y= (posregister[1][2] & 0xFF00)>>8;
+            char_y= (posregister[1][2] & 0xFF00)>> 10;
             char_x = posregister[1][2] & 0x00FF;
-            display_write_int((8-(curr_levelarray[curr_kanal] & 0x07)),1);
+            display_write_int(8-((curr_levelarray[curr_kanal] & 0x70)>>4),1);
             display_write_str("/8\0",1);
             
             // levelwert B anzeigen
-            char_y= (posregister[1][4] & 0xFF00)>>8;
+            char_y= (posregister[1][4] & 0xFF00)>> 10;
             char_x = posregister[1][4] & 0x00FF;
-            display_write_int(8-((curr_levelarray[curr_kanal] & 0x70)>>4),1);
+            display_write_int((8-(curr_levelarray[curr_kanal] & 0x07)),1);       
             display_write_str("/8\0",1);
             
             
             // expowert A anzeigen
-            char_y= (posregister[2][2] & 0xFF00)>>8;
+            char_y= (posregister[2][2] & 0xFF00)>> 10;
             char_x = posregister[2][2] & 0x00FF;
-            display_write_int((curr_expoarray[curr_kanal] & 0x07),1);
+            display_write_int((curr_expoarray[curr_kanal] & 0x70)>>4,1);
+            display_write_str("/8\0",1);
             
             
             // expowert B anzeigen
-            char_y= (posregister[2][4] & 0xFF00)>>8;
+            char_y= (posregister[2][4] & 0xFF00)>> 10;
             char_x = posregister[2][4] & 0x00FF;
-            display_write_int((curr_expoarray[curr_kanal] & 0x70)>>4,1);
-            
+            display_write_int((curr_expoarray[curr_kanal] & 0x07),1);
+            display_write_str("/8\0",1);
             
               
-            char_y= (posregister[0][3] & 0xFF00)>>8;
+            char_y= (posregister[0][3] & 0xFF00)>> 10;
             char_x = posregister[0][3] & 0x00FF;
             
             if (curr_kanal < 4) 
@@ -2495,7 +2471,7 @@ uint8_t update_screen(void)
             } // if kanal < 4
             
             // Typ anzeigen
-            char_y= (posregister[3][1] & 0xFF00)>>8;
+            char_y= (posregister[3][1] & 0xFF00)>> 10;
             char_x = posregister[3][1] & 0x00FF;
             char_height_mul = 1;
             char_width_mul = 1;
@@ -2517,7 +2493,7 @@ uint8_t update_screen(void)
             
             // uint8_t display_kanaldiagramm_var (uint8_t char_x0, uint8_t char_y0, uint8_t level, uint8_t expo, uint8_t typ )
             
-            display_kanaldiagramm_var(64+OFFSET_6_UHR, 6, curr_levelarray[curr_kanal], curr_expoarray[curr_kanal], 1);
+            display_kanaldiagramm_var(64, 7, curr_levelarray[curr_kanal], curr_expoarray[curr_kanal], 1);
          
             
             char_height_mul = 1;
@@ -2528,7 +2504,7 @@ uint8_t update_screen(void)
          //Serial.printf("update_screen blink_cursorpos: %d z: %d",blink_cursorpos,sendesekunde);
          if (blink_cursorpos == 0xFFFF) // Kein Blinken des Cursors
          {
-            char_y= (cursorposition & 0xFF00)>>8;
+            char_y= (cursorposition & 0xFF00)>> 10;
             char_x = cursorposition & 0x00FF;
             char_height_mul = 1;
             /*
@@ -2547,7 +2523,7 @@ uint8_t update_screen(void)
          else // Cursor blinkt an blink_cursorpos
          {
             
-            char_y= (blink_cursorpos & 0xFF00)>>8;
+            char_y= (blink_cursorpos & 0xFF00)>> 10;
             char_x = blink_cursorpos & 0x00FF;
             if ((curr_cursorspalte <=1)&& (curr_cursorzeile==1)) //Erste Zeile, Kanalnummer
             {
@@ -2599,7 +2575,7 @@ uint8_t update_screen(void)
             
             //strcpy(menubuffer, (&(MixTypTable[mixtyp]))); // Typtext
             
-            char_y= (posregister[0][0] & 0xFF00)>>8;
+            char_y= (posregister[0][0] & 0xFF00)>> 10;
             char_x = posregister[0][0] & 0x00FF;
             display_write_str(MixTypTable[mixtyp],2); // Mix-Typ
             uint8_t canalnummera=0,canalnummerb=0;
@@ -2607,7 +2583,7 @@ uint8_t update_screen(void)
             if (mixtyp)
             {
                //Kanal A
-               char_y= (posregister[0][2] & 0xFF00)>>8;
+               char_y= (posregister[0][2] & 0xFF00)>> 10;
                char_x = posregister[0][2] & 0x00FF;
                
                // Funktion anzeigen
@@ -2631,7 +2607,7 @@ uint8_t update_screen(void)
 
                
                //Kanal B
-               char_y= (posregister[0][5] & 0xFF00)>>8;
+               char_y= (posregister[0][5] & 0xFF00)>> 10;
                char_x = (posregister[0][5] & 0x00FF);
                
                // Funktion anzeigen
@@ -2655,11 +2631,11 @@ uint8_t update_screen(void)
             }
             else // Mix 0 ist OFF
             {
-               char_y= (posregister[0][2] & 0xFF00)>>8;
+               char_y= (posregister[0][2] & 0xFF00)>> 10;
                char_x = posregister[0][2] & 0x00FF;
                display_write_str(" -\0",1);
                display_write_str("   OFF     \0",1);
-               char_y= (posregister[0][5] & 0xFF00)>>8;
+               char_y= (posregister[0][5] & 0xFF00)>> 10;
                char_x = (posregister[0][5] & 0x00FF);
                display_write_str(" -\0",1);
                display_write_str("   OFF    \0",1);
@@ -2671,7 +2647,7 @@ uint8_t update_screen(void)
             mixtyp = curr_mixarray[3]& 0x03; // von ungeradem Index
             mixtyp &= 0x03; // nur 4 Typen
             //strcpy(menubuffer, (&(MixTypTable[mixtyp]))); // Leveltext
-            char_y= (posregister[1][0] & 0xFF00)>>8;
+            char_y= (posregister[1][0] & 0xFF00)>> 10;
             char_x = posregister[1][0] & 0x00FF;
             display_write_str(MixTypTable[mixtyp],2); // Mix-Typ
             
@@ -2679,7 +2655,7 @@ uint8_t update_screen(void)
             {
                
                //Kanal A
-               char_y= (posregister[1][2] & 0xFF00)>>8;
+               char_y= (posregister[1][2] & 0xFF00)>> 10;
                char_x = posregister[1][2] & 0x00FF;
                
                // Funktion anzeigen
@@ -2702,7 +2678,7 @@ uint8_t update_screen(void)
                
                
                //Kanal B
-               char_y= (posregister[1][5] & 0xFF00)>>8;
+               char_y= (posregister[1][5] & 0xFF00)>> 10;
                char_x = (posregister[1][5] & 0x00FF);
                canalnummerb = (curr_mixarray[2] & 0x0F);
                
@@ -2726,11 +2702,11 @@ uint8_t update_screen(void)
             }
             else // Mix 1 ist OFF
             {
-               char_y= (posregister[1][2] & 0xFF00)>>8;
+               char_y= (posregister[1][2] & 0xFF00)>> 10;
                char_x = posregister[1][2] & 0x00FF;
                display_write_str(" -\0",1);
                display_write_str("   OFF     \0",1);
-               char_y= (posregister[1][5] & 0xFF00)>>8;
+               char_y= (posregister[1][5] & 0xFF00)>> 10;
                char_x = (posregister[1][5] & 0x00FF);
                display_write_str(" -\0",1);
                display_write_str("   OFF    \0",1);
@@ -2745,7 +2721,7 @@ uint8_t update_screen(void)
          // Cursor anzeigen
          if (blink_cursorpos == 0xFFFF) // Kein Blinken des Cursors
          {
-            char_y= (cursorposition & 0xFF00)>>8;
+            char_y= (cursorposition & 0xFF00)>> 10;
             char_x = cursorposition & 0x00FF;
             char_height_mul = 1;
             display_write_symbol(pfeilvollrechts);
@@ -2754,7 +2730,7 @@ uint8_t update_screen(void)
          else // Cursor blinkt an blink_cursorpos
          {
             
-            char_y= (blink_cursorpos & 0xFF00)>>8;
+            char_y= (blink_cursorpos & 0xFF00)>> 10;
             char_x = blink_cursorpos & 0x00FF;
             char_height_mul = 1;
             
@@ -2795,7 +2771,7 @@ uint8_t update_screen(void)
             // Device 1: L_V
             
             // Display-Position Nummer
-            char_y= (posregister[0][0] & 0xFF00)>>8;
+            char_y= (posregister[0][0] & 0xFF00)>> 10;
             char_x = (posregister[0][0] & 0x00FF);
             
             // Kanalnummer: aktueller Wert in curr_statusarray
@@ -2803,7 +2779,7 @@ uint8_t update_screen(void)
             display_write_int(canalnummer,1);// Kanalnummer ,
             
             // Display-Position Funktion
-            char_y= (posregister[0][1] & 0xFF00)>>8;
+            char_y= (posregister[0][1] & 0xFF00)>> 10;
             char_x = (posregister[0][1] & 0x00FF);
             // Funktionnummer: aktueller wert in curr_funktionarray auf Zeile canalnummer
             uint8_t funktionnummer= curr_funktionarray[canalnummer]&0x07;
@@ -2818,7 +2794,7 @@ uint8_t update_screen(void)
             
             // Device 3: R_V
             // Display-Position Nummer
-            char_y = (posregister[0][2] & 0xFF00)>>8;
+            char_y = (posregister[0][2] & 0xFF00)>> 10;
             char_x = (posregister[0][2] & 0x00FF);
 
             // Kanalnummer: aktueller Wert in curr_statusarray
@@ -2826,7 +2802,7 @@ uint8_t update_screen(void)
             display_write_int(canalnummer,1);// Kanalnummer R_V,
             
             // Display-Position Funktion
-            char_y= (posregister[0][3] & 0xFF00)>>8;
+            char_y= (posregister[0][3] & 0xFF00)>> 10;
             char_x = (posregister[0][3] & 0x00FF);
             funktionnummer= curr_funktionarray[canalnummer]&0x07;
             
@@ -2842,7 +2818,7 @@ uint8_t update_screen(void)
 
             // Device 0: L_H
             
-            char_y = (posregister[1][0] & 0xFF00)>>8;
+            char_y = (posregister[1][0] & 0xFF00)>> 10;
             char_x = (posregister[1][0] & 0x00FF);
             canalnummer = ((curr_statusarray[0]& 0x07));
             display_write_int(canalnummer,1);// Kanalnummer L_H,
@@ -2851,7 +2827,7 @@ uint8_t update_screen(void)
             // index der Devicenummer in curr_funktionarray einsetzen: bit 4-6
             curr_funktionarray[canalnummer] = 0x00 | (curr_funktionarray[canalnummer]&0x0F);
             
-            char_y = (posregister[1][1] & 0xFF00)>>8;
+            char_y = (posregister[1][1] & 0xFF00)>> 10;
             char_x = (posregister[1][1] & 0x00FF);
             //strcpy(menubuffer, (&(FunktionTable[funktionnummer]))); // L_H
             display_write_str(FunktionTable[funktionnummer],1);
@@ -2859,7 +2835,7 @@ uint8_t update_screen(void)
             
             // Device 2: R_H
             
-            char_y = (posregister[1][2] & 0xFF00)>>8;
+            char_y = (posregister[1][2] & 0xFF00)>> 10;
             char_x = (posregister[1][2] & 0x00FF);
             canalnummer =((curr_statusarray[2]& 0x07));
             display_write_int(canalnummer,1);// Kanalnummer R_H,
@@ -2868,7 +2844,7 @@ uint8_t update_screen(void)
             // index der Devicenummer in curr_funktionarray einsetzen: bit 4-6
             curr_funktionarray[canalnummer] = 0x20 | (curr_funktionarray[canalnummer]&0x0F);
             
-            char_y = (posregister[1][3] & 0xFF00)>>8;
+            char_y = (posregister[1][3] & 0xFF00)>> 10;
             char_x = (posregister[1][3] & 0x00FF);
             //strcpy(menubuffer, (&(FunktionTable[funktionnummer]))); // R_H
             display_write_str(FunktionTable[funktionnummer],1);
@@ -2877,19 +2853,19 @@ uint8_t update_screen(void)
             // Device 4: Schieber L
             
             // Position Nummer
-            char_y = (posregister[2][0] & 0xFF00)>>8;
+            char_y = (posregister[2][0] & 0xFF00)>> 10;
             char_x = (posregister[2][0] & 0x00FF);
             canalnummer = ((curr_statusarray[4]& 0x07));
             display_write_int(canalnummer,1);// Schieber l,
             funktionnummer= curr_funktionarray[canalnummer]&0x07;
             // Position Funktion
-            char_y = (posregister[2][1] & 0xFF00)>>8;
+            char_y = (posregister[2][1] & 0xFF00)>> 10;
             char_x = (posregister[2][1] & 0x00FF);
             //strcpy(menubuffer, (&(FunktionTable[funktionnummer]))); // S_L
             display_write_str(FunktionTable[funktionnummer],1);
             
             // Device 5: Schieber R
-            char_y = (posregister[2][2] & 0xFF00)>>8;
+            char_y = (posregister[2][2] & 0xFF00)>> 10;
             char_x = (posregister[2][2] & 0x00FF);
             canalnummer = ((curr_statusarray[5]& 0x07));
             display_write_int(canalnummer,1);// Schieber l,
@@ -2899,7 +2875,7 @@ uint8_t update_screen(void)
             
 
             // Position Funktion
-            char_y = (posregister[2][3] & 0xFF00)>>8;
+            char_y = (posregister[2][3] & 0xFF00)>> 10;
             char_x = (posregister[2][3] & 0x00FF);
             //strcpy(menubuffer, (&(FunktionTable[funktionnummer]))); // S_R
             display_write_str(FunktionTable[funktionnummer],1);
@@ -2909,7 +2885,7 @@ uint8_t update_screen(void)
          // Cursor anzeigen
          if (blink_cursorpos == 0xFFFF) // Kein Blinken des Cursors
          {
-            char_y= (cursorposition & 0xFF00)>>8;
+            char_y= (cursorposition & 0xFF00)>> 10;
             char_x = cursorposition & 0x00FF;
             char_height_mul = 1;
             display_write_symbol(pfeilvollrechts);
@@ -2918,7 +2894,7 @@ uint8_t update_screen(void)
          else // Cursor blinkt an blink_cursorpos
          {
             
-            char_y= (blink_cursorpos & 0xFF00)>>8;
+            char_y= (blink_cursorpos & 0xFF00)>> 10;
             char_x = blink_cursorpos & 0x00FF;
             char_height_mul = 1;
             
@@ -3029,7 +3005,7 @@ uint8_t update_screen(void)
          // Cursor anzeigen
          if (blink_cursorpos == 0xFFFF) // Kein Blinken des Cursors
          {
-            char_y= ((cursorposition & 0xFF00)>>8);;//-cursoroffset;
+            char_y= ((cursorposition & 0xFF00)>> 10);;//-cursoroffset;
             char_x = cursorposition & 0x00FF;
             char_height_mul = 1;
             display_write_symbol(pfeilvollrechts);
@@ -3038,7 +3014,7 @@ uint8_t update_screen(void)
          else // Cursor blinkt an blink_cursorpos
          {
             
-            char_y= ((blink_cursorpos & 0xFF00)>>8);//-cursoroffset;
+            char_y= ((blink_cursorpos & 0xFF00)>> 10);//-cursoroffset;
             char_x = blink_cursorpos & 0x00FF;
             char_height_mul = 1;
             
@@ -3063,7 +3039,7 @@ uint8_t update_screen(void)
       {
          if (blink_cursorpos == 0xFFFF) // Kein Blinken des Cursors
          {
-            char_y= (cursorposition & 0xFF00)>>8;
+            char_y= (cursorposition & 0xFF00)>> 10;
             char_x = cursorposition & 0x00FF;
             if ((curr_cursorspalte <=3)&& (curr_cursorzeile<=2)) //Erste Zeile, Kanalnummer
             {
@@ -3080,7 +3056,7 @@ uint8_t update_screen(void)
          else // Cursor blinkt an blink_cursorpos
          {
             
-            char_y= (blink_cursorpos & 0xFF00)>>8;
+            char_y= (blink_cursorpos & 0xFF00)>> 10;
             char_x = blink_cursorpos & 0x00FF;
             if ((curr_cursorspalte <=1)&& (curr_cursorzeile==1)) //Erste Zeile, Kanalnummer
             {
@@ -3115,7 +3091,7 @@ uint8_t update_screen(void)
       {
          if (blink_cursorpos == 0xFFFF) // Kein Blinken des Cursors
          {
-            char_y= (cursorposition & 0xFF00)>>8;
+            char_y= (cursorposition & 0xFF00)>> 10;
             char_x = cursorposition & 0x00FF;
             
             display_write_symbol(pfeilvollrechts);
@@ -3124,7 +3100,7 @@ uint8_t update_screen(void)
          else // Cursor blinkt an blink_cursorpos
          {
             
-            char_y= (blink_cursorpos & 0xFF00)>>8;
+            char_y= (blink_cursorpos & 0xFF00)>> 10;
             char_x = blink_cursorpos & 0x00FF;
             
             if (sendesekunde%2)
@@ -3155,7 +3131,7 @@ uint8_t update_screen(void)
 void display_cursorweg(void)
 {
    uint16_t cursorposition = cursorpos[curr_cursorzeile][curr_cursorspalte];
-   char_y= (cursorposition & 0xFF00)>>8;
+   char_y= (cursorposition & 0xFF00)>> 10;
    char_x = cursorposition & 0x00FF;
    display_write_symbol(pfeilwegrechts);
 }
@@ -3163,7 +3139,7 @@ void display_cursorweg(void)
 void display_setcursorblink(uint8_t zeit)
 {
    uint16_t cursorposition = cursorpos[curr_cursorzeile][curr_cursorspalte];
-   char_y= (cursorposition & 0xFF00)>>8;
+   char_y= (cursorposition & 0xFF00)>> 10;
    char_x = cursorposition & 0x00FF;
       if (zeit%2)
       {
@@ -4344,7 +4320,7 @@ void display_write_simple_propchar(unsigned char c, uint8_t prop, uint8_t offset
          //uint8_t offset = 2;
          //tmp1 <<= 8;         // 8 bit nach oben zum voraus: Platz schaffen
          tmp1<<= (8-offset);          // offset nach unten
-         uint8_t tmp3 = (tmp1&0xFF00)>>8; // obere 8 bit, 8 bit nach unten, ergibt lo
+         uint8_t tmp3 = (tmp1&0xFF00)>> 10; // obere 8 bit, 8 bit nach unten, ergibt lo
          uint8_t tmp4 = (tmp1&0x00FF);//>>4; // obere 8 bit,  ergibt hi
          display_go_to(col,char_y);
          display_write_byte(DATEN,tmp3);
@@ -4353,7 +4329,7 @@ void display_write_simple_propchar(unsigned char c, uint8_t prop, uint8_t offset
          display_write_byte(DATEN,tmp4);
 
          
-         //display_write_byte(DATEN,(tmp1 & 0xFF00)>>8);
+         //display_write_byte(DATEN,(tmp1 & 0xFF00)>> 10);
 		}
 	}
    
