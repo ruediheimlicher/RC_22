@@ -42,7 +42,7 @@ extern volatile uint8_t expob;
 #define cursortab4 66
 #define cursortab5 78
 #define cursortab6 90
-#define cursortab7 110
+#define cursortab7 100
 extern  volatile uint8_t cursortab[10] = {cursortab0,cursortab1,cursortab2,cursortab3,cursortab4,cursortab5,cursortab6,cursortab7,cursortab0,cursortab0};
 //extern volatile uint8_t itemtab[10] = {8+OFFSET_6_UHR,32+OFFSET_6_UHR,48+OFFSET_6_UHR,60+OFFSET_6_UHR,72+OFFSET_6_UHR,84+OFFSET_6_UHR,96+OFFSET_6_UHR,108+OFFSET_6_UHR,116+OFFSET_6_UHR,0+OFFSET_6_UHR};
 
@@ -508,7 +508,6 @@ void setcanalscreen(void)
    
    cursorpos[0][0] =cursortab[0] |   (1 << 10); // cursorpos fuer Kanal zeile/colonne
    cursorpos[0][1] =cursortab[2] |   (1 << 10); // cursorpos fuer Richtung
-   
    cursorpos[0][2] =cursortab[5] |   (1 << 10); // cursorpos fuer Funktion
 
    

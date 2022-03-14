@@ -4326,11 +4326,10 @@ void loop()
                                  {
                                     uint8_t expowert = (curr_expoarray[curr_kanal] & 0x70)>>4;
                                     //Serial.printf("T8 Expowert A curr expo vor: %d expowert: %d\n",curr_expoarray[curr_kanal] , expowert);
-                                    if (((curr_expoarray[curr_kanal] & 0x70)>>4)<4) // noch mehr Werte da
+                                    if (((curr_expoarray[curr_kanal] & 0x70)>>4)<5) // noch mehr Werte da
                                     {
                                        //Serial.printf("8 Expowert change\n");
                                        curr_expoarray[curr_kanal] += 0x10;
-                                       
                                     }
                                     expowert = (curr_expoarray[curr_kanal] & 0x70)>>4;
                                     Serial.printf("T8 Expowert A curr expo nach: %d expowert: %d\n",curr_expoarray[curr_kanal] , expowert);
@@ -4338,7 +4337,7 @@ void loop()
                                     
                                  case 1: // Expowert B
                                  {
-                                    if (((curr_expoarray[curr_kanal] & 0x07))<4)
+                                    if (((curr_expoarray[curr_kanal] & 0x07))<5)
                                     {
                                        curr_expoarray[curr_kanal] += 0x01;
                                     }
