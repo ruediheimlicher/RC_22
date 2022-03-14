@@ -2050,17 +2050,22 @@ void loop()
                               {
                                  case 0: // expowert A
                                  {
+                                    uint8_t expowert = (curr_expoarray[curr_kanal] & 0x70)>>4;
+                                    Serial.printf("T2 Expowert A curr expo vor: %d expowert %d\n",curr_expoarray[curr_kanal],expowert );
                                     if ((curr_expoarray[curr_kanal] & 0x70)>>4) // noch nicht 0
                                     {
                                        curr_expoarray[curr_kanal] -= 0x10;
                                     }
+                                    expowert = (curr_expoarray[curr_kanal] & 0x70)>>4;
+                                    Serial.printf("T2 Expowert A curr expo nach: %d expowert %d\n",curr_expoarray[curr_kanal],expowert );
+  
                                  }break;
                                     
                                  case 1: // Expowert B
                                  {
                                     if ((curr_expoarray[curr_kanal] & 0x07)) // noch nicht 0
                                     {
-                                      // curr_expoarray[curr_kanal] -= 0x01;
+                                       curr_expoarray[curr_kanal] -= 0x01;
                                     }
                                  }break;
                                     
@@ -4314,15 +4319,22 @@ void loop()
                            case  2: // Expo
                            {
                               eepromsavestatus |= (1<<SAVE_EXPO);
+                              //Serial.printf("T8 Expowert curr level: %d\n",curr_expoarray[curr_kanal] );
                               switch (curr_cursorspalte)
                               {
                                  case 0: // Expowert A
                                  {
+                                    uint8_t expowert = (curr_expoarray[curr_kanal] & 0x70)>>4;
+                                    //Serial.printf("T8 Expowert A curr expo vor: %d expowert: %d\n",curr_expoarray[curr_kanal] , expowert);
                                     if (((curr_expoarray[curr_kanal] & 0x70)>>4)<4) // noch mehr Werte da
                                     {
+                                       //Serial.printf("8 Expowert change\n");
                                        curr_expoarray[curr_kanal] += 0x10;
+                                       
                                     }
-                                 }break;
+                                    expowert = (curr_expoarray[curr_kanal] & 0x70)>>4;
+                                    Serial.printf("T8 Expowert A curr expo nach: %d expowert: %d\n",curr_expoarray[curr_kanal] , expowert);
+                                }break;
                                     
                                  case 1: // Expowert B
                                  {
@@ -4755,7 +4767,7 @@ void loop()
       }
 
       tastaturstatus &= ~(1<<TASTEOK);
-      Serial.printf("update Kanalscreen AA\n");
+      //Serial.printf("update Kanalscreen AA\n");
    } // if Tastaturok
        
    // 

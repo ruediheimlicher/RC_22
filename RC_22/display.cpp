@@ -595,13 +595,7 @@ void setcanalscreen(void)
    uint8_t funktionwert = curr_devicearray[curr_kanal];
    char* funktionstring = FunktionTable[curr_devicearray[curr_kanal]];
    
-   //Serial.printf("kanal: %d funktionwert: %d funktionstring: %s\n" ,curr_kanal, funktionwert,funktionstring);
- //  char_y= ((posregister[0][5] & 0xFF00)>> 10) + 2;
- //  char_x = (posregister[0][5] & 0x00FF) + 2;
-   //display_write_str(funktionstring,2);
-   
-   //strcpy(menubuffer, (&(KanalTable[3]))); // Expotext
-   
+    
    // Niveau-Bezeichnung "Level" anzeigen
    char_y= (posregister[1][0] & 0xFF00)>> 10;
    char_x = posregister[1][0] & 0x00FF;
@@ -2384,7 +2378,7 @@ uint8_t update_screen(void)
             programmstatus &= ~(1<< UPDATESCREEN);
             
 #pragma mark update KANALSCREEN
-            Serial.printf("update KANALSCREEN: %d\n",curr_screen);
+            //Serial.printf("update KANALSCREEN: %d\n",curr_screen);
            
             for (uint8_t i=0;i<8;i++)
             {
@@ -2428,6 +2422,8 @@ uint8_t update_screen(void)
             // expowert A anzeigen
             char_y= (posregister[2][2] & 0xFF00)>> 10;
             char_x = posregister[2][2] & 0x00FF;
+            uint8_t expowert = (curr_expoarray[curr_kanal] & 0x70)>>4;
+            Serial.printf("T8 Expowert A curr expo vor: %d expowert: %d\n",curr_expoarray[curr_kanal] , expowert);
             display_write_int((curr_expoarray[curr_kanal] & 0x70)>>4,1);
             display_write_str("/8\0",1);
             
@@ -2545,7 +2541,7 @@ uint8_t update_screen(void)
             
          }
          char_height_mul = 1;
-         Serial.printf("update Kanalscreen End\n");
+         //Serial.printf("update Kanalscreen End\n");
       }break;
          
       case MIXSCREEN:
@@ -3606,8 +3602,8 @@ uint8_t display_kanaldiagramm_var (uint8_t char_x0, uint8_t char_y0, uint8_t lev
    //uint16_t steigung= 0xFF*maxY*(4-stufe)/4/maxX; // punkte, nicht page
    // Steigung = (4-stufe)/4  1:1 ist Stufe 0
    uint8_t k=0;
-   uint8_t expoa=((expo & 0x30)>>4);
-   uint8_t expob=(expo & 0x03);
+   uint8_t expoa=((expo & 0x70)>>4);
+   uint8_t expob=(expo & 0x07);
    for (col=1;col<maxX;col++)
    {
       if (expoa==0) // linear
@@ -3620,10 +3616,13 @@ uint8_t display_kanaldiagramm_var (uint8_t char_x0, uint8_t char_y0, uint8_t lev
          {
             // expoa wirkt erst ab wert 1, array der Werte ist 0-basiert: Wert an expoa-1 lesen
             wertYA = ((expoarray25[expoa-1][col/2]))/2 + ((expoarray25[expoa-1][col/2+1]))/2;
+       //     wertYA = ((expoarray25[expoa][col/2]))/2 + ((expoarray25[expoa][col/2+1]))/2;
+
          }
          else // gerade, Wert aus Array
          {
             wertYA = ((expoarray25[expoa-1][col/2]));
+           // wertYA = ((expoarray25[expoa][col/2]));
          }
          wertYA =(8-((level & 0x70)>>4))*wertYA/8; // Level
       }
