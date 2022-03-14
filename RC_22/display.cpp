@@ -33,9 +33,29 @@ extern volatile unsigned char char_width_mul;
 extern volatile uint8_t expowert;
 extern volatile uint8_t expob;
 
-extern  volatile uint8_t cursortab[10] = {0+OFFSET_6_UHR,24+OFFSET_6_UHR,40+OFFSET_6_UHR,52+OFFSET_6_UHR,64+OFFSET_6_UHR,76+OFFSET_6_UHR,88+OFFSET_6_UHR,100+OFFSET_6_UHR,108+OFFSET_6_UHR,0};
+//extern  volatile uint8_t cursortab[10] = {0+OFFSET_6_UHR,24+OFFSET_6_UHR,40+OFFSET_6_UHR,52+OFFSET_6_UHR,64+OFFSET_6_UHR,76+OFFSET_6_UHR,88+OFFSET_6_UHR,100+OFFSET_6_UHR,108+OFFSET_6_UHR,0};
 
-extern volatile uint8_t itemtab[10] = {8+OFFSET_6_UHR,32+OFFSET_6_UHR,48+OFFSET_6_UHR,60+OFFSET_6_UHR,72+OFFSET_6_UHR,84+OFFSET_6_UHR,96+OFFSET_6_UHR,108+OFFSET_6_UHR,116+OFFSET_6_UHR,0+OFFSET_6_UHR};
+#define cursortab0 4
+#define cursortab1 28
+#define cursortab2 48
+#define cursortab3 56
+#define cursortab4 68
+#define cursortab5 80
+#define cursortab6 92
+#define cursortab7 112
+extern  volatile uint8_t cursortab[10] = {cursortab0,cursortab1,cursortab2,cursortab3,cursortab4,cursortab5,cursortab6,cursortab7,cursortab0,cursortab0};
+//extern volatile uint8_t itemtab[10] = {8+OFFSET_6_UHR,32+OFFSET_6_UHR,48+OFFSET_6_UHR,60+OFFSET_6_UHR,72+OFFSET_6_UHR,84+OFFSET_6_UHR,96+OFFSET_6_UHR,108+OFFSET_6_UHR,116+OFFSET_6_UHR,0+OFFSET_6_UHR};
+
+#define itemtab0  12
+#define itemtab1  36
+#define itemtab2  52
+#define itemtab3  54
+#define itemtab4  76
+#define itemtab5  90
+#define itemtab6  112
+#define itemtab7  120
+extern volatile uint8_t itemtab[10] = {itemtab0,itemtab1,itemtab2,itemtab3,itemtab4,itemtab5,itemtab6,itemtab7,itemtab0,itemtab0};
+
 
 extern volatile uint16_t      motorsekunde;
 
@@ -46,6 +66,8 @@ extern volatile uint8_t       curr_mixarray[8];
 extern volatile uint8_t       curr_funktionarray[8];
 extern volatile uint8_t       curr_statusarray[8];
 extern volatile uint8_t       curr_ausgangarray[8];
+
+extern volatile uint8_t       curr_devicearray[8];
 
 extern volatile int8_t        curr_trimmungarray[8];
 
@@ -428,19 +450,26 @@ void setcanalscreen(void)
 {
    //OSZI_D_LO();
   // Serial.printf("setcanalscreen curr_screen: %d\n",curr_screen);
+   for (uint8_t i=0;i<10;i++)
+   {
+      Serial.printf("%d it %d cur %d\n",i,itemtab[i],cursortab[i]); 
+   }
    resetRegister();
    blink_cursorpos=0xFFFF;
    
-   posregister[0][0] =  itemtab[0] |    (1 << 8); // Kanaltext
-   posregister[0][1] =  (itemtab[1]) |   (1 << 8); // Kanalnummer
+   // bit 0-6: kolonne  bit 7: zeile
+   
+   posregister[0][0] =  itemtab[0] |    (1 << 8); // Kanaltext    Zeile 1
+   posregister[0][1] =  itemtab[1] |    (1 << 8); // Kanalnummer
    posregister[0][2] =  itemtab[2] |    (1 << 8); // Richtungtext
    posregister[0][3] =  itemtab[3] |    (1 << 8); // RichtungPfeil
+   posregister[0][4] =  itemtab[4] |    (1 << 8); // funktion
+   posregister[0][5] =  itemtab[5] |    (4 << 8); // typ symbol
    
-   posregister[0][4] =  itemtab[5] |    (1 << 8); // funktion
-   
-   
-   posregister[0][5] =  itemtab[8] |    (4 << 8); // typ symbol
-
+   for (uint8_t pos = 0;pos < 6; pos++)
+   {
+      Serial.printf("pos: %d posregister: %d  itemtab: %d \n",pos, posregister[0][pos],itemtab[pos]);
+   }
    // level
    posregister[1][0] =  itemtab[2] |    (2 << 8); // Leveltext
    
@@ -507,17 +536,31 @@ void setcanalscreen(void)
    char_height_mul = 1;
 
    // Funktion Bezeichnung anzeigen
-   char_y= (posregister[0][4] & 0xFF00)>>8;
-   char_x = posregister[0][4] & 0x00FF;
+   char_y= ((posregister[0][3] & 0xFF00)>>8);
+   char_x = posregister[0][3] & 0x00FF;
+   //display_write_str(KanalTable[2],2);
+   
+   
+   uint8_t funktionwert = curr_devicearray[curr_kanal];
+   char* funktionstring = FunktionTable[curr_devicearray[curr_kanal]];
+   
+   Serial.printf("kanal: %d funktionwert: %d funktionstring: %s\n" ,curr_kanal, funktionwert,funktionstring);
+//   char_y= ((posregister[0][4] & 0xFF00)>>8) + 2;
+//   char_x = (posregister[0][4] & 0x00FF) + 2;
+   //display_write_str(funktionstring,2);
+   
+   display_write_int(curr_devicearray[curr_kanal],1);
+   
+   /*
    //display_write_str(FunktionTable[curr_kanal],2); // 0: Seite, 1: Hoehe usw
    //display_write_str(FunktionTable[4],2);
-   uint8_t funktionwert = curr_funktionarray[curr_kanal];
+   
    char* funktionstring = FunktionTable[funktionwert];
    Serial.printf("funktionwert: %d funktionstring: %s\n" ,funktionwert,funktionstring);
    display_write_str(FunktionTable[(curr_funktionarray[curr_kanal]&0x07)],2);
    char_height_mul = 1;
 
-   
+   */
    //strcpy(menubuffer, (&(KanalTable[3]))); // Expotext
    char_y= (posregister[2][0] & 0xFF00)>>8;
    char_x = posregister[2][0] & 0x00FF;
@@ -526,32 +569,6 @@ void setcanalscreen(void)
    //Serial.printf("Expo charx: %d chary: %d Expo: %s\n",char_x, char_y,KanalTable[3]);
    display_write_str(KanalTable[3],1);
    
-   // Bezeichnung Expo anzeigen
-      
-   // expo A text
-   char_y= (posregister[2][1] & 0xFF00)>>8;
-   char_x = posregister[2][1] & 0x00FF;
-   
-   // expo A wert
-   char_y= (posregister[2][2] & 0xFF00)>>8;
-   char_x = posregister[2][2] & 0x00FF;
-   char_width_mul = 1;
-   display_write_int((curr_expoarray[curr_kanal] & 0x07),1);
-   
-   
-   
-   // expo B text
-   char_y= (posregister[2][3] & 0xFF00)>>8;
-   char_x = posregister[2][3] & 0x00FF;
-   char_width_mul = 1;
-   
-   // expo B wert
-   char_y= (posregister[2][4] & 0xFF00)>>8;
-   char_x = posregister[2][4] & 0x00FF;
-   char_width_mul = 1;
-   //display_write_int((expowert & 0x03),1);
-   display_write_int((curr_expoarray[curr_kanal] & 0x30)>>4,1);
-
    // Bezeichnung Level anzeigen
    char_y= (posregister[1][0] & 0xFF00)>>8;
    char_x = posregister[1][0] & 0x00FF;
@@ -585,7 +602,33 @@ void setcanalscreen(void)
    char_x = posregister[1][4] & 0x00FF;
    display_write_int((curr_levelarray[curr_kanal] & 0x70)>>4,1);
 
+   // Bezeichnung Expo anzeigen
+      
+   // expo A text
+   char_y= (posregister[2][1] & 0xFF00)>>8;
+   char_x = posregister[2][1] & 0x00FF;
    
+   // expo A wert
+   char_y= (posregister[2][2] & 0xFF00)>>8;
+   char_x = posregister[2][2] & 0x00FF;
+   char_width_mul = 1;
+   display_write_int((curr_expoarray[curr_kanal] & 0x07),1);
+   
+   
+   
+   // expo B text
+   char_y= (posregister[2][3] & 0xFF00)>>8;
+   char_x = posregister[2][3] & 0x00FF;
+   char_width_mul = 1;
+   
+   // expo B wert
+   char_y= (posregister[2][4] & 0xFF00)>>8;
+   char_x = posregister[2][4] & 0x00FF;
+   char_width_mul = 1;
+   //display_write_int((expowert & 0x03),1);
+   display_write_int((curr_expoarray[curr_kanal] & 0x30)>>4,1);
+
+
      
    // Typ anzeigen nur symbol
    
@@ -2328,15 +2371,21 @@ uint8_t update_screen(void)
          
       case KANALSCREEN: // Kanal
       {
-    //     if (programmstatus & (1<< UPDATESCREEN))
+         
+         if (programmstatus & (1<< UPDATESCREEN))
          {
             programmstatus &= ~(1<< UPDATESCREEN);
             
 #pragma mark update KANALSCREEN
             Serial.printf("update KANALSCREEN: %d\n",curr_screen);
             // kanalnummer
-            char_y= (posregister[0][1] & 0xFF00)>>8;
-            char_x = posregister[0][1] & 0x00FF;
+            for (uint8_t i=0;i<8;i++)
+            {
+          //     Serial.printf("i: %d  curr_funktionarray %d: \n",i,curr_funktionarray[i]);
+            }
+
+            char_y= (posregister[0][2] & 0xFF00)>>8;
+            char_x = posregister[0][2] & 0x00FF;
             char_height_mul = 1;
             char_width_mul = 1;
             display_write_int(curr_kanal,2);
@@ -2352,17 +2401,42 @@ uint8_t update_screen(void)
             // Funktion anzeigen // Bit 0-2 !!
             // !! Funktion ist bit 0-2 , Steuerdevice ist bit 4-6!!
             //strcpy(menubuffer, ((FunktionTable[(curr_funktionarray[curr_kanal]&0x07)])));
-            
-            
+  
+            //Serial.printf("update Kanalscreen curr_funktionarray vor: %d\n",curr_funktionarray[curr_kanal]);
+
+            Serial.printf("update Kanalscreen device: %d\n",curr_devicearray[curr_kanal]&0x07);
+            char* funktionstring = FunktionTable[curr_devicearray[curr_kanal]];
+            Serial.printf("update Kanalscreen funktionstring: %s\n",funktionstring);
+
             char_y= (posregister[0][4] & 0xFF00)>>8;
             char_x = posregister[0][4] & 0x00FF;
+       
+            display_write_str(funktionstring,2);
             
-            Serial.printf("update Kanalscreen curr_funktionarray vor: %d\n",curr_funktionarray[curr_kanal]);
-            //Serial.printf("update Kanalscreen bez: %s\n",FunktionTable[(curr_funktionarray[curr_kanal]&0x07)]);
-            display_write_str(FunktionTable[(curr_funktionarray[curr_kanal]&0x07)],2);
-            //Serial.printf("update Kanalscreen A \n");
-        //    display_write_str(FunktionTable[3],2);
+            
+            
+   //         Serial.printf("update Kanalscreen bez: %s\n",FunktionTable[(curr_devicearray[curr_kanal]&0x07)]);
 
+        //    char_y= (posregister[0][4] & 0xFF00)>>8;
+         //   char_x = posregister[0][4] & 0x00FF;
+            /*
+
+             //Serial.printf("update Kanalscreen bez: %s\n",FunktionTable[(curr_funktionarray[curr_kanal]&0x07)]);
+            //display_write_str(FunktionTable[(curr_funktionarray[curr_kanal]&0x07)],2);
+            //Serial.printf("update Kanalscreen A \n");
+            //display_write_str(KanalTable[2],2);
+
+            char* funktionstring = FunktionTable[curr_devicearray[curr_kanal]];
+            
+            //display_write_str(funktionstring,2);
+            
+            Serial.printf("update Kanalscreen curr_funktionarray : %d funktionstring: %s\n",curr_funktionarray[curr_kanal],funktionstring);
+            
+            
+    //        display_write_int(curr_funktionarray[curr_kanal],1);
+            
+            */
+            
             // levelwert A anzeigen
             char_y= (posregister[1][2] & 0xFF00)>>8;
             char_x = posregister[1][2] & 0x00FF;
@@ -2419,6 +2493,7 @@ uint8_t update_screen(void)
                   
                }
             } // if kanal < 4
+            
             // Typ anzeigen
             char_y= (posregister[3][1] & 0xFF00)>>8;
             char_x = posregister[3][1] & 0x00FF;
@@ -2448,13 +2523,15 @@ uint8_t update_screen(void)
             char_height_mul = 1;
             
            // display_trimmanzeige_horizontal (14+OFFSET_6_UHR, 7,-15);
-         }
+         } // if update
          // Blinken
          //Serial.printf("update_screen blink_cursorpos: %d z: %d",blink_cursorpos,sendesekunde);
          if (blink_cursorpos == 0xFFFF) // Kein Blinken des Cursors
          {
             char_y= (cursorposition & 0xFF00)>>8;
             char_x = cursorposition & 0x00FF;
+            char_height_mul = 1;
+            /*
             if ((curr_cursorspalte <=3)&& (curr_cursorzeile<=2)) //Erste Zeile, Kanalnummer
             {
                char_height_mul = 1;
@@ -2463,7 +2540,7 @@ uint8_t update_screen(void)
             {
                char_height_mul = 1;
             }
-            
+            */
             display_write_symbol(pfeilvollrechts);
             
          }

@@ -55,6 +55,7 @@ const char *SettingTable[]  = {menutitel, model, setting, kanal,  mix, zuteilung
 // Kanalscreen
 const char kanaltitel[]  = "Kan:";
 const char richtung[]  = "Ri:";
+const char funktion[]  = "Fkt:";
 const char level[]  = "Level";
 const char expo[]  = "Expo";
 
@@ -62,7 +63,7 @@ const char seitea[]  = "A:";
 const char seiteb[]  = "B:";
 const char kanaltyp[]  = "Typ:";
 
-const char *KanalTable[]  = {kanaltitel, richtung, level, expo, seitea, seiteb,kanaltyp};
+const char *KanalTable[]  = {kanaltitel, richtung, funktion, level, expo, seitea, seiteb,kanaltyp};
 
 
 // Kanaltyp
@@ -98,14 +99,14 @@ const char* SichernTable[]  = {frage,sichern,abbrechen};
 
 // Funktion
 
-const char funktion0[]  = "Seite\0";
-const char funktion1[]  = "Hoehe\0";
-const char funktion2[]  = "Quer\0";
-const char funktion3[]  = "Motor\0";
-const char funktion4[]  = "Quer L\0";
-const char funktion5[]  = "Quer R\0";
-const char funktion6[]  = "Lande\0";
-const char funktion7[]  = "Aux  \0";
+const char funktion0[]  = "Seite";
+const char funktion1[]  = "Hoehe";
+const char funktion2[]  = "Quer ";
+const char funktion3[]  = "Motor";
+const char funktion4[]  = "QuerL";
+const char funktion5[]  = "QuerR";
+const char funktion6[]  = "Lande";
+const char funktion7[]  = "Aux  ";
 
 const char *FunktionTable[]  = {funktion0, funktion1, funktion2, funktion3, funktion4, funktion5, funktion6, funktion7};
 
@@ -114,7 +115,7 @@ const char *FunktionTable[]  = {funktion0, funktion1, funktion2, funktion3, funk
 const char ausgang0[]  = "Imp";
 const char ausgang1[]  = "Kan";
 const char ausgang2[]  = "Dev";
-const char ausgang3[]  = "Funktion";
+const char ausgang3[]  = "Fkt";
 const char ausgang4[]  = " ";
 const char ausgang5[]  = "Quer R\0";
 const char ausgang6[]  = "Lande \0";

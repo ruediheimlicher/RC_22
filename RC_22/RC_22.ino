@@ -195,11 +195,12 @@ volatile uint16_t                posregister[8][8]={}; // Aktueller screen: wert
 volatile uint16_t                cursorpos[8][8]={}; // Aktueller screen: werte fuer page und darauf liegende col fuer den cursor
 
 volatile uint8_t              curr_levelarray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
-volatile uint8_t              curr_expoarray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
+volatile uint8_t              curr_expoarray[8] = {0x33,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
 volatile uint8_t              curr_mixarray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
-volatile uint8_t              curr_funktionarray[8] = {};//{0x00,0x11,0x22,0x33,0x44,0x55,0x66,0x77};
+volatile uint8_t              curr_funktionarray[8] = {}; //{0x00,0x11,0x22,0x33,0x44,0x55,0x66,0x77};
 volatile uint8_t             curr_statusarray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
 volatile uint8_t             curr_ausgangarray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
+volatile uint8_t             curr_devicearray[8] = {};
 volatile int8_t              curr_trimmungarray[8];
 volatile int8_t              curr_richtung; // Bits fuer Richtung
 volatile int8_t              curr_on; // Bits fuer on
@@ -1197,7 +1198,18 @@ void setup()
    display_clear();
    _delay_us(50);
    
-  
+   
+   curr_levelarray[0] = 0x30;
+   curr_levelarray[1] = 0x22;
+   curr_levelarray[2] = 0x11;
+   curr_levelarray[3] = 0x00;
+
+   curr_expoarray[0] = 0x30;
+   curr_expoarray[1] = 0x22;
+   curr_expoarray[2] = 0x11;
+   curr_expoarray[3] = 0x00;
+   
+   //curr_levelarray[0] = 1;
    sethomescreen();
    //display_write_str("abc",2);
 
@@ -1238,8 +1250,12 @@ void loop()
             
          }
          
-      }
+      } // for servo
       
+      for (uint8_t i=0;i<8;i++)
+      {
+         Serial.printf("i: %d curr_levelarray: %d curr_funktionarray %d: \n",i,curr_levelarray[i],curr_funktionarray[i]);
+      }
    }
    
    if (sincelastseccond > 1000)
@@ -1967,6 +1983,11 @@ void loop()
                                      //Bezeichnung von: FunktionTable[curr_funktionarray[curr_kanal]]
                                     // Funktion ist bit 0-2, Steuerdevice ist bit 4-6!!
                                     eepromsavestatus |= (1<<SAVE_FUNKTION);
+                                    if (curr_devicearray[curr_kanal] )
+                                    {
+                                       curr_devicearray[curr_kanal] -= 0x01;
+                                    }
+                                    break;
                                     uint8_t tempfunktion = curr_funktionarray[curr_kanal]&0x07; //bit 0-2
                                     Serial.printf("T2 curr_funktionarray vor: %d\n",curr_funktionarray[curr_kanal]);
                                     Serial.printf("T2 zeile %d spalte %d  tempfunktion vor: %d\n",curr_cursorzeile,curr_cursorspalte,tempfunktion);
@@ -3438,8 +3459,11 @@ void loop()
                            display_cursorweg();
                            char_height_mul=1;
                            last_cursorspalte =curr_cursorspalte;
-                           
+                           Serial.printf("T6 kanalscreen cursorspalte vor: %d\n",curr_cursorspalte);
+
                            curr_cursorspalte++;
+                           Serial.printf("T6 kanalscreen cursorspalte nach: %d\n",curr_cursorspalte);
+
                         }
                         manuellcounter=0;
                      }
@@ -4218,6 +4242,7 @@ void loop()
                         {
                            case 0: // Kanal
                            {
+                              Serial.printf("T8 curr_cursorspalte: %d\n",curr_cursorspalte);
                               switch (curr_cursorspalte)
                               {
                                  case 0: // Kanalnummer
@@ -4242,29 +4267,50 @@ void loop()
                                     
                                  case 2: // Funktion
                                  {
-                                    eepromsavestatus |= (1<<SAVE_FUNKTION);
+                                    
+                                    //eepromsavestatus |= (1<<SAVE_FUNKTION);
                                      //Bezeichnung von: FunktionTable[curr_funktionarray[curr_kanal]]&0x07
                                     // Funktion ist bit 0-2, Steuerdevice ist bit 4-6!!
+                                    Serial.printf("T8 curr_funktionarray vor: %d\n",curr_funktionarray[curr_kanal]);
+                                    //curr_funktionarray[curr_kanal] = 1;
+                                    Serial.printf("T8 curr_funktionarray nach: %d\n",curr_funktionarray[curr_kanal]);
+                                    
+                                    if (curr_devicearray[curr_kanal] < 4)
+                                    {
+                                       curr_devicearray[curr_kanal] += 0x01;
+                                    }
+                                    
+                                    if (curr_funktionarray[curr_kanal] < 4)
+                                    {
+                                       //curr_funktionarray[curr_kanal] += 0x01;
+                                    }
+                                    Serial.printf("T8 curr_funktionarray nach: %d\n",curr_funktionarray[curr_kanal]);
+                                    break;
+                                    /*
                                     uint8_t funktionwert = curr_funktionarray[curr_kanal];
                                     char* funktionstring = FunktionTable[funktionwert];
                                     Serial.printf("T8 funktionwert: %d funktionstring: %s\n" ,funktionwert,funktionstring);
-
+                                    break;
+                                    */
+                                    /*
                                     uint8_t tempfunktion = curr_funktionarray[curr_kanal]&0x07; //bit 0-2
                                     Serial.printf("T8 curr_funktionarray vor: %d\n",curr_funktionarray[curr_kanal]);
                                     Serial.printf("T8 zeile %d spalte %d  tempfunktion vor: %d\n",curr_cursorzeile,curr_cursorspalte,tempfunktion);
                                     tempfunktion++;
-                                   funktionwert = curr_funktionarray[curr_kanal];
+                                    funktionwert = curr_funktionarray[curr_kanal];
                                     funktionstring = FunktionTable[funktionwert];
                                     Serial.printf("T8 nach *** funktionwert: %d funktionstring: %s\n" ,funktionwert,funktionstring);
 
                                     //tempfunktion += 2;
                                     tempfunktion &= 0x07; // < 8
+                                    */
+          
                                     
                                     //lcd_puthex(tempfunktion);
                          //           curr_funktionarray[curr_kanal] = (curr_funktionarray[curr_kanal]&0xF0)|tempfunktion; // cycle in FunktionTable, Bit 4-7 BitOR mit tempfunktion
-                                    curr_funktionarray[curr_kanal] = 3;
-                                    Serial.printf("T8 zeile %d spalte %d  tempfunktion nach: %d\n",curr_cursorzeile,curr_cursorspalte,tempfunktion);
-                                    Serial.printf("T8 curr_funktionarray nach: %d\n",curr_funktionarray[curr_kanal]);
+                                    //curr_funktionarray[curr_kanal] = 3;
+                                    //Serial.printf("T8 zeile %d spalte %d  tempfunktion nach: %d\n",curr_cursorzeile,curr_cursorspalte,tempfunktion);
+                                    //Serial.printf("T8 curr_funktionarray nach: %d\n",curr_funktionarray[curr_kanal]);
 
                                     /*
                                      if (tempfunktion<8)
