@@ -79,6 +79,8 @@ volatile uint8_t           code=0;
 volatile uint8_t           servostatus=0;
 
 volatile uint8_t           updatestatus=0;
+
+volatile uint8_t           blinkcounter=0;
 #define BLINK     0
 
 volatile uint8_t           tastaturstatus=0;
@@ -1270,16 +1272,12 @@ void loop()
       sincelastseccond = 0;
       
       sendesekunde++;
-      if (curr_screen )
-      {
-         //update_sendezeit();
-         
-         //display_setcursorblink(sendesekunde);
-      }
+      
       if (manuellcounter && (blink_cursorpos < 0xFFFF))
       {
          display_setcursorblink(sendesekunde);
       }
+       
       //Serial.printf("update Kanalscreen CC\n");
       //Serial.printf("motorsekunde: %d programmstatus: %d manuellcounter: %d\n",motorsekunde, programmstatus, manuellcounter);
       
@@ -1367,7 +1365,13 @@ void loop()
    
    if (sinceblink > 500) 
    {   
-      
+      /*
+      if (manuellcounter && (blink_cursorpos < 0xFFFF))
+      {
+         display_setcursorblink(blinkcounter);
+      }
+       */
+      blinkcounter++;
       //Serial.printf("send usb: pot0 %d\n",pot0);
       
       //digitalWrite(OSZI_PULS_A, !digitalRead(OSZI_PULS_A));
