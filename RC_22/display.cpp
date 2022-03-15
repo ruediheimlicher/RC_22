@@ -250,6 +250,7 @@ void sethomescreen(void)
    posregister[4][1] = (80+OFFSET_6_UHR) | (3 << 10); // Text Setting
    posregister[4][2] = (100+OFFSET_6_UHR) | (3 << 10); // Anzeige Setting
 
+   cursorpos[0][1] = cursortab[0] |    (8 << 10); //  cursorpos fuer setting
    
    // positionen lesen
    // titel setzen
@@ -263,12 +264,12 @@ void sethomescreen(void)
    display_write_byte(DATEN,0xFF);
    //char_x++;
    
-   display_inverse(1);
+   //display_inverse(1);
    char_height_mul = 1;
    char_width_mul = 1;
 
    //display_write_prop_str(char_y,char_x,0,(unsigned char*)titelbuffer);
-   display_write_inv_str(TitelTable[0],1);
+   display_write_str(TitelTable[0],1);
    //display_write_str(TitelTable[0],1);
    //display_write_str("ABC",1);
    display_inverse(0);
@@ -338,11 +339,10 @@ void sethomescreen(void)
    char_width_mul = 1;
 
   // display_write_propchar(' ');
- 
-   char_x=OFFSET_6_UHR;
-   char_y = 8;
+   char_y= (cursorpos[0][1] & 0xFF00)>> 10;
+   char_x = cursorpos[0][1] & 0x00FF;
    display_write_symbol(pfeilvollrechts);
-   char_x += 2;
+   char_x += 4;
    display_write_str(TitelTable[4],2);
    
    //Serial.printf("sethomescreen end\n");
@@ -386,7 +386,7 @@ void setsettingscreen(void)
    char_y = 1;
    char_height_mul = 1;
    char_width_mul = 1;
-   display_write_inv_str(SettingTable[0],1);
+   display_write_str(SettingTable[0],1);
    char_height_mul = 2;
    char_width_mul = 1;
    
@@ -442,7 +442,7 @@ void setsettingscreen(void)
    //char_x=0;
    display_write_str(SettingTable[6],2);
    
-   Serial.printf("setsettingscreen end\n");
+   //Serial.printf("setsettingscreen end\n");
 }// setsettingscreen
 
 
@@ -1244,12 +1244,12 @@ uint8_t refresh_screen(void)
          display_write_byte(DATEN,0xFF);
          //char_x++;
          
-         display_inverse(1);
+         //display_inverse(1);
          char_height_mul = 1;
          char_width_mul = 1;
 
          //display_write_prop_str(char_y,char_x,0,(unsigned char*)titelbuffer);
-         display_write_inv_str(TitelTable[0],1);
+         display_write_str(TitelTable[0],1);
          //display_write_str(TitelTable[0],1);
          //display_write_str("ABC",1);
          display_inverse(0);
@@ -1320,12 +1320,12 @@ uint8_t refresh_screen(void)
 
         // display_write_propchar(' ');
        
-         char_x=OFFSET_6_UHR;
-         char_y = 8;
+         char_y= (cursorpos[0][1] & 0xFF00)>> 10;
+         char_x = cursorpos[0][1] & 0x00FF;
          display_write_symbol(pfeilvollrechts);
-         char_x += 2;
+         char_x += 4;
          display_write_str(TitelTable[4],2);
-                 
+  
       }break;
          
       case SETTINGSCREEN: // Setting
@@ -2232,6 +2232,13 @@ uint8_t update_screen(void)
          char_width_mul = 1;
          display_write_spannung(batteriespannung/10,2);
          
+         
+         char_y= (cursorpos[0][1] & 0xFF00)>> 10;
+         char_x = cursorpos[0][1] & 0x00FF;
+         display_write_symbol(pfeilvollrechts);
+         char_x += 4;
+         display_write_str(TitelTable[4],2);
+
          /*
          char_x=4;
          char_y = 4;

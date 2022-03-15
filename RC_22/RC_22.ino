@@ -1264,6 +1264,12 @@ void loop()
       sincelastseccond = 0;
       
       sendesekunde++;
+      
+      if (manuellcounter && (blink_cursorpos < 0xFFFF))
+      {
+         display_setcursorblink(sendesekunde);
+      }
+
       if (curr_screen )
       {
          //update_sendezeit();
@@ -1927,13 +1933,13 @@ void loop()
                            last_cursorzeile =curr_cursorzeile;
                            
                            curr_cursorzeile--;
-                           lcd_puthex(curr_cursorzeile);
-                           lcd_putc('+');
+                           //lcd_puthex(curr_cursorzeile);
+                           //lcd_putc('+');
                         }
                         else
                         {
-                           lcd_puthex(curr_cursorzeile);
-                           lcd_putc('-');
+                           //lcd_puthex(curr_cursorzeile);
+                           //lcd_putc('-');
                         }
                         //lcd_putint2(curr_cursorzeile);
                         
@@ -4082,9 +4088,18 @@ void loop()
                {
                   case HOMESCREEN: // home
                   {
+                     if (blink_cursorpos == 0xFFFF && manuellcounter) // Kein Blinken
+                     {
+                        
+                     }
+                     else
+                     {
+                        
+                     }
                      // lcd_gotoxy(14,2);
                      // lcd_puts("*H8*");
-                     break; // trimmscreen ev. korrupt
+                     
+                     break; // 
                      
                      if (manuellcounter)
                      {
@@ -4212,7 +4227,7 @@ void loop()
 #pragma mark 8 KANALSCREEN
                   case KANALSCREEN: // Kanalsettings
                   {
-                     if (blink_cursorpos == 0xFFFF && manuellcounter) // Kein Blinken
+                     if (blink_cursorpos == 0xFFFF && manuellcounter) // Kein Blinken, cursor bewegen
                      {
                         if (posregister[curr_cursorzeile+1][curr_cursorspalte]<0xFFFF)//
                         {
