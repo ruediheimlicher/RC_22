@@ -3143,13 +3143,13 @@ void display_setcursorblink(uint8_t zeit)
    uint16_t cursorposition = cursorpos[curr_cursorzeile][curr_cursorspalte];
    char_y= (cursorposition & 0xFF00)>> 10;
    char_x = cursorposition & 0x00FF;
-      if (zeit%2)
+      if (zeit%2) // gerade
       {
-         display_write_symbol(pfeilvollrechts);
+         display_write_symbol(pfeilwegrechts);
       }
       else
       {
-         display_write_symbol(pfeilwegrechts);
+         display_write_symbol(pfeilvollrechts);
       }
 
    

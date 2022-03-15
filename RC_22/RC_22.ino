@@ -1257,7 +1257,7 @@ void loop()
          Serial.printf("i: %d curr_levelarray: %d curr_funktionarray %d: \n",i,curr_levelarray[i],curr_funktionarray[i]);
       }
    }
-   
+   // MARK:  -  sinc > 1000
    if (sincelastseccond > 1000)
    {
       
@@ -1267,7 +1267,7 @@ void loop()
       
       if (manuellcounter && (blink_cursorpos < 0xFFFF))
       {
-         display_setcursorblink(sendesekunde);
+         //display_setcursorblink(sendesekunde);
       }
 
       if (curr_screen )
@@ -1341,17 +1341,17 @@ void loop()
    {
      // RawHID.send(sendbuffer, 50);
      
-      
-      
-      //displaystatus |= (1<<UHR_UPDATE);
-      //Serial.printf("updatesceen\n");
-      //update_screen();
-         //OSZI_B_HI;
-      sinceupdatesceen=0;
+       sinceupdatesceen=0;
    }
-   
+   // MARK:  -  sinc > 500
    if (sinceblink > 500) 
    {   
+      if (manuellcounter && (blink_cursorpos < 0xFFFF))
+      {
+         display_setcursorblink(updatecounter);
+      }
+      updatecounter++;
+                                
       //Serial.printf("send usb: pot0 %d\n",pot0);
       
       //digitalWrite(OSZI_PULS_A, !digitalRead(OSZI_PULS_A));
