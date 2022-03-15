@@ -525,6 +525,8 @@ void read_Ext_EEPROM_Settings(void)
    //EE_CS_HI;
 }
 
+
+
 // MARK: writeSettings
 void write_Ext_EEPROM_Settings(void)
 {
@@ -533,6 +535,9 @@ void write_Ext_EEPROM_Settings(void)
   // masterstatus |= (1<<HALT_BIT); // Halt-Bit aktiviert Task bei ausgeschaltetem Slave
 //   MASTER_PORT &= ~(1<<SUB_BUSY_PIN);
    
+   //   EEPROM.write(modelindex * MODELSETTINGBREITE + kanal * KANALSETTINGBREITE + dataindex,buffer[USB_DATA_OFFSET + kanal * KANALSETTINGBREITE + dataindex]);
+
+
    
 //   lcd_clr_line(1);
 //   lcd_putint(eepromsavestatus);
@@ -946,6 +951,21 @@ uint16_t eeprompartschreiben(void) // 23 ms
    return result;
 }
 
+uint8_t encodeUSBChannelSettings(uint8_t modelindex)
+{
+   for (uint8_t kanal = 0;kanal < 8;kanal++)
+   {
+      for (uint8_t dataindex = 0;dataindex < 4;dataindex++)
+      {
+         
+         uint8_t data = EEPROM.read(modelindex * MODELSETTINGBREITE + kanal * KANALSETTINGBREITE + dataindex);
+         sendbuffer[USB_DATA_OFFSET + kanal * KANALSETTINGBREITE + dataindex] = data; //EEPROM.read(modelindex * MODELSETTINGBREITE + kanal * KANALSETTINGBREITE + dataindex,buffer[USB_DATA_OFFSET + kanal * KANALSETTINGBREITE + dataindex]);
+         //Serial.printf("kanal: %d dataindex: %d data: %d \n", kanal, dataindex,data);
+      } // for dataindex
+   } // for kanal
+   return 0;
+}
+
 uint8_t  decodeUSBChannelSettings(uint8_t buffer[USB_DATENBREITE])
 {
    // uint8_t kanalsettingarray[ANZAHLMODELLE][NUM_SERVOS][KANALSETTINGBREITE] = {};
@@ -961,9 +981,14 @@ uint8_t  decodeUSBChannelSettings(uint8_t buffer[USB_DATENBREITE])
    
    for (uint8_t kanal = 0;kanal < 8;kanal++)
    {
+      
       for (uint8_t dataindex = 0;dataindex < 4;dataindex++)
       {
          kanalsettingarray[modelindex][kanal][dataindex] = buffer[pos + dataindex];
+         
+         EEPROM.write(modelindex * MODELSETTINGBREITE + kanal * KANALSETTINGBREITE + dataindex,buffer[pos + dataindex]);
+         
+         //Serial.printf("kanal: %d dataindex: %d data: %d \n",kanal, dataindex, buffer[pos + dataindex]);
       }
       /*
       // aktuelle Werte setzen
@@ -985,6 +1010,14 @@ uint8_t  decodeUSBChannelSettings(uint8_t buffer[USB_DATENBREITE])
       pos += KANALSETTINGBREITE;
     }
    
+   _delay_ms(1);
+   
+   encodeUSBChannelSettings(0);
+   Serial.printf("USB \n");
+   for (uint8_t i = 0;i<USB_DATENBREITE;i++)
+   {
+      Serial.printf("i: %d usbdata: %d\n",i,sendbuffer[i]);
+   }
    return 1;
    
    // funktion lesen
@@ -1543,8 +1576,9 @@ void loop()
                       //  Serial.printf("servo %d potwert: %d    ppmint: %d ppmabs: %d expo: %d expoint: %d displaycounter: %d\n",i,potwert,ppmint,ppmabs, expo, expoint,displaycounter);
                      }
                   }
+                  impulstimearray[i] = expoint;
                }                 
-               impulstimearray[i] = expoint;
+               
                //impulstimearray[i] = ppmint;
                //impulstimearray[i] = potwert;
             }
@@ -3470,10 +3504,10 @@ void loop()
                            display_cursorweg();
                            char_height_mul=1;
                            last_cursorspalte =curr_cursorspalte;
-                           Serial.printf("T6 kanalscreen cursorspalte vor: %d\n",curr_cursorspalte);
+                           //Serial.printf("T6 kanalscreen cursorspalte vor: %d\n",curr_cursorspalte);
 
                            curr_cursorspalte++;
-                           Serial.printf("T6 kanalscreen cursorspalte nach: %d\n",curr_cursorspalte);
+                           //Serial.printf("T6 kanalscreen cursorspalte nach: %d\n",curr_cursorspalte);
 
                         }
                         manuellcounter=0;
@@ -4066,9 +4100,7 @@ void loop()
                      programmstatus &= ~(1<<MOTOR_ON);
                      motorsekunde=0;
                      motorminute=0;
-                     //update_time();
-          //*           update_motorzeit();
-                     
+                     refresh_screen();
                   }
                   manuellcounter=0; // timeout zuruecksetzen
                   //update_time();

@@ -222,7 +222,6 @@ void resetRegister(void)
       {
          posregister[i][k]=0xFFFF;
       }
-      
    }
 }
 
@@ -351,7 +350,7 @@ void sethomescreen(void)
 
 void setsettingscreen(void)
 {
-   Serial.printf("setsettingscreen start\n");
+  // Serial.printf("setsettingscreen start\n");
    
    resetRegister();
    blink_cursorpos=0xFFFF;
@@ -2429,7 +2428,7 @@ uint8_t update_screen(void)
             char_y= (posregister[2][2] & 0xFF00)>> 10;
             char_x = posregister[2][2] & 0x00FF;
             uint8_t expowert = (curr_expoarray[curr_kanal] & 0x70)>>4;
-            Serial.printf("T8 Expowert A curr expo vor: %d expowert: %d\n",curr_expoarray[curr_kanal] , expowert);
+            //Serial.printf("T8 Expowert A curr expo vor: %d expowert: %d\n",curr_expoarray[curr_kanal] , expowert);
             display_write_int((curr_expoarray[curr_kanal] & 0x70)>>4,1);
             display_write_str("/8\0",1);
             
