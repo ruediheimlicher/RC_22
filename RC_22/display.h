@@ -189,6 +189,9 @@ void r_uitoa8(int8_t zahl, char* string);
 
 uint8_t update_screen(void);
 uint8_t refresh_screen(void);
+
+void refresh_homescreen(uint8_t code);
+
 void update_time(uint8_t code);
 
 void update_motorzeit(void);
@@ -202,6 +205,7 @@ uint8_t display_kanaldiagramm (uint8_t char_x, uint8_t char_y, uint8_t level, ui
 uint8_t display_kanaldiagramm_var(uint8_t char_x0, uint8_t char_y0, uint8_t level, uint8_t expo, uint8_t typ );
 void display_cursorweg(void);
 void display_setcursorblink(uint8_t zeit);
+void display_cursorblink(uint8_t on);
 void display_set_LED(uint8_t state);
 
 

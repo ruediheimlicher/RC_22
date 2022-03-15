@@ -260,18 +260,18 @@ void sethomescreen(void)
    char_width_mul = 1;
    display_go_to(char_x+1,0);
    
-   display_write_byte(DATEN,0xFF);
+  // display_write_byte(DATEN,0xFF);
    //char_x++;
    
-   display_inverse(1);
+   //display_inverse(0);
    char_height_mul = 1;
    char_width_mul = 1;
 
    //display_write_prop_str(char_y,char_x,0,(unsigned char*)titelbuffer);
-   display_write_inv_str(TitelTable[0],1);
+   display_write_str(TitelTable[0],1);
    //display_write_str(TitelTable[0],1);
    //display_write_str("ABC",1);
-   display_inverse(0);
+   //display_inverse(0);
    char_height_mul = 1;
    char_width_mul = 1;
    
@@ -386,7 +386,7 @@ void setsettingscreen(void)
    char_y = 1;
    char_height_mul = 1;
    char_width_mul = 1;
-   display_write_inv_str(SettingTable[0],1);
+   display_write_str(SettingTable[0],1);
    char_height_mul = 2;
    char_width_mul = 1;
    
@@ -1108,7 +1108,10 @@ void update_sendezeit(void)
    char_height_mul = 1;
    char_width_mul = 1;
    display_write_zeit(sendesekunde&0xFF,sendeminute,sendestunde, 2);
-  
+   if (blink_cursorpos < 0xFFFF)
+   {
+      //display_setcursorblink(sendesekunde);
+   }
 }
 
 void update_stopzeit(void)
@@ -1217,6 +1220,182 @@ void update_batteriespannung(void)
 
 }
 
+void refresh_homescreen(uint8_t code)
+{
+#pragma mark refresh_homescreen
+   
+   // statische inhalte erneuern
+   //updatecounter++;
+   //Serial.printf("refresh_homescreen code: %d\n",code);
+   switch (code)
+   {
+   case 0x20: // clear
+      {
+        // Serial.printf("refresh_homescreen clear\n");
+        // display_clear();
+         char_x=0;
+         char_y = 1;
+  
+         char_height_mul = 1;
+         char_width_mul = 1;
+         
+         display_write_str(TitelTable[0],1);
+      }break;
+   case 0x21: // Uhrtexte schreiben
+      {
+         //Serial.printf("refresh_homescreen Uhrtext\n");
+         // Stoppuhrtext schreiben
+         char_height_mul = 1;
+         char_width_mul = 1;
+
+         char_x = (posregister[2][0] & 0x00FF);
+         char_y= (posregister[2][0] & 0xFF00)>> 10;
+         display_write_str(TitelTable[2],2);
+      }break;
+         
+      case 0x22:
+      {
+         // Motorzeittext schreiben
+         char_height_mul = 1;
+         char_width_mul = 1;
+
+         char_x = (posregister[1][0] & 0x00FF);
+         char_y= ((posregister[1][0] & 0xFF00)>> 10);
+         char_height_mul = 1;
+         display_write_str(TitelTable[3],2);
+
+      }break;
+      case 0x23:
+      {
+         Serial.printf("refresh_homescreen Modell\n");
+         // Modell schreiben
+         char_y= (posregister[4][0] & 0xFF00)>> 10;
+         char_x = posregister[4][0] & 0x00FF;
+         //display_write_prop_str(char_y,char_x,0,titelbuffer,2);
+         char_height_mul = 2;
+         display_write_str(ModelTable[curr_model],1);
+         char_height_mul = 1;
+      }break;
+         
+      case 0x24:
+      {
+         
+         char_height_mul = 1;
+         char_width_mul = 1;
+
+         //strcpy(titelbuffer, ((TitelTable[5])));
+         char_y= (posregister[4][1] & 0xFF00)>> 10;
+         char_x = posregister[4][1] & 0x00FF;
+         display_write_str(TitelTable[5],2);
+         char_y= (posregister[4][2] & 0xFF00)>> 10;
+         char_x = posregister[4][2] & 0x00FF;
+         display_write_int(curr_setting,2);
+
+      }break;
+      case 0x25:
+      {
+         //Serial.printf("refresh_homescreen Batterie\n");
+         char_height_mul = 1;
+         char_width_mul = 1;
+
+         // Batteriespannung
+         char_y= ((posregister[3][0] & 0xFF00)>> 10)+1;
+         char_x = posregister[3][0] & 0x00FF;
+         char_height_mul = 1;
+         display_write_str(TitelTable[6],2);
+
+      }break;
+      
+   }// switch code
+   
+   return;
+   
+    //char_x++;
+   
+   //display_inverse(1);
+   char_height_mul = 1;
+   char_width_mul = 1;
+
+   //display_write_prop_str(char_y,char_x,0,(unsigned char*)titelbuffer);
+   display_write_str(TitelTable[0],1);
+   //display_write_str(TitelTable[0],1);
+   //display_write_str("ABC",1);
+   //display_inverse(0);
+   char_height_mul = 1;
+   char_width_mul = 1;
+   
+   // Stoppuhrtext schreiben
+   char_x = (posregister[2][0] & 0x00FF);
+   char_y= (posregister[2][0] & 0xFF00)>> 10;
+   display_write_str(TitelTable[2],2);
+   
+   // Stoppzeit schreiben
+   char_y= (posregister[2][1] & 0xFF00)>> 10;
+   char_x = (posregister[2][1] & 0x00FF);
+   char_height_mul = 2;
+   char_width_mul = 2;
+   display_write_stopzeit_BM(stopsekunde,stopminute);
+   char_height_mul = 1;
+   char_width_mul = 1;
+   
+   
+   // Motorzeittext schreiben
+   char_x = (posregister[1][0] & 0x00FF);
+   char_y= ((posregister[1][0] & 0xFF00)>> 10);
+   char_height_mul = 1;
+   display_write_str(TitelTable[3],2);
+   char_height_mul = 2;
+   char_width_mul = 2;
+
+   char_y= (posregister[1][1] & 0xFF00)>> 10;
+   char_x = posregister[1][1] & 0x00FF;
+   // display_write_min_sek(motorsekunde,2);
+   display_write_stopzeit(motorsekunde,motorminute, 2);
+   
+   char_height_mul = 1;
+   char_width_mul = 1;
+  
+   
+   // Modell schreiben
+   char_y= (posregister[4][0] & 0xFF00)>> 10;
+   char_x = posregister[4][0] & 0x00FF;
+   //display_write_prop_str(char_y,char_x,0,titelbuffer,2);
+   char_height_mul = 2;
+   display_write_str(ModelTable[curr_model],1);
+
+   char_height_mul = 1;
+   //strcpy(titelbuffer, ((TitelTable[5])));
+   char_y= (posregister[4][1] & 0xFF00)>> 10;
+   char_x = posregister[4][1] & 0x00FF;
+   display_write_str(TitelTable[5],2);
+   char_y= (posregister[4][2] & 0xFF00)>> 10;
+   char_x = posregister[4][2] & 0x00FF;
+   display_write_int(curr_setting,2);
+   
+   
+   
+   char_height_mul = 1;
+   char_width_mul = 1;
+
+   // Batteriespannung
+   char_y= ((posregister[3][0] & 0xFF00)>> 10)+1;
+   char_x = posregister[3][0] & 0x00FF;
+   char_height_mul = 1;
+   display_write_str(TitelTable[6],2);
+   
+   char_height_mul = 1;
+   char_width_mul = 1;
+
+  // display_write_propchar(' ');
+ 
+   char_x=OFFSET_6_UHR;
+   char_y = 8;
+   display_write_symbol(pfeilvollrechts);
+   char_x += 2;
+   display_write_str(TitelTable[4],2);
+           
+}
+
 uint8_t refresh_screen(void)
 {
    display_clear();
@@ -1244,15 +1423,15 @@ uint8_t refresh_screen(void)
          display_write_byte(DATEN,0xFF);
          //char_x++;
          
-         display_inverse(1);
+         //display_inverse(1);
          char_height_mul = 1;
          char_width_mul = 1;
 
          //display_write_prop_str(char_y,char_x,0,(unsigned char*)titelbuffer);
-         display_write_inv_str(TitelTable[0],1);
+         display_write_str(TitelTable[0],1);
          //display_write_str(TitelTable[0],1);
          //display_write_str("ABC",1);
-         display_inverse(0);
+         //display_inverse(0);
          char_height_mul = 1;
          char_width_mul = 1;
          
@@ -3133,6 +3312,7 @@ void display_cursorweg(void)
 
 void display_setcursorblink(uint8_t zeit)
 {
+   Serial.printf("display_setcursorblink\n");
    uint16_t cursorposition = cursorpos[curr_cursorzeile][curr_cursorspalte];
    char_y= (cursorposition & 0xFF00)>> 10;
    char_x = cursorposition & 0x00FF;
@@ -3146,6 +3326,18 @@ void display_setcursorblink(uint8_t zeit)
       }
 
    
+}
+
+
+void display_cursorblink(uint8_t on)
+{
+   /*
+   uint16_t cursorposition = cursorpos[curr_cursorzeile][curr_cursorspalte];
+   char_y= (cursorposition & 0xFF00)>> 10;
+   char_x = cursorposition & 0x00FF;
+*/
+  
+      
 }
 //##############################################################################################
 // Trimmanzeige

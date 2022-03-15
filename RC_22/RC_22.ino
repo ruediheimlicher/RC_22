@@ -9,7 +9,7 @@
 /// @author		Ruedi Heimlicher
 /// @author		___ORGANIZATIONNAME___
 /// @date		04.02.2022 10:59
-/// @version	<#version#>
+/// @version	t
 ///
 /// @copyright	(c) Ruedi Heimlicher, 2022
 /// @copyright	GNU General Public Licence
@@ -78,8 +78,8 @@ volatile uint8_t           timerstatus=0;
 volatile uint8_t           code=0;
 volatile uint8_t           servostatus=0;
 
-
-
+volatile uint8_t           updatestatus=0;
+#define BLINK     0
 
 volatile uint8_t           tastaturstatus=0;
 #define TASTEOK   1
@@ -136,6 +136,8 @@ volatile uint16_t impulstimearray[NUM_SERVOS] = {};
 
 volatile uint8_t adcpinarray[NUM_SERVOS] = {};
 volatile uint16_t servomittearray[NUM_SERVOS] = {}; // Werte fuer Mitte
+volatile uint16_t adcerrarray[NUM_SERVOS] = {};
+
 
 // Prototypes
 ADC *adc = new ADC(); // adc object
@@ -248,6 +250,8 @@ volatile uint8_t                  masterstatus = 0;
 volatile uint8_t                  eepromsavestatus = 0;
 volatile uint16_t                updatecounter=0; // Zaehler fuer Einschalten
 volatile uint16_t                manuellcounter=0;
+
+volatile uint16_t                refreshcounter=0;
 
 // Tastatur
 volatile uint8_t                 Tastenindex=0;
@@ -965,15 +969,14 @@ uint8_t  decodeUSBChannelSettings(uint8_t buffer[USB_DATENBREITE])
       {
          kanalsettingarray[modelindex][kanal][dataindex] = buffer[pos + dataindex];
       }
-      /*
+      
       // aktuelle Werte setzen
       curr_statusarray[kanal] = buffer[pos] + STATUS_OFFSET; // Modell, ON, Kanal, RI
       curr_levelarray[kanal] = buffer[pos + LEVEL_OFFSET]; // level A, level B
       curr_expoarray[kanal] = buffer[pos + EXPO_OFFSET]; // expo A, expo B
       
-     
-      curr_funktionarray[kanal] = buffer[pos + FUNKTION_OFFSET]; // funktion, device
-      */
+      curr_statusarray[kanal] = buffer[pos + FUNKTION_OFFSET]; // funktion, device
+      
       Serial.printf("Kanal: %d \n",kanal);
       for (uint8_t i = 0;i<4;i++)
       {
@@ -1065,9 +1068,12 @@ void setup()
 {
    Serial.begin(9600);
   // Wait for USB Serial
-  while (!Serial) {
+   /*
+  while (!Serial) 
+    {
     yield();
   }
+    */
   // pinMode(LOOPLED, OUTPUT);
    pinMode(LOOPLED, OUTPUT);
 //   dog_7565R DOG;
@@ -1140,9 +1146,9 @@ void setup()
    
    // Servopakete starten
    
-   servoimpulsTimer.priority(3);
+   servoimpulsTimer.priority(1);
    kanalimpulsTimer.priority(2);
-   servopaketTimer.priority(1);
+//   servopaketTimer.priority(1);
    
    servopaketTimer.begin(servopaketfunktion, 25000);
    
@@ -1267,18 +1273,34 @@ void loop()
       if (curr_screen )
       {
          //update_sendezeit();
+         
+         //display_setcursorblink(sendesekunde);
+      }
+      if (manuellcounter)
+      {
          //display_setcursorblink(sendesekunde);
       }
       //Serial.printf("update Kanalscreen CC\n");
       //Serial.printf("motorsekunde: %d programmstatus: %d manuellcounter: %d\n",motorsekunde, programmstatus, manuellcounter);
       
+      if (sendesekunde%20 == 0)
+      {
+         if (curr_screen == 0)
+         {
+           // refresh_homescreen(refreshcounter++ & 0x0f);
+         //refresh_screen();
+         }
+
+      }
+      
+      
       if (sendesekunde == 60)
       {
          sendeminute++;
          sendesekunde = 0;
-         if (curr_screen == 0)
+         if ((sendeminute%2) && (curr_screen == 0))
          {
-         refresh_screen();
+            refresh_screen();
          }
       }
       if (sendeminute == 60)
@@ -1303,7 +1325,6 @@ void loop()
          }
          if (curr_screen == 0)
          {
-            //update_time();
          }
          
       }
@@ -1346,12 +1367,33 @@ void loop()
    
    if (sinceblink > 500) 
    {   
+      
       //Serial.printf("send usb: pot0 %d\n",pot0);
       
       //digitalWrite(OSZI_PULS_A, !digitalRead(OSZI_PULS_A));
       manuellcounter++;
+      /*
+      if (blink_cursorpos < 0xFFFF)
+      {
+         if (updatestatus & (1<<BLINK))
+         {
+            display_cursorblink(1);
+         }
+         else
+         {
+            display_cursorblink(0);
+         }
+
+         updatestatus ^= (1<<BLINK);
+      }
+      else
+      {
+         updatestatus &= ~(1<<BLINK);
+      }
+       */
       //Serial.printf("manuellcounter: %d\n",manuellcounter);
       sinceblink = 0;
+      
       //Serial.printf("paketcounter %d  startcounter: %d loopcounter: %d \n",paketcounter,startcounter, loopcounter);
       if (programmstatus & (1<<SETTINGWAIT))
       {
@@ -1487,7 +1529,7 @@ void loop()
                uint16_t potwert = adc->adc0->analogRead(adcpinarray[i]);
                //uint16_t potwert = adc->adc0->analogRead(14);
                //float ppmfloat = PPMLO + quot *(float(potwert) - POTLO);
-
+               //adcerrarray[i] = potwert;
                float ppmfloat = PPMLO + quotarray[i] *(float(potwert) - potgrenzearray[i][0]);
                uint16_t ppmint = uint16_t(ppmfloat);
                if (i == 0)
@@ -1501,7 +1543,7 @@ void loop()
                uint16_t ppmabs  = 0;  
                uint16_t expoint  = 0;  
                
-               if (i < 2)
+               if (i < 3)
                {
                   float mittefloat = float( servomittearray[i]);
                   
@@ -1537,8 +1579,9 @@ void loop()
                       //  Serial.printf("servo %d potwert: %d    ppmint: %d ppmabs: %d expo: %d expoint: %d displaycounter: %d\n",i,potwert,ppmint,ppmabs, expo, expoint,displaycounter);
                      }
                   }
+                  impulstimearray[i] = expoint;
                }                 
-               impulstimearray[i] = expoint;
+               
                //impulstimearray[i] = ppmint;
                //impulstimearray[i] = potwert;
             }
@@ -1631,6 +1674,8 @@ void loop()
          if (curr_screen == 0)
          {
             update_time(updatecounter & 0x0f);
+            //refresh_homescreen(updatecounter & 0xFF);
+            //
          }
          if (updatecounter & 0x80)
          {
@@ -1652,6 +1697,7 @@ void loop()
       //Serial.printf("usb senderfolg: %d \n");
       //Serial.printf("+B+\n");
       servostatus |= (1<<USB_OK);
+   //   Serial.printf("%d\t%d\t%d  \n",adcerrarray[1],adcerrarray[2],adcerrarray[3]);
    }
    
 #pragma mark - Tasten   
@@ -1727,7 +1773,7 @@ void loop()
                         //lcd_gotoxy(0,1);
                         if (curr_cursorzeile ) // curr_cursorzeile ist >0,
                         {
-                           display_cursorweg();
+                           //display_cursorweg();
                            last_cursorzeile =curr_cursorzeile;
                            
                            curr_cursorzeile--;
@@ -4060,12 +4106,10 @@ void loop()
                      programmstatus &= ~(1<<MOTOR_ON);
                      motorsekunde=0;
                      motorminute=0;
-                     //update_time();
           //*           update_motorzeit();
                      
                   }
                   manuellcounter=0; // timeout zuruecksetzen
-                  //update_time();
                }
             }
          }break;
@@ -4726,7 +4770,6 @@ void loop()
                   programmstatus &= ~(1<<STOP_ON);
                   stopsekunde=0;
                   stopminute=0;
-                  //update_time();
       //*            update_stopzeit();
                }
                manuellcounter=0; // timeout zuruecksetzen
