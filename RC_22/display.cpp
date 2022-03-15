@@ -250,7 +250,7 @@ void sethomescreen(void)
    posregister[4][1] = (80+OFFSET_6_UHR) | (3 << 10); // Text Setting
    posregister[4][2] = (100+OFFSET_6_UHR) | (3 << 10); // Anzeige Setting
 
-   cursorpos[0][1] = cursortab[0] |    (8 << 10); //  cursorpos fuer setting
+   cursorpos[0][1] = cursortab[0] |    (8 << 10); //  cursorpos fuer Menu
    
    // positionen lesen
    // titel setzen

@@ -3821,7 +3821,7 @@ void loop()
                            display_clear();
                            
                            curr_cursorspalte=0;
-                           //curr_cursorzeile=0;
+                           curr_cursorzeile=8;
                            last_cursorspalte=0;
                            //last_cursorzeile=0;
                            blink_cursorpos = 0xFFFF;
@@ -4091,10 +4091,17 @@ void loop()
                      if (blink_cursorpos == 0xFFFF && manuellcounter) // Kein Blinken
                      {
                         
-                     }
-                     else
-                     {
+                        Serial.printf("T8 homescreen no blink curr_cursorzeile: %d\n",curr_cursorzeile);
+                        /*
+                        curr_cursorzeile=8;
+                        blink_cursorpos = cursorpos[curr_cursorzeile][curr_cursorspalte];
+                        manuellcounter=0;
+                         */
                         
+                     }
+                     else if (manuellcounter)
+                     {
+                        Serial.printf("T8 homescreen blink\n");
                      }
                      // lcd_gotoxy(14,2);
                      // lcd_puts("*H8*");
