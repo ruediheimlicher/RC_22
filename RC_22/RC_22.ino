@@ -1276,9 +1276,9 @@ void loop()
          
          //display_setcursorblink(sendesekunde);
       }
-      if (manuellcounter)
+      if (manuellcounter && (blink_cursorpos < 0xFFFF))
       {
-         //display_setcursorblink(sendesekunde);
+         display_setcursorblink(sendesekunde);
       }
       //Serial.printf("update Kanalscreen CC\n");
       //Serial.printf("motorsekunde: %d programmstatus: %d manuellcounter: %d\n",motorsekunde, programmstatus, manuellcounter);
@@ -1543,7 +1543,7 @@ void loop()
                uint16_t ppmabs  = 0;  
                uint16_t expoint  = 0;  
                
-               if (i < 3)
+               if (i < 4)
                {
                   float mittefloat = float( servomittearray[i]);
                   
@@ -3884,7 +3884,7 @@ void loop()
                               curr_screen=HOMESCREEN;
                               sethomescreen();
                               programmstatus &= ~(1<<UPDATESCREEN);
-                           
+                              blink_cursorpos = 0xFFFF;
                            }
                            
                            
@@ -3915,6 +3915,7 @@ void loop()
                               last_cursorzeile=0;
                               curr_screen=SETTINGSCREEN;
                               setsettingscreen();
+                             
                            }
                            else
                            {
