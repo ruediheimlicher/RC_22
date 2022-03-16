@@ -452,7 +452,7 @@ void read_Ext_EEPROM_Settings(void)
    
    // Mix lesen
    //cli();
-    readstartadresse = TASK_OFFSET  + MIX_OFFSET + modelindex*SETTINGBREITE;
+    readstartadresse = TASK_OFFSET  + FUNKTION_OFFSET + modelindex*SETTINGBREITE;
    //sei();
    /*
    lcd_gotoxy(0,0);
@@ -590,7 +590,7 @@ void write_Ext_EEPROM_Settings(void)
       
       // Mix schreiben
       cli();
-      writestartadresse = TASK_OFFSET  + MIX_OFFSET + modelindex*SETTINGBREITE;
+      writestartadresse = TASK_OFFSET  + FUNKTION_OFFSET + modelindex*SETTINGBREITE;
       sei();
       /*
        lcd_gotoxy(0,0);
@@ -976,7 +976,6 @@ uint8_t  decodeUSBChannelSettings(uint8_t buffer[USB_DATENBREITE])
 
    uint8_t kanalindex =  buffer[USB_DATA_OFFSET + modelindex * KANALSETTINGBREITE] & 0x70; // Bits 4,5,6
    
-   
    uint8_t on = (buffer[USB_DATA_OFFSET + modelindex * KANALSETTINGBREITE] & 0x08) >>8; // Bit 3
    uint8_t pos = USB_DATA_OFFSET;
     // Byte 0: Modell, ON, Kanalindex, RI
@@ -989,18 +988,34 @@ uint8_t  decodeUSBChannelSettings(uint8_t buffer[USB_DATENBREITE])
          kanalsettingarray[modelindex][kanal][dataindex] = buffer[pos + dataindex];
          
          EEPROM.write(modelindex * MODELSETTINGBREITE + kanal * KANALSETTINGBREITE + dataindex,buffer[pos + dataindex]);
-         
-         //Serial.printf("kanal: %d dataindex: %d data: %d \n",kanal, dataindex, buffer[pos + dataindex]);
+         if (kanal==0)
+         {
+         Serial.printf("kanal: %d dataindex: %d **  data: %d \n",kanal, dataindex, buffer[pos + dataindex]);
+         }
       }
-      /*
+      if (kanal==0)
+      {
       // aktuelle Werte setzen
+      Serial.printf("curr_statusarray: %d\t",buffer[pos] );
+      curr_statusarray[kanal] = buffer[pos ]; // Modell, ON, Kanal, RI
+         
+      Serial.printf("curr_levelarray: %d\t",buffer[pos+ 1]);
+      curr_levelarray[kanal] = buffer[pos + 1]; // level A, level B
+         
+      Serial.printf("curr_expoarray: %d\t",buffer[pos + 2]);
+      curr_expoarray[kanal] = buffer[pos + 2]; // expo A, expo B
+         
+      Serial.printf("curr_funktionarray: %d\n",buffer[pos + 3]);
+      curr_devicearray[kanal] = buffer[pos + 3]; // funktion, device
+      }
+      
+      /*
+      
       curr_statusarray[kanal] = buffer[pos] + STATUS_OFFSET; // Modell, ON, Kanal, RI
       curr_levelarray[kanal] = buffer[pos + LEVEL_OFFSET]; // level A, level B
       curr_expoarray[kanal] = buffer[pos + EXPO_OFFSET]; // expo A, expo B
-      
-     
-      curr_funktionarray[kanal] = buffer[pos + FUNKTION_OFFSET]; // funktion, device
-      */
+       curr_devicearray[kanal] = buffer[pos + FUNKTION_OFFSET]; // funktion, device
+     */
       /*
       Serial.printf("Kanal: %d \n",kanal);
       for (uint8_t i = 0;i<4;i++)
@@ -1388,6 +1403,7 @@ void loop()
    // MARK:  -  sinc > 500
    if (sinceblink > 500) 
    {   
+      //Serial.printf("pot0 %d pot1 %d\n",impulstimearray[0], impulstimearray[1]);
       if (manuellcounter && (blink_cursorpos < 0xFFFF))
       {
          display_setcursorblink(updatecounter);
@@ -1544,10 +1560,12 @@ void loop()
                }
                if (i < 4)
                {
+               //Serial.printf("pot %d pot1 %d\t",i, ppmint);
                sendbuffer[ADCOFFSET + 2*i] = (ppmint & 0x00FF); // LO
                sendbuffer[ADCOFFSET + 2*i + 1] = (ppmint & 0xFF00)>>8; // Hi
                }
-               //Serial.printf("pot0 %d\n",pot0);
+               
+               //Serial.printf("pot0 %d pot1 %d\n",pot0, pot1);
                uint16_t expo  = 0;  
                uint16_t ppmabs  = 0;  
                uint16_t expoint  = 0;  
@@ -1589,8 +1607,9 @@ void loop()
                      }
                   }
                   impulstimearray[i] = expoint;
-               }                 
-               
+                  
+                }                 
+               //Serial.printf("pot0 %d pot1 %d\n",impulstimearray[0], impulstimearray[1]);
                //impulstimearray[i] = ppmint;
                //impulstimearray[i] = potwert;
             }
@@ -4884,7 +4903,7 @@ void loop()
                   
                }break;
                   
-                  // MARK: F4 read Sendersettings
+               // MARK: F4 Fix Sendersettings
                case 0xF4: // Fix Sendersettings
                {
                   /*
@@ -4894,7 +4913,7 @@ void loop()
                    
                    */
                   Serial.printf("0xF4\n");
-                  for (uint8_t i=0;i<32;i++)
+                  for (uint8_t i=4;i<32;i++)
                   {
                      Serial.printf("\t%d",buffer[i]);
                      if (i==15)
@@ -4910,12 +4929,13 @@ void loop()
                   uint8_t modelindex =0;
                   modelindex = buffer[USB_DATA_OFFSET + modelindex * KANALSETTINGBREITE] & 0x03; // Bit 0,1 welches model soll gelesen werden
                   Serial.printf("modelindex: %d ",modelindex);
-                  uint8_t kanalindex =  buffer[USB_DATA_OFFSET + modelindex * KANALSETTINGBREITE] & 0x70; // Bits 4,5,6
+                  uint8_t kanalindex =  (buffer[USB_DATA_OFFSET + modelindex * KANALSETTINGBREITE] & 0x70) >> 4; // Bits 4,5,6
                   uint8_t pos=0;
                   Serial.printf("kanalindex: %d ",kanalindex);
-                  uint8_t on = buffer[USB_DATA_OFFSET + modelindex * KANALSETTINGBREITE] & 0x08; // Bit 3
-                  Serial.printf("on: %d ",on);
-                  // level
+                  uint8_t on = (buffer[USB_DATA_OFFSET + modelindex * KANALSETTINGBREITE] & 0x08) >>3; // Bit 3
+                  Serial.printf("on: %d  ",on);
+                  uint8_t richtung = (buffer[USB_DATA_OFFSET + modelindex * KANALSETTINGBREITE] & 0x80) >>7; // Bit 7
+                  Serial.printf("richtung: %d \n",richtung);
                   
                   
                   

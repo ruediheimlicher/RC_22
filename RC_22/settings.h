@@ -100,8 +100,7 @@
 #define  STATUS_OFFSET     0 
 #define  LEVEL_OFFSET      1 //0x20 // 32
 #define  EXPO_OFFSET       2 //0x30 // 48
-#define  MIX_OFFSET        3 // 0x40 // 64
-#define FUNKTION_OFFSET    4 // 96
+#define  FUNKTION_OFFSET    3 // 96
 
 
 #define DEVICE_OFFSET      0x70 // 122

@@ -451,7 +451,7 @@ void setcanalscreen(void)
   // Serial.printf("setcanalscreen curr_screen: %d\n",curr_screen);
    for (uint8_t i=0;i<10;i++)
    {
-      Serial.printf("%d cur %d item %d\n",i,cursortab[i],itemtab[i]); 
+     // Serial.printf("%d cur %d item %d\n",i,cursortab[i],itemtab[i]); 
    }
    /*
     #define itemtab0  12
@@ -479,7 +479,7 @@ void setcanalscreen(void)
    posregister[0][7] =  itemtab[7] |    (1 << 10); // 
    for (uint8_t pos = 0;pos < 6; pos++)
    {
-      Serial.printf("pos: %d posregister: %d  itemtab: %d \n",pos, posregister[0][pos],itemtab[pos]);
+      //Serial.printf("pos: %d posregister: %d  itemtab: %d \n",pos, posregister[0][pos],itemtab[pos]);
    }
    // level
    posregister[1][0] =  itemtab[2] |    (2 << 10); // Leveltext
