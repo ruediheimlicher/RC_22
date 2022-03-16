@@ -951,19 +951,21 @@ uint16_t eeprompartschreiben(void) // 23 ms
    return result;
 }
 
-uint8_t encodeUSBChannelSettings(uint8_t modelindex)
+uint8_t* encodeUSBChannelSettings(uint8_t modelindex)
 {
+   uint8_t usbarray[USB_DATENBREITE] = {};
+      
    for (uint8_t kanal = 0;kanal < 8;kanal++)
    {
       for (uint8_t dataindex = 0;dataindex < 4;dataindex++)
       {
-         
          uint8_t data = EEPROM.read(modelindex * MODELSETTINGBREITE + kanal * KANALSETTINGBREITE + dataindex);
          sendbuffer[USB_DATA_OFFSET + kanal * KANALSETTINGBREITE + dataindex] = data; //EEPROM.read(modelindex * MODELSETTINGBREITE + kanal * KANALSETTINGBREITE + dataindex,buffer[USB_DATA_OFFSET + kanal * KANALSETTINGBREITE + dataindex]);
+         usbarray[USB_DATA_OFFSET + kanal * KANALSETTINGBREITE + dataindex] = data;
          //Serial.printf("kanal: %d dataindex: %d data: %d \n", kanal, dataindex,data);
       } // for dataindex
    } // for kanal
-   return 0;
+   return usbarray;
 }
 
 uint8_t  decodeUSBChannelSettings(uint8_t buffer[USB_DATENBREITE])
@@ -999,30 +1001,35 @@ uint8_t  decodeUSBChannelSettings(uint8_t buffer[USB_DATENBREITE])
      
       curr_funktionarray[kanal] = buffer[pos + FUNKTION_OFFSET]; // funktion, device
       */
+      /*
       Serial.printf("Kanal: %d \n",kanal);
       for (uint8_t i = 0;i<4;i++)
       {
          Serial.printf("%d ", kanalsettingarray[modelindex][kanal][i]);
       }
       Serial.printf("\n");
-      
+      */
       //Serial.printf("Kanal: %d \nkanalsettingarray: %d \n",kanal, kanalsettingarray[modelindex][kanal]);
       pos += KANALSETTINGBREITE;
     }
    
    _delay_ms(1);
    
-   encodeUSBChannelSettings(0);
+   uint8_t* eepromarray = encodeUSBChannelSettings(0);
+   sendbuffer[0] = 0xF5;
+   
    Serial.printf("USB \n");
    for (uint8_t i = 0;i<USB_DATENBREITE;i++)
    {
-      Serial.printf("i: %d usbdata: %d\n",i,sendbuffer[i]);
+      //Serial.printf("i: %d usbdata: %d\t",i,sendbuffer[i]);
+      Serial.printf("%d\t",sendbuffer[i]);
    }
-   return 1;
+   Serial.printf("\n");
+   uint8_t senderfolg = usb_rawhid_send((void*)sendbuffer, 50);
+   Serial.printf("decodeUSBChannelSettings senderfolg: %d\n",senderfolg);
+   return senderfolg;
    
-   // funktion lesen
-   uint16_t readstartadresse = TASK_OFFSET  + FUNKTION_OFFSET + modelindex*SETTINGBREITE;
-
+  
    
 }// decodeUSBChannelSettings
 
@@ -1285,10 +1292,12 @@ void loop()
          
       } // for servo
       
+      /*
       for (uint8_t i=0;i<8;i++)
       {
          Serial.printf("i: %d curr_levelarray: %d curr_funktionarray %d: \n",i,curr_levelarray[i],curr_funktionarray[i]);
       }
+       */
    }
    // MARK:  -  sinc > 1000
    if (sincelastseccond > 1000)
@@ -1533,8 +1542,11 @@ void loop()
                {
                   pot0 = ppmint;
                }
-               sendbuffer[DATAOFFSET + 2*i] = (ppmint & 0x00FF); // LO
-               sendbuffer[DATAOFFSET + 2*i + 1] = (ppmint & 0xFF00)>>8; // Hi
+               if (i < 4)
+               {
+               sendbuffer[ADCOFFSET + 2*i] = (ppmint & 0x00FF); // LO
+               sendbuffer[ADCOFFSET + 2*i + 1] = (ppmint & 0xFF00)>>8; // Hi
+               }
                //Serial.printf("pot0 %d\n",pot0);
                uint16_t expo  = 0;  
                uint16_t ppmabs  = 0;  
@@ -4848,11 +4860,11 @@ void loop()
                Serial.printf("%d\t",buffer[i]);
             }
             */
-            Serial.printf("\n***************************************  --->    rawhid_recv start code HEX: %02X\n",code);
+            Serial.printf("\n***************************************  --->    rawhid_recv begin code HEX: %02X\n",code);
             //Serial.printf("code: %d\n",code);
             usb_recv_counter++;
-            uint8_t device = buffer[32];
-            sendbuffer[24] =  buffer[32];
+          //  uint8_t device = buffer[32];
+          //  sendbuffer[24] =  buffer[32];
             
             switch (code)
             {   
@@ -4908,7 +4920,7 @@ void loop()
                   
                   
                   break;
-                  
+                  /*
                   // funktion lesen
                   uint16_t readstartadresse = TASK_OFFSET  + FUNKTION_OFFSET + modelindex*SETTINGBREITE;
                   // startadresse fuer Settings des models
@@ -4942,12 +4954,13 @@ void loop()
                   sendbuffer[0] = 0xFD;
                   
                   usb_rawhid_send((void*)sendbuffer, 50);
-                  
+                  */
                }
                   
                   // MARK: FD read Sendersettings
                case 0xFD: // read Sendersettings
                {
+                  Serial.printf("0xFD\n");
                   /*
                    FUNKTION_OFFSET    0x60 // 96
                    DEVICE_OFFSET      0x70 // 122

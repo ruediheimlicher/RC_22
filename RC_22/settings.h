@@ -146,7 +146,7 @@
 
 // USB
 #define DATAOFFSET   8
-
+#define ADCOFFSET   48
 // Ramp
 #define RAMP_OK      1 // Ramp einschalten
 #define RAMPFAKTOR   2 // Verlaengerung der delayzeit
