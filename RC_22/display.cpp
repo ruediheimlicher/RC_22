@@ -63,11 +63,10 @@ extern volatile uint16_t      motorsekunde;
 extern volatile uint8_t       curr_levelarray[8];
 extern volatile uint8_t       curr_expoarray[8];
 extern volatile uint8_t       curr_mixarray[8];
-extern volatile uint8_t       curr_funktionarray[8];
+extern volatile uint8_t       curr_devicearray[8];
 extern volatile uint8_t       curr_statusarray[8];
 extern volatile uint8_t       curr_ausgangarray[8];
 
-extern volatile uint8_t       curr_devicearray[8];
 
 extern volatile int8_t        curr_trimmungarray[8];
 
@@ -841,7 +840,7 @@ void setzuteilungscreen(void)
    
    for (kanalindex=0;kanalindex<8;kanalindex++)
    {
-      uint8_t deviceindex = ((curr_funktionarray[kanalindex] & 0x70)>>4); // aktuelles device fuer kanal, bit 4-6
+      uint8_t deviceindex = ((curr_devicearray[kanalindex] & 0x70)>>4); // aktuelles device fuer kanal, bit 4-6
       // Kanal an deviceindex einsetzen
       curr_statusarray[deviceindex] = kanalindex ;
    }
@@ -1462,12 +1461,12 @@ uint8_t refresh_screen(void)
             
             // Funktion anzeigen // Bit 0-2 !!
             // !! Funktion ist bit 0-2 , Steuerdevice ist bit 4-6!!
-            //strcpy(menubuffer, ((FunktionTable[(curr_funktionarray[curr_kanal]&0x07)])));
+            //strcpy(menubuffer, ((FunktionTable[(curr_devicearray[curr_kanal]&0x07)])));
             
             
             char_y= (posregister[0][4] & 0xFF00)>> 10;
             char_x = posregister[0][4] & 0x00FF;
-            //display_write_str(FunktionTable[(curr_funktionarray[curr_kanal]&0x07)],2);
+            //display_write_str(FunktionTable[(curr_devicearray[curr_kanal]&0x07)],2);
             
             // levelwert A anzeigen
             char_y= (posregister[1][2] & 0xFF00)>> 10;
@@ -1535,7 +1534,7 @@ uint8_t refresh_screen(void)
             char_height_mul = 1;
             char_width_mul = 1;
             
-            // PGM_P typsymbol = (&(steuertyp[curr_funktionarray[curr_kanal]]));
+            // PGM_P typsymbol = (&(steuertyp[curr_devicearray[curr_kanal]]));
             
             uint8_t kanaltyp =(curr_expoarray[curr_kanal] & 0x0C)>>2;
             char typsymbol = steuertyp[kanaltyp];
@@ -1644,7 +1643,7 @@ uint8_t refresh_screen(void)
                // Funktion anzeigen
                // Funktion fuer Seite A:
                canalnummera = ((curr_mixarray[0] & 0xF0)>>4);
-                // index in curr_funktionarray: Kanalnummer von Seite A: (curr_mixarray[0] & 0x70)>>4]], Bit 4,5
+                // index in curr_devicearray: Kanalnummer von Seite A: (curr_mixarray[0] & 0x70)>>4]], Bit 4,5
               
                if (canalnummera < 8)
                {
@@ -1668,7 +1667,7 @@ uint8_t refresh_screen(void)
                // Funktion anzeigen
                // Funktion fuer Seite B:
                canalnummerb = (curr_mixarray[0] & 0x0F);
-               // index in curr_funktionarray: Kanalnummer von Seite B: (curr_mixarray[0] & 0x70)]], Bit 0,1
+               // index in curr_devicearray: Kanalnummer von Seite B: (curr_mixarray[0] & 0x70)]], Bit 0,1
                if (canalnummerb < 8)
                {
                   display_write_int((curr_mixarray[0] & 0x0F),2);// Kanalnummer B, von geradem Index
@@ -1721,7 +1720,7 @@ uint8_t refresh_screen(void)
                   display_write_int(((curr_mixarray[2] & 0xF0)>>4),2); // Kanalnummer A, von geradem Index
                   display_write_str(": ",2);
                   
-               // index in curr_funktionarray: Kanalnummer von Seite A: (curr_mixarray[0] & 0x70)>>4]], Bit 4,5
+               // index in curr_devicearray: Kanalnummer von Seite A: (curr_mixarray[0] & 0x70)>>4]], Bit 4,5
                   //strcpy(menubuffer, (&(FunktionTable[canalnummera]))); // Funktion
                   display_write_str(FunktionTable[canalnummera],1);
                }
@@ -1740,7 +1739,7 @@ uint8_t refresh_screen(void)
                // Funktion anzeigen
                // Funktion fuer Seite B:
                
-               // index in curr_funktionarray: Kanalnummer von Seite B: (curr_mixarray[0] & 0x70)]], Bit 0,1
+               // index in curr_devicearray: Kanalnummer von Seite B: (curr_mixarray[0] & 0x70)]], Bit 0,1
                if (canalnummerb<8)
                {
                   display_write_int((curr_mixarray[2] & 0x0F),2);// Kanalnummer B, von geradem Index
@@ -1816,7 +1815,7 @@ uint8_t refresh_screen(void)
             uint8_t kanalindex=0;
             for (kanalindex=0;kanalindex<8;kanalindex++)
             {
-               uint8_t deviceindex = ((curr_funktionarray[kanalindex] & 0x70)>>4); // aktuelles device fuer kanal, bit 4-6
+               uint8_t deviceindex = ((curr_devicearray[kanalindex] & 0x70)>>4); // aktuelles device fuer kanal, bit 4-6
                // Kanal an deviceindex einsetzen
  //              curr_statusarray[deviceindex] = kanalindex ;
             }
@@ -1836,11 +1835,11 @@ uint8_t refresh_screen(void)
             // Display-Position Funktion
             char_y= (posregister[0][1] & 0xFF00)>> 10;
             char_x = (posregister[0][1] & 0x00FF);
-            // Funktionnummer: aktueller wert in curr_funktionarray auf Zeile canalnummer
-            uint8_t funktionnummer= curr_funktionarray[canalnummer]&0x07;
+            // Funktionnummer: aktueller wert in curr_devicearray auf Zeile canalnummer
+            uint8_t funktionnummer= curr_devicearray[canalnummer]&0x07;
             
-            // index der Devicenummer (1 fuer L_V) in curr_funktionarray einsetzen: bit 4-6
-            curr_funktionarray[canalnummer] = 0x10 | (curr_funktionarray[canalnummer]&0x0F);
+            // index der Devicenummer (1 fuer L_V) in curr_devicearray einsetzen: bit 4-6
+            curr_devicearray[canalnummer] = 0x10 | (curr_devicearray[canalnummer]&0x0F);
             
             // Name der Funktion schreiben
             //strcpy(menubuffer, (&(FunktionTable[funktionnummer]))); // L_V
@@ -1859,10 +1858,10 @@ uint8_t refresh_screen(void)
             // Display-Position Funktion
             char_y= (posregister[0][3] & 0xFF00)>> 10;
             char_x = (posregister[0][3] & 0x00FF);
-            funktionnummer= curr_funktionarray[canalnummer]&0x07;
+            funktionnummer= curr_devicearray[canalnummer]&0x07;
             
-            // index der Devicenummer in curr_funktionarray einsetzen: bit 4-6
-            curr_funktionarray[canalnummer] = 0x30 | (curr_funktionarray[canalnummer]&0x0F);
+            // index der Devicenummer in curr_devicearray einsetzen: bit 4-6
+            curr_devicearray[canalnummer] = 0x30 | (curr_devicearray[canalnummer]&0x0F);
 
             // Name der Funktion schreiben
             //strcpy(menubuffer, (&(FunktionTable[funktionnummer]))); // R_V
@@ -1877,10 +1876,10 @@ uint8_t refresh_screen(void)
             char_x = (posregister[1][0] & 0x00FF);
             canalnummer = ((curr_statusarray[0]& 0x07));
             display_write_int(canalnummer,1);// Kanalnummer L_H,
-            funktionnummer= curr_funktionarray[canalnummer]&0x07;
+            funktionnummer= curr_devicearray[canalnummer]&0x07;
  
-            // index der Devicenummer in curr_funktionarray einsetzen: bit 4-6
-            curr_funktionarray[canalnummer] = 0x00 | (curr_funktionarray[canalnummer]&0x0F);
+            // index der Devicenummer in curr_devicearray einsetzen: bit 4-6
+            curr_devicearray[canalnummer] = 0x00 | (curr_devicearray[canalnummer]&0x0F);
             
             char_y = (posregister[1][1] & 0xFF00)>> 10;
             char_x = (posregister[1][1] & 0x00FF);
@@ -1894,10 +1893,10 @@ uint8_t refresh_screen(void)
             char_x = (posregister[1][2] & 0x00FF);
             canalnummer =((curr_statusarray[2]& 0x07));
             display_write_int(canalnummer,1);// Kanalnummer R_H,
-            funktionnummer= curr_funktionarray[canalnummer]&0x07;
+            funktionnummer= curr_devicearray[canalnummer]&0x07;
             
-            // index der Devicenummer in curr_funktionarray einsetzen: bit 4-6
-            curr_funktionarray[canalnummer] = 0x20 | (curr_funktionarray[canalnummer]&0x0F);
+            // index der Devicenummer in curr_devicearray einsetzen: bit 4-6
+            curr_devicearray[canalnummer] = 0x20 | (curr_devicearray[canalnummer]&0x0F);
             
             char_y = (posregister[1][3] & 0xFF00)>> 10;
             char_x = (posregister[1][3] & 0x00FF);
@@ -1912,7 +1911,7 @@ uint8_t refresh_screen(void)
             char_x = (posregister[2][0] & 0x00FF);
             canalnummer = ((curr_statusarray[4]& 0x07));
             display_write_int(canalnummer,1);// Schieber l,
-            funktionnummer= curr_funktionarray[canalnummer]&0x07;
+            funktionnummer= curr_devicearray[canalnummer]&0x07;
             // Position Funktion
             char_y = (posregister[2][1] & 0xFF00)>> 10;
             char_x = (posregister[2][1] & 0x00FF);
@@ -1924,9 +1923,9 @@ uint8_t refresh_screen(void)
             char_x = (posregister[2][2] & 0x00FF);
             canalnummer = ((curr_statusarray[5]& 0x07));
             display_write_int(canalnummer,1);// Schieber l,
-            funktionnummer= curr_funktionarray[canalnummer]&0x07;
-            // index der Devicenummer in curr_funktionarray einsetzen: bit 4-6
-  //          curr_funktionarray[canalnummer] = 0x10 | (curr_funktionarray[canalnummer]&0x07);
+            funktionnummer= curr_devicearray[canalnummer]&0x07;
+            // index der Devicenummer in curr_devicearray einsetzen: bit 4-6
+  //          curr_devicearray[canalnummer] = 0x10 | (curr_devicearray[canalnummer]&0x07);
             
 
             // Position Funktion
@@ -2023,11 +2022,11 @@ uint8_t refresh_screen(void)
                
                // Devicenummer
                char_x = spaltenarray[2];
-               //display_write_int((curr_funktionarray[canalnummer]&0x70)>>4,1);
+               //display_write_int((curr_devicearray[canalnummer]&0x70)>>4,1);
                //uint8_t devicenummer = curr_statusarray[impulsindex]&0x07;
                
                //devicenummer ist im funktionarray bit 4-6. Wird in Zuteilung gesetzt
-               uint8_t devicenummer = (curr_funktionarray[canalnummer]&0x70)>>4;
+               uint8_t devicenummer = (curr_devicearray[canalnummer]&0x70)>>4;
                
                //display_write_int(devicenummer,1);
  
@@ -2036,7 +2035,7 @@ uint8_t refresh_screen(void)
                
                // Funktion
                char_x = spaltenarray[3];
-               uint8_t funktionnummer =(curr_funktionarray[canalnummer]&0x07);
+               uint8_t funktionnummer =(curr_devicearray[canalnummer]&0x07);
                //display_write_int(funktionnummer,1);
                
                //strcpy(menubuffer, (&(FunktionTable[funktionnummer])));
@@ -2387,7 +2386,7 @@ uint8_t update_screen(void)
            
             for (uint8_t i=0;i<8;i++)
             {
-          //     Serial.printf("i: %d  curr_funktionarray %d: \n",i,curr_funktionarray[i]);
+          //     Serial.printf("i: %d  curr_devicearray %d: \n",i,curr_devicearray[i]);
             }
             // kanalnummer
             char_y= (posregister[0][1] & 0xFF00)>> 10;
@@ -2477,7 +2476,7 @@ uint8_t update_screen(void)
             char_height_mul = 1;
             char_width_mul = 1;
             
-            // PGM_P typsymbol = (&(steuertyp[curr_funktionarray[curr_kanal]]));
+            // PGM_P typsymbol = (&(steuertyp[curr_devicearray[curr_kanal]]));
             
     //        uint8_t kanaltyp =(curr_expoarray[curr_kanal] & 0x0C)>>2;
     //        char typsymbol = steuertyp[kanaltyp];
@@ -2590,7 +2589,7 @@ uint8_t update_screen(void)
                // Funktion anzeigen
                // Funktion fuer Seite A:
                canalnummera = ((curr_mixarray[0] & 0xF0)>>4);
-                // index in curr_funktionarray: Kanalnummer von Seite A: (curr_mixarray[0] & 0x70)>>4]], Bit 4,5
+                // index in curr_devicearray: Kanalnummer von Seite A: (curr_mixarray[0] & 0x70)>>4]], Bit 4,5
               
                if (canalnummera < 8)
                {
@@ -2614,7 +2613,7 @@ uint8_t update_screen(void)
                // Funktion anzeigen
                // Funktion fuer Seite B:
                canalnummerb = (curr_mixarray[0] & 0x0F);
-               // index in curr_funktionarray: Kanalnummer von Seite B: (curr_mixarray[0] & 0x70)]], Bit 0,1
+               // index in curr_devicearray: Kanalnummer von Seite B: (curr_mixarray[0] & 0x70)]], Bit 0,1
                if (canalnummerb < 8)
                {
                   display_write_int((curr_mixarray[0] & 0x0F),2);// Kanalnummer B, von geradem Index
@@ -2667,7 +2666,7 @@ uint8_t update_screen(void)
                   display_write_int(((curr_mixarray[2] & 0xF0)>>4),2); // Kanalnummer A, von geradem Index
                   display_write_str(": ",2);
                   
-               // index in curr_funktionarray: Kanalnummer von Seite A: (curr_mixarray[0] & 0x70)>>4]], Bit 4,5
+               // index in curr_devicearray: Kanalnummer von Seite A: (curr_mixarray[0] & 0x70)>>4]], Bit 4,5
                   //strcpy(menubuffer, (&(FunktionTable[canalnummera]))); // Funktion
                   display_write_str(FunktionTable[canalnummera],1);
                }
@@ -2686,7 +2685,7 @@ uint8_t update_screen(void)
                // Funktion anzeigen
                // Funktion fuer Seite B:
                
-               // index in curr_funktionarray: Kanalnummer von Seite B: (curr_mixarray[0] & 0x70)]], Bit 0,1
+               // index in curr_devicearray: Kanalnummer von Seite B: (curr_mixarray[0] & 0x70)]], Bit 0,1
                if (canalnummerb<8)
                {
                   display_write_int((curr_mixarray[2] & 0x0F),2);// Kanalnummer B, von geradem Index
@@ -2762,7 +2761,7 @@ uint8_t update_screen(void)
             uint8_t kanalindex=0;
             for (kanalindex=0;kanalindex<8;kanalindex++)
             {
-               uint8_t deviceindex = ((curr_funktionarray[kanalindex] & 0x70)>>4); // aktuelles device fuer kanal, bit 4-6
+               uint8_t deviceindex = ((curr_devicearray[kanalindex] & 0x70)>>4); // aktuelles device fuer kanal, bit 4-6
                // Kanal an deviceindex einsetzen
  //              curr_statusarray[deviceindex] = kanalindex ;
             }
@@ -2782,11 +2781,11 @@ uint8_t update_screen(void)
             // Display-Position Funktion
             char_y= (posregister[0][1] & 0xFF00)>> 10;
             char_x = (posregister[0][1] & 0x00FF);
-            // Funktionnummer: aktueller wert in curr_funktionarray auf Zeile canalnummer
-            uint8_t funktionnummer= curr_funktionarray[canalnummer]&0x07;
+            // Funktionnummer: aktueller wert in curr_devicearray auf Zeile canalnummer
+            uint8_t funktionnummer= curr_devicearray[canalnummer]&0x07;
             
-            // index der Devicenummer (1 fuer L_V) in curr_funktionarray einsetzen: bit 4-6
-            curr_funktionarray[canalnummer] = 0x10 | (curr_funktionarray[canalnummer]&0x0F);
+            // index der Devicenummer (1 fuer L_V) in curr_devicearray einsetzen: bit 4-6
+            curr_devicearray[canalnummer] = 0x10 | (curr_devicearray[canalnummer]&0x0F);
             
             // Name der Funktion schreiben
             //strcpy(menubuffer, (&(FunktionTable[funktionnummer]))); // L_V
@@ -2805,10 +2804,10 @@ uint8_t update_screen(void)
             // Display-Position Funktion
             char_y= (posregister[0][3] & 0xFF00)>> 10;
             char_x = (posregister[0][3] & 0x00FF);
-            funktionnummer= curr_funktionarray[canalnummer]&0x07;
+            funktionnummer= curr_devicearray[canalnummer]&0x07;
             
-            // index der Devicenummer in curr_funktionarray einsetzen: bit 4-6
-            curr_funktionarray[canalnummer] = 0x30 | (curr_funktionarray[canalnummer]&0x0F);
+            // index der Devicenummer in curr_devicearray einsetzen: bit 4-6
+            curr_devicearray[canalnummer] = 0x30 | (curr_devicearray[canalnummer]&0x0F);
 
             // Name der Funktion schreiben
             //strcpy(menubuffer, (&(FunktionTable[funktionnummer]))); // R_V
@@ -2823,10 +2822,10 @@ uint8_t update_screen(void)
             char_x = (posregister[1][0] & 0x00FF);
             canalnummer = ((curr_statusarray[0]& 0x07));
             display_write_int(canalnummer,1);// Kanalnummer L_H,
-            funktionnummer= curr_funktionarray[canalnummer]&0x07;
+            funktionnummer= curr_devicearray[canalnummer]&0x07;
  
-            // index der Devicenummer in curr_funktionarray einsetzen: bit 4-6
-            curr_funktionarray[canalnummer] = 0x00 | (curr_funktionarray[canalnummer]&0x0F);
+            // index der Devicenummer in curr_devicearray einsetzen: bit 4-6
+            curr_devicearray[canalnummer] = 0x00 | (curr_devicearray[canalnummer]&0x0F);
             
             char_y = (posregister[1][1] & 0xFF00)>> 10;
             char_x = (posregister[1][1] & 0x00FF);
@@ -2840,10 +2839,10 @@ uint8_t update_screen(void)
             char_x = (posregister[1][2] & 0x00FF);
             canalnummer =((curr_statusarray[2]& 0x07));
             display_write_int(canalnummer,1);// Kanalnummer R_H,
-            funktionnummer= curr_funktionarray[canalnummer]&0x07;
+            funktionnummer= curr_devicearray[canalnummer]&0x07;
             
-            // index der Devicenummer in curr_funktionarray einsetzen: bit 4-6
-            curr_funktionarray[canalnummer] = 0x20 | (curr_funktionarray[canalnummer]&0x0F);
+            // index der Devicenummer in curr_devicearray einsetzen: bit 4-6
+            curr_devicearray[canalnummer] = 0x20 | (curr_devicearray[canalnummer]&0x0F);
             
             char_y = (posregister[1][3] & 0xFF00)>> 10;
             char_x = (posregister[1][3] & 0x00FF);
@@ -2858,7 +2857,7 @@ uint8_t update_screen(void)
             char_x = (posregister[2][0] & 0x00FF);
             canalnummer = ((curr_statusarray[4]& 0x07));
             display_write_int(canalnummer,1);// Schieber l,
-            funktionnummer= curr_funktionarray[canalnummer]&0x07;
+            funktionnummer= curr_devicearray[canalnummer]&0x07;
             // Position Funktion
             char_y = (posregister[2][1] & 0xFF00)>> 10;
             char_x = (posregister[2][1] & 0x00FF);
@@ -2870,9 +2869,9 @@ uint8_t update_screen(void)
             char_x = (posregister[2][2] & 0x00FF);
             canalnummer = ((curr_statusarray[5]& 0x07));
             display_write_int(canalnummer,1);// Schieber l,
-            funktionnummer= curr_funktionarray[canalnummer]&0x07;
-            // index der Devicenummer in curr_funktionarray einsetzen: bit 4-6
-  //          curr_funktionarray[canalnummer] = 0x10 | (curr_funktionarray[canalnummer]&0x07);
+            funktionnummer= curr_devicearray[canalnummer]&0x07;
+            // index der Devicenummer in curr_devicearray einsetzen: bit 4-6
+  //          curr_devicearray[canalnummer] = 0x10 | (curr_devicearray[canalnummer]&0x07);
             
 
             // Position Funktion
@@ -2969,11 +2968,11 @@ uint8_t update_screen(void)
                
                // Devicenummer
                char_x = spaltenarray[2];
-               //display_write_int((curr_funktionarray[canalnummer]&0x70)>>4,1);
+               //display_write_int((curr_devicearray[canalnummer]&0x70)>>4,1);
                //uint8_t devicenummer = curr_statusarray[impulsindex]&0x07;
                
                //devicenummer ist im funktionarray bit 4-6. Wird in Zuteilung gesetzt
-               uint8_t devicenummer = (curr_funktionarray[canalnummer]&0x70)>>4;
+               uint8_t devicenummer = (curr_devicearray[canalnummer]&0x70)>>4;
                
                //display_write_int(devicenummer,1);
  
@@ -2982,7 +2981,7 @@ uint8_t update_screen(void)
                
                // Funktion
                char_x = spaltenarray[3];
-               uint8_t funktionnummer =(curr_funktionarray[canalnummer]&0x07);
+               uint8_t funktionnummer =(curr_devicearray[canalnummer]&0x07);
                //display_write_int(funktionnummer,1);
                
                //strcpy(menubuffer, (&(FunktionTable[funktionnummer])));
