@@ -951,7 +951,7 @@ uint16_t eeprompartschreiben(void) // 23 ms
    return result;
 }
 
-uint8_t* encodeUSBChannelSettings(uint8_t modelindex)
+uint8_t* encodeEEPROMChannelSettings(uint8_t modelindex)
 {
    uint8_t usbarray[USB_DATENBREITE] = {};
       
@@ -968,6 +968,31 @@ uint8_t* encodeUSBChannelSettings(uint8_t modelindex)
    return usbarray;
 }
 
+// current settings in USB
+uint8_t encodeCurrentChannelSettings(uint8_t kanalindex, uint8_t modelindex)
+{
+   uint8_t usbarray[USB_DATENBREITE] = {0};
+   Serial.printf("encodeCurrentChannelSettings curr_statusarray: %d curr_levelarray: %d curr_expoarray: %d curr_devicearray: %d\n",curr_statusarray[kanalindex], curr_levelarray[kanalindex],curr_expoarray[kanalindex],curr_devicearray[kanalindex]);
+   
+   
+   sendbuffer[USB_DATA_OFFSET] = curr_statusarray[kanalindex];
+   sendbuffer[USB_DATA_OFFSET + 1] = curr_levelarray[kanalindex];
+   sendbuffer[USB_DATA_OFFSET + 2] = curr_expoarray[kanalindex];
+   sendbuffer[USB_DATA_OFFSET + 3] = curr_devicearray[kanalindex];
+
+   /*
+   Serial.printf("*encodeCurrentChannelSettings\n");   
+   for (uint8_t i = 0;i<USB_DATENBREITE;i++)
+   {
+      Serial.printf("\t%d",sendbuffer[i]);
+   }
+   Serial.printf("*\n");    
+    */
+   return 0;
+
+}// encodeCurrentChannelSettings
+
+// USB in EEPROM und curr_einstellungen
 uint8_t  decodeUSBChannelSettings(uint8_t buffer[USB_DATENBREITE])
 {
    // uint8_t kanalsettingarray[ANZAHLMODELLE][NUM_SERVOS][KANALSETTINGBREITE] = {};
@@ -978,13 +1003,14 @@ uint8_t  decodeUSBChannelSettings(uint8_t buffer[USB_DATENBREITE])
    
    uint8_t on = (buffer[USB_DATA_OFFSET + modelindex * KANALSETTINGBREITE] & 0x08) >>8; // Bit 3
    uint8_t pos = USB_DATA_OFFSET;
-    // Byte 0: Modell, ON, Kanalindex, RI
+    // Byte 0: Modell 3b, ON 1b, Kanalindex3b, RI 1b
    
    for (uint8_t kanal = 0;kanal < 8;kanal++)
    {
       
       for (uint8_t dataindex = 0;dataindex < 4;dataindex++)
       {
+         // kanalsettingarray[ANZAHLMODELLE][NUM_SERVOS][KANALSETTINGBREITE] 
          kanalsettingarray[modelindex][kanal][dataindex] = buffer[pos + dataindex];
          
          EEPROM.write(modelindex * MODELSETTINGBREITE + kanal * KANALSETTINGBREITE + dataindex,buffer[pos + dataindex]);
@@ -1030,7 +1056,7 @@ uint8_t  decodeUSBChannelSettings(uint8_t buffer[USB_DATENBREITE])
    
    _delay_ms(1);
    
-   uint8_t* eepromarray = encodeUSBChannelSettings(0);
+   uint8_t* eepromarray = encodeEEPROMChannelSettings(0);
    sendbuffer[0] = 0xF5;
    
    Serial.printf("USB \n");
@@ -1039,6 +1065,7 @@ uint8_t  decodeUSBChannelSettings(uint8_t buffer[USB_DATENBREITE])
       //Serial.printf("i: %d usbdata: %d\t",i,sendbuffer[i]);
       Serial.printf("%d\t",sendbuffer[i]);
    }
+   
    Serial.printf("\n");
    uint8_t senderfolg = usb_rawhid_send((void*)sendbuffer, 50);
    Serial.printf("decodeUSBChannelSettings senderfolg: %d\n",senderfolg);
@@ -1524,7 +1551,37 @@ void loop()
    }// sinceblink
    
 // MARK:  -  ADC_OK
-   
+   /* 
+    // Mixing
+    for (i=0;i<4;i++) // 50 us
+    {
+       // Mixing lesen
+       
+       uint8_t mixcanal = Mix_Array[2*i];
+       if (mixcanal ^ 0x88) // 88 bedeutet OFF
+       {
+          // Setting nicht OFF
+          uint8_t mixart = Mix_Array[2*i+1] & 0x07; // Art des mixings
+          uint8_t canala = mixcanal & 0x07;         // beteiligter erster Kanal
+          uint8_t canalb = (mixcanal & 0x70) >>4;   // beteiligter zweiter Kanal
+          
+          switch (mixart) // mixart ist gesetzt
+          {
+             case 1: // V-Mix
+             {
+                // Originalwert fuer jeden Kanal lesen
+                canalwerta = Servo_ArrayInt[canala];// Wert fuer ersten Kanal
+                canalwertb = Servo_ArrayInt[canalb];// Wert fuer zweiten Kanal
+                
+                // Wert mixen und neu speichern
+                Servo_ArrayInt[canala] = canalwerta + canalwertb;
+                Servo_ArrayInt[canalb] = canalwerta - canalwertb;
+             
+             }break;
+          } // switch
+       }
+    }
+    */
    
    if (servostatus & (1<<ADC_OK)) // 20us pro kanal ohne printf
    {
@@ -4912,13 +4969,13 @@ void loop()
                    AUSGANG_OFFSET     0x80 // 128
                    
                    */
-                  Serial.printf("0xF4\n");
-                  for (uint8_t i=4;i<32;i++)
+                  Serial.printf("0xF4 Fix Sendersettings\n");
+                  for (uint8_t i=0;i<32;i++)
                   {
                      Serial.printf("\t%d",buffer[i]);
-                     if (i==15)
+                     if (i==15 )
                      {
-                        Serial.printf("\n");
+                        Serial.printf("\tbuffer[i]");
                      }
                   }
                   Serial.printf("\n");
@@ -4976,6 +5033,30 @@ void loop()
                   usb_rawhid_send((void*)sendbuffer, 50);
                   */
                }
+                  // MARK: F6 get teensysettings
+               case 0xF6: //   // getteensysettings
+               {
+                  Serial.printf("0xF6 get teensysettings\n");
+                  uint8_t getmodel = (buffer[USB_DATA_OFFSET] & 0x07);
+                  uint8_t getkanal = (buffer[USB_DATA_OFFSET] & 0x70) << 4;
+                  Serial.printf("getmodel: %d getkanal: %d\n",getmodel, getkanal);
+                  //uint8_t* usbarray[USB_DATENBREITE] = {};
+                  encodeCurrentChannelSettings(getkanal,getmodel);
+                    sendbuffer[1] = sendesekunde; // randomwert fuer neu USB-Daten
+                  sendbuffer[0] = 0xF7;
+ /*
+                  Serial.printf("*F7 sendbuffer:\n");
+                  for (uint8_t i = 0;i<USB_DATENBREITE;i++)
+                  {
+                     Serial.printf("\t%d",sendbuffer[i]);
+                  }
+                  Serial.printf("*\n");             
+*/
+                  uint8_t senderfolg = usb_rawhid_send((void*)sendbuffer, 50);
+                  Serial.printf("0xF7 senderfolg: %d\n",senderfolg);
+                  break;
+               }
+
                   
                   // MARK: FD read Sendersettings
                case 0xFD: // read Sendersettings
@@ -5029,6 +5110,7 @@ void loop()
                   
                }
                   
+                    
 #pragma mark default
                default:
                {
