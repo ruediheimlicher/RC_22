@@ -197,6 +197,10 @@ volatile uint16_t                cursorpos[8][8]={}; // Aktueller screen: werte 
 volatile uint8_t              curr_levelarray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
 volatile uint8_t              curr_expoarray[8] = {0x33,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
 volatile uint8_t              curr_mixarray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
+volatile uint8_t              curr_mixtyparray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
+volatile uint8_t              curr_mixkanalarray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
+
+
 volatile uint8_t              curr_funktionarray[8] = {}; //{0x00,0x11,0x22,0x33,0x44,0x55,0x66,0x77};
 volatile uint8_t             curr_statusarray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
 volatile uint8_t             curr_ausgangarray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
@@ -270,22 +274,26 @@ volatile uint8_t expob=0;
 
 // MARK: EEPROM Var
 // EEPROM
-volatile uint8_t  eeprom_indata=0;
-volatile uint8_t  eeprom_errcount=0;
-volatile uint16_t abschnittnummer=0;
+uint8_t  eeprom_indata=0;
+uint8_t  eeprom_errcount=0;
+uint16_t abschnittnummer=0;
 
 volatile uint16_t usbcount=0;
 
-volatile uint16_t minwert=0xFFFF;
-volatile uint16_t maxwert=0;
+uint16_t minwert=0xFFFF;
+uint16_t maxwert=0;
 
 volatile uint16_t eepromstartadresse=0;
 
-static volatile uint8_t kontrollbuffer[USB_DATENBREITE]={};
+uint8_t kontrollbuffer[USB_DATENBREITE]={};
 
-static volatile uint8_t eeprombuffer[USB_DATENBREITE]={};
+uint8_t eeprombuffer[USB_DATENBREITE]={};
 
-volatile uint8_t kanalsettingarray[ANZAHLMODELLE][NUM_SERVOS][KANALSETTINGBREITE] = {};
+uint8_t kanalsettingarray[ANZAHLMODELLE][NUM_SERVOS][KANALSETTINGBREITE] = {};
+
+//uint8_t mixsettingarray[ANZAHLMODELLE][4][4] = {};
+
+
 uint8_t readdata=0xaa;
 
 
@@ -889,17 +897,7 @@ uint16_t eeprompartschreiben(void) // 23 ms
    
    uint16_t abschnittstartadresse = eepromstartadresse ; // Ladeort im EEPROM
    
-   /*
-   lcd_gotoxy(4,1);
-   lcd_putint12(abschnittstartadresse);
-   lcd_putc(' ');
-   lcd_puthex(eeprombuffer[32]);
-   lcd_puthex(eeprombuffer[33]);
-   lcd_putc(' ');
-   lcd_puthex(eeprombuffer[34]);
-   lcd_puthex(eeprombuffer[35]);
-   */
-   
+     
     
    uint8_t w=0;
    uint8_t i=0;
@@ -2022,7 +2020,7 @@ void loop()
                      //break;
                      if (blink_cursorpos == 0xFFFF && manuellcounter) // Kein Blinken
                      {
-                        Serial.printf("T2 SETTINGSCREEN no blink");
+                        //Serial.printf("T2 SETTINGSCREEN no blink");
                         //lcd_gotoxy(0,1);
                         if (curr_cursorzeile ) // curr_cursorzeile ist >0,
                         {
@@ -2041,7 +2039,7 @@ void loop()
                      }
                      else if (manuellcounter)
                      {
-                        Serial.printf("T2 SETTINGSCREEN mauellcounter>0 blink");
+                        Serial.printf("T2 SETTINGSCREEN mauellcounter>0 blink\n");
                         /*
                          lcd_gotoxy(0,1);
                          lcd_puthex((blink_cursorpos & 0xFF00)>>8);
