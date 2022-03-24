@@ -192,6 +192,8 @@ volatile uint16_t                cursorpos[8][8]={}; // Aktueller screen: werte 
 volatile uint8_t              curr_levelarray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
 volatile uint8_t              curr_expoarray[8] = {0x33,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
 volatile uint8_t              curr_mixarray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
+uint8_t                       curr_mixartarray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
+uint8_t                       curr_mixkanalarray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
 volatile uint8_t              curr_funktionarray[8] = {}; //{0x00,0x11,0x22,0x33,0x44,0x55,0x66,0x77};
 volatile uint8_t             curr_statusarray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
 volatile uint8_t             curr_ausgangarray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
@@ -281,6 +283,9 @@ static volatile uint8_t kontrollbuffer[USB_DATENBREITE]={};
 static volatile uint8_t eeprombuffer[USB_DATENBREITE]={};
 
 volatile uint8_t kanalsettingarray[ANZAHLMODELLE][NUM_SERVOS][KANALSETTINGBREITE] = {};
+
+uint8_t mixsettingarray[ANZAHLMODELLE][4][2] = {};
+
 uint8_t readdata=0xaa;
 
 
@@ -1032,7 +1037,26 @@ uint8_t encodeChannelSettings( uint8_t modelindex)
 
 }// encodeCurrentChannelSettings
 
+uint8_t decodeUSBMixingSettings(uint8_t buffer[USB_DATENBREITE])
+{
+   Serial.printf("decodeUSBMixingSettings\n");
+   Serial.printf("mix data0 : %d data 1: %d\n",buffer[USB_DATA_OFFSET + MODELSETTINGBREITE],buffer[USB_DATA_OFFSET + MODELSETTINGBREITE +1 ]);
+   
+   uint8_t mix0 = buffer[USB_DATA_OFFSET + MODELSETTINGBREITE] ; // Bit 3
+   uint8_t mix1 = buffer[USB_DATA_OFFSET + MODELSETTINGBREITE + 1]; // Bit 3
+   
+   uint8_t mixon = (mix0 & 0x08) >> 3; // Bit 3
+   Serial.printf("mixon: %d \n",mixon);
+   uint8_t mixart = (mix0 & 0x30) >> 4; // Bit 4,5
+   Serial.printf("mixart: %d \n",mixart);
+   
+   uint8_t mixkanala = mix1 & 0x07 ; // Bit 0-3
+   Serial.printf("mixkanala: %d \n",mixkanala);
+   uint8_t mixkanalb = (mix1 & 0x70) >> 4; // Bit 4-6
+   Serial.printf("mixkanalb: %d \n", mixkanalb);
 
+   return 0;
+}
 
 // USB in EEPROM und curr_einstellungen
 uint8_t  decodeUSBChannelSettings(uint8_t buffer[USB_DATENBREITE])
@@ -1078,21 +1102,6 @@ uint8_t  decodeUSBChannelSettings(uint8_t buffer[USB_DATENBREITE])
          
          
          
-         /*
-          uint8_t mix0 = buffer[USB_DATA_OFFSET + 8 * KANALSETTINGBREITE] ; // Bit 3
-          uint8_t mix1 = buffer[USB_DATA_OFFSET + 8 * KANALSETTINGBREITE + 1]; // Bit 3
-          
-          uint8_t mixon = (mix0 & 0x08) >> 3; // Bit 3
-          Serial.printf("mixon: %d \n",mixon);
-          uint8_t mixart = (mix0 & 0x30) >> 4; // Bit 4,5
-          Serial.printf("mixart: %d \n",mixart);
-          
-           uint8_t mixkanala = mix1 & 0x07 ; // Bit 0-3
-          Serial.printf("mixkanala: %d \n",mixkanala);
-          uint8_t mixkanalab = (mix1 & 0x70) >> 4; // Bit 4-6
-          Serial.printf("mixkanalb: %d \n", mixkanalb);
-
-          */
       }
       pos += KANALSETTINGBREITE;
    }
@@ -1100,7 +1109,28 @@ uint8_t  decodeUSBChannelSettings(uint8_t buffer[USB_DATENBREITE])
    Serial.printf("*** pos nach for kanal: %d mixpos: %d\n",pos , mixpos);
    
    _delay_ms(1);
+   //mixsettingarray[ANZAHLMODELLE][4][2]
    
+   /*
+    uint8_t mix0 = buffer[USB_DATA_OFFSET + MODELSETTINGBREITE] ; // Bit 3
+    uint8_t mix1 = buffer[USB_DATA_OFFSET + MODELSETTINGBREITE + 1]; // Bit 3
+    
+    uint8_t mixon = (mix0 & 0x08) >> 3; // Bit 3
+    Serial.printf("mixon: %d \n",mixon);
+    uint8_t mixart = (mix0 & 0x30) >> 4; // Bit 4,5
+    Serial.printf("mixart: %d \n",mixart);
+    
+     uint8_t mixkanala = mix1 & 0x07 ; // Bit 0-3
+    Serial.printf("mixkanala: %d \n",mixkanala);
+    uint8_t mixkanalab = (mix1 & 0x70) >> 4; // Bit 4-6
+    Serial.printf("mixkanalb: %d \n", mixkanalb);
+
+    */
+
+   
+   
+   
+   // Test: rueckwaerts
    uint8_t* eepromarray = encodeEEPROMChannelSettings(0);
    sendbuffer[0] = 0xF5;
    
@@ -5148,10 +5178,12 @@ void loop()
                   Serial.printf("richtung: %d \n",richtung);
                   
                   
-                  Serial.printf("mix data0 : %d data 1: %d\n",buffer[USB_DATA_OFFSET + 8 * KANALSETTINGBREITE],buffer[USB_DATA_OFFSET + 8 * KANALSETTINGBREITE +1 ]);
+                  uint8_t mixingerfolg = decodeUSBMixingSettings(buffer);
+                  /*
+                  Serial.printf("mix data0 : %d data 1: %d\n",buffer[USB_DATA_OFFSET + MODELSETTINGBREITE],buffer[USB_DATA_OFFSET + MODELSETTINGBREITE +1 ]);
                   
-                  uint8_t mix0 = buffer[USB_DATA_OFFSET + 8 * KANALSETTINGBREITE] ; // Bit 3
-                  uint8_t mix1 = buffer[USB_DATA_OFFSET + 8 * KANALSETTINGBREITE + 1]; // Bit 3
+                  uint8_t mix0 = buffer[USB_DATA_OFFSET + MODELSETTINGBREITE] ; // Bit 3
+                  uint8_t mix1 = buffer[USB_DATA_OFFSET + MODELSETTINGBREITE + 1]; // Bit 3
                   
                   uint8_t mixon = (mix0 & 0x08) >> 3; // Bit 3
                   Serial.printf("mixon: %d \n",mixon);
@@ -5162,7 +5194,9 @@ void loop()
                   Serial.printf("mixkanala: %d \n",mixkanala);
                   uint8_t mixkanalb = (mix1 & 0x70) >> 4; // Bit 4-6
                   Serial.printf("mixkanalb: %d \n", mixkanalb);
-
+*/
+                  
+                  
                   
                   break;
                   /*
