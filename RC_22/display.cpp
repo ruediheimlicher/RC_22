@@ -228,7 +228,7 @@ void resetRegister(void)
 void sethomescreen(void)
 {
    // Laufzeit
-   //Serial.printf("sethomescreen start\n");
+   Serial.printf("sethomescreen start\n");
    resetRegister();
    blink_cursorpos=0xFFFF;
    posregister[0][0] = itemtab[5] | (1 << 10);// Laufzeit Anzeige
@@ -279,6 +279,8 @@ void sethomescreen(void)
    char_x = (posregister[2][0] & 0x00FF);
    char_y= (posregister[2][0] & 0xFF00)>> 10;
    display_write_str(TitelTable[2],2);
+   
+   
    
    // Stoppzeit schreiben
    char_y= (posregister[2][1] & 0xFF00)>> 10;
@@ -344,13 +346,13 @@ void sethomescreen(void)
    char_x += 4;
    display_write_str(TitelTable[4],2);
    
-   //Serial.printf("sethomescreen end\n");
+   Serial.printf("sethomescreen end\n");
 }// sethomescreen
 
 
 void setsettingscreen(void)
 {
-  // Serial.printf("setsettingscreen start\n");
+   Serial.printf("setsettingscreen start\n");
    
    resetRegister();
    blink_cursorpos=0xFFFF;
@@ -441,7 +443,7 @@ void setsettingscreen(void)
    //char_x=0;
    display_write_str(SettingTable[6],2);
    
-   //Serial.printf("setsettingscreen end\n");
+   Serial.printf("setsettingscreen end\n");
 }// setsettingscreen
 
 
@@ -819,6 +821,7 @@ void setmixscreen(void)
 
    char_height_mul = 1;
    
+   
    // Mix 0 anzeigen
    
    /*
@@ -1190,10 +1193,6 @@ void update_time(uint8_t code)
           
    }// switch
  
-    
- 
- 
-
 }
 
 void update_akku(void)
@@ -1213,7 +1212,122 @@ void update_batteriespannung(void)
    char_height_mul = 1;
    char_width_mul = 1;
    display_write_spannung(batteriespannung/10,2);
+}
 
+void set_parthomescreen(uint8_t code)
+{
+   switch (code)
+   {
+   case 0: // Positionen setzen
+      {
+         resetRegister();
+         blink_cursorpos=0xFFFF;
+         posregister[0][0] = itemtab[5] | (1 << 10);// Laufzeit Anzeige
+         
+         posregister[1][0] = (0+OFFSET_6_UHR) | (0x05 << 10); // Text Motorzeit
+         posregister[1][1] = (0+OFFSET_6_UHR) | (0x06 << 10); // Anzeige Motorzeit
+         
+         posregister[2][0] = (60+OFFSET_6_UHR) | (0x05 << 10); // Text Stoppuhr
+         posregister[2][1] = (60+OFFSET_6_UHR) | (0x06 << 10); // Anzeige Stoppuhr
+         
+         posregister[3][0] = (60+OFFSET_6_UHR) | (0x07 << 10); // Text Akku
+         posregister[3][1] = (84+OFFSET_6_UHR) | (0x08 << 10); // Anzeige Akku
+
+         posregister[4][0] = (0+OFFSET_6_UHR) | (2 << 10); // Name Modell
+         posregister[4][1] = (80+OFFSET_6_UHR) | (3 << 10); // Text Setting
+         posregister[4][2] = (100+OFFSET_6_UHR) | (3 << 10); // Anzeige Setting
+
+         cursorpos[0][1] = cursortab[0] |    (8 << 10); //  cursorpos fuer Menu
+         
+      }break;
+      case 1: // Titel schreiben
+      {
+         char_height_mul = 1;
+         char_width_mul = 1;
+
+         //display_write_prop_str(char_y,char_x,0,(unsigned char*)titelbuffer);
+         display_write_str(TitelTable[0],1);
+         //display_write_str(TitelTable[0],1);
+         //display_write_str("ABC",1);
+         display_inverse(0);
+         char_height_mul = 1;
+         char_width_mul = 1;
+         
+         // Stoppuhrtext schreiben
+         char_x = (posregister[2][0] & 0x00FF);
+         char_y= (posregister[2][0] & 0xFF00)>> 10;
+         display_write_str(TitelTable[2],2);
+         // Motorzeittext schreiben
+         char_x = (posregister[1][0] & 0x00FF);
+         char_y= ((posregister[1][0] & 0xFF00)>> 10);
+         char_height_mul = 1;
+         display_write_str(TitelTable[3],2);
+
+
+      } break;
+      case 2: // Zeiten schreben
+      {
+         // Stoppzeit schreiben
+         char_y= (posregister[2][1] & 0xFF00)>> 10;
+         char_x = (posregister[2][1] & 0x00FF);
+         char_height_mul = 2;
+         char_width_mul = 2;
+         display_write_stopzeit_BM(stopsekunde,stopminute);
+         // Motorzeit schreiben
+         char_y= (posregister[1][1] & 0xFF00)>> 10;
+         char_x = posregister[1][1] & 0x00FF;
+         // display_write_min_sek(motorsekunde,2);
+         display_write_stopzeit(motorsekunde,motorminute, 2);
+
+         char_height_mul = 1;
+         char_width_mul = 1;
+       
+      }break;
+      case 3:
+      {
+         // Modell schreiben
+         char_y= (posregister[4][0] & 0xFF00)>> 10;
+         char_x = posregister[4][0] & 0x00FF;
+         //display_write_prop_str(char_y,char_x,0,titelbuffer,2);
+         char_height_mul = 2;
+         display_write_str(ModelTable[curr_model],1);
+
+         char_height_mul = 1;
+         //strcpy(titelbuffer, ((TitelTable[5])));
+         char_y= (posregister[4][1] & 0xFF00)>> 10;
+         char_x = posregister[4][1] & 0x00FF;
+         display_write_str(TitelTable[5],2);
+         char_y= (posregister[4][2] & 0xFF00)>> 10;
+         char_x = posregister[4][2] & 0x00FF;
+         display_write_int(curr_setting,2);
+
+      }break;
+      case 4:
+      {
+         char_height_mul = 1;
+         char_width_mul = 1;
+
+         // Batteriespannung
+         char_y= ((posregister[3][0] & 0xFF00)>> 10)+1;
+         char_x = posregister[3][0] & 0x00FF;
+         char_height_mul = 1;
+         display_write_str(TitelTable[6],2);
+         
+         char_height_mul = 1;
+         char_width_mul = 1;
+
+        // display_write_propchar(' ');
+         /*
+          // nicht unbediungt
+         char_y= (cursorpos[0][1] & 0xFF00)>> 10;
+         char_x = cursorpos[0][1] & 0x00FF;
+         display_write_symbol(pfeilvollrechts);
+         char_x += 4;
+         display_write_str(TitelTable[4],2);
+          */
+      }break;
+         
+   }//switch code
 }
 
 uint8_t refresh_screen(void)
@@ -1251,7 +1365,7 @@ uint8_t refresh_screen(void)
          display_write_str(TitelTable[0],1);
          //display_write_str(TitelTable[0],1);
          //display_write_str("ABC",1);
-         display_inverse(0);
+         //display_inverse(0);
          char_height_mul = 1;
          char_width_mul = 1;
          
@@ -1343,8 +1457,7 @@ uint8_t refresh_screen(void)
          if (programmstatus &(1<<UPDATESCREEN))
          {
             programmstatus &= ~(1<<UPDATESCREEN);
-            
-            
+             
             // Modellname
          //   strcpy(menubuffer, (ModelTable[curr_model]));
             char_y= (posregister[0][0] & 0xFF00)>> 10;
