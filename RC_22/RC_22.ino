@@ -1,39 +1,39 @@
 ///
-/// @mainpage	RC_22
+/// @mainpage   RC_22
 ///
-/// @details	Description of the project
+/// @details   Description of the project
 /// @n
 /// @n
-/// @n @a		Developed with [embedXcode+](https://embedXcode.weebly.com)
+/// @n @a      Developed with [embedXcode+](https://embedXcode.weebly.com)
 ///
-/// @author		Ruedi Heimlicher
-/// @author		___ORGANIZATIONNAME___
-/// @date		04.02.2022 10:59
-/// @version	<#version#>
+/// @author      Ruedi Heimlicher
+/// @author      ___ORGANIZATIONNAME___
+/// @date      04.02.2022 10:59
+/// @version   <#version#>
 ///
-/// @copyright	(c) Ruedi Heimlicher, 2022
-/// @copyright	GNU General Public Licence
+/// @copyright   (c) Ruedi Heimlicher, 2022
+/// @copyright   GNU General Public Licence
 ///
-/// @see		ReadMe.txt for references
+/// @see      ReadMe.txt for references
 ///
 
 
 ///
-/// @file		RC_22.ino
-/// @brief		Main sketch
+/// @file      RC_22.ino
+/// @brief      Main sketch
 ///
-/// @details	<#details#>
-/// @n @a		Developed with [embedXcode+](https://embedXcode.weebly.com)
+/// @details   <#details#>
+/// @n @a      Developed with [embedXcode+](https://embedXcode.weebly.com)
 ///
-/// @author		Ruedi Heimlicher
-/// @author		___ORGANIZATIONNAME___
-/// @date		04.02.2022 10:59
-/// @version	<#version#>
+/// @author      Ruedi Heimlicher
+/// @author      ___ORGANIZATIONNAME___
+/// @date      04.02.2022 10:59
+/// @version   <#version#>
 ///
-/// @copyright	(c) Ruedi Heimlicher, 2022
-/// @copyright	GNU General Public Licence
+/// @copyright   (c) Ruedi Heimlicher, 2022
+/// @copyright   GNU General Public Licence
 ///
-/// @see		ReadMe.txt for references
+/// @see      ReadMe.txt for references
 /// @n
 ///
 
@@ -196,9 +196,7 @@ volatile uint16_t                cursorpos[8][8]={}; // Aktueller screen: werte 
 
 volatile uint8_t              curr_levelarray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
 volatile uint8_t              curr_expoarray[8] = {0x33,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
-volatile uint8_t              curr_mixarray[8] = {};
-volatile uint8_t              curr_mixtyparray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
-volatile uint8_t              curr_mixkanalarray[8] = {};
+volatile uint8_t              curr_mixarray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
 volatile uint8_t              curr_funktionarray[8] = {}; //{0x00,0x11,0x22,0x33,0x44,0x55,0x66,0x77};
 volatile uint8_t             curr_statusarray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
 volatile uint8_t             curr_ausgangarray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
@@ -288,9 +286,6 @@ static volatile uint8_t kontrollbuffer[USB_DATENBREITE]={};
 static volatile uint8_t eeprombuffer[USB_DATENBREITE]={};
 
 volatile uint8_t kanalsettingarray[ANZAHLMODELLE][NUM_SERVOS][KANALSETTINGBREITE] = {};
-
-volatile uint8_t mixsettingarray[ANZAHLMODELLE][8][8] = {}; // 4 settings mit je 2 bytes pro model
-
 uint8_t readdata=0xaa;
 
 
@@ -615,6 +610,7 @@ void write_Ext_EEPROM_Settings(void)
             //OSZI_D_LO;
          }
          cli();
+         //eeprombyteschreiben(0xB0,writestartadresse+pos,curr_mixarray[pos]);
          EEPROM.write(writestartadresse+pos,curr_mixarray[pos]);
          //OSZI_D_HI;
          
@@ -996,7 +992,6 @@ uint8_t encodeCurrentChannelSettings(uint8_t kanalindex, uint8_t modelindex)
 
 }// encodeCurrentChannelSettings
 
-
 uint8_t encodeChannelSettings( uint8_t modelindex)
 {
    uint8_t usbarray[USB_DATENBREITE] = {0};
@@ -1089,33 +1084,7 @@ uint8_t  decodeUSBChannelSettings(uint8_t buffer[USB_DATENBREITE])
    }
    uint8_t mixpos = USB_DATA_OFFSET + MODELSETTINGBREITE;
    Serial.printf("*** pos nach for kanal: %d mixpos: %d\n",pos , mixpos);
-/*   
-   //mixsettingarray[ANZAHLMODELLE][4][2]
-   for (uint8_t dataindex = 0;dataindex < 4;dataindex++)
-   {
-      uint8_t mix0 = buffer[USB_DATA_OFFSET + MODELSETTINGBREITE] ; // 
-      mixsettingarray[modelindex][dataindex][0] = mix0;
-      
-      uint8_t mix1 = buffer[USB_DATA_OFFSET + MODELSETTINGBREITE + 1]; // 
-      mixsettingarray[modelindex][dataindex][1] = mix1;
-      
-      uint8_t mixon = (mix0 & 0x08) >> 3; // Bit 3
-      Serial.printf("mixon: %d \n",mixon);
-      uint8_t mixart = (mix0 & 0x30) >> 4; // Bit 4,5
-      Serial.printf("mixart: %d \n",mixart);
-      
-      uint8_t mixkanala = mix1 & 0x07 ; // Bit 0-3
-      Serial.printf("mixkanala: %d \n",mixkanala);
-      uint8_t mixkanalb = (mix1 & 0x70) >> 4; // Bit 4-6
-      Serial.printf("mixkanalb: %d \n", mixkanalb);
-      
-       
-      curr_mixtyparray[dataindex] = mix0;
-      curr_mixkanalarray[dataindex] = mix1;
-      
-      
-   }
- */ 
+   
    _delay_ms(1);
    
    uint8_t* eepromarray = encodeEEPROMChannelSettings(0);
@@ -1655,7 +1624,7 @@ void loop()
       displaycounter++;
       for (uint8_t i=0;i<NUM_SERVOS;i++)
       {
-         Serial.printf("A\n");
+         //Serial.printf("A\n");
          //Serial.printf("i: %d pin: %d\n",i,adcpinarray[i]);
          if (adcpinarray[i] < 0xFF) // PIN belegt
          {
@@ -1667,7 +1636,7 @@ void loop()
             else 
             {
                
-               Serial.printf("+B+");
+               //Serial.printf("+B+");
                uint16_t potwert = adc->adc0->analogRead(adcpinarray[i]);
                //uint16_t potwert = adc->adc0->analogRead(14);
                //float ppmfloat = PPMLO + quot *(float(potwert) - POTLO);
@@ -1735,7 +1704,7 @@ void loop()
             }
          }
          
-     //    Serial.printf("i: %d C\n",i);
+         //Serial.printf("C\n");
       } // for i
       if (displaycounter == 25)
       {
@@ -1882,7 +1851,7 @@ void loop()
    
    if (tastaturstatus & (1<<TASTEOK))
    {
-      Serial.printf("U Tastenindex: %d\n",Tastenindex);
+      //Serial.printf("U Tastenindex: %d\n",Tastenindex);
       programmstatus |= (1<<UPDATESCREEN);
       //tastaturstatus &= ~(1<<TASTEOK);
       //Tastenindex = 0;
@@ -3126,7 +3095,7 @@ void loop()
                      {
                         // lcd_gotoxy(14,2);
                         // lcd_puts("*H5*");
-                     Serial.printf("*H5* \t");
+                     //Serial.printf("*H5* \t");
                         
                         
                         tastaturstatus &=  ~(1<<AKTIONOK);
@@ -4345,11 +4314,10 @@ void loop()
 #pragma mark 8 SETTINGSCREEN                   
                   case SETTINGSCREEN: // T8 Settings
                   {
-                     Serial.printf("T8 \n");
                      if ((blink_cursorpos == 0xFFFF) && manuellcounter) // kein Blinken
                      {
                         uint8_t cur = (posregister[curr_cursorzeile+1][curr_cursorspalte]&0xFF00)>>8;
-                        Serial.printf("T8 curr_cursorzeile: %d curr_cursorspalte: %d\n",curr_cursorzeile,curr_cursorspalte);
+                        //Serial.printf("H8 curr_cursorzeile: %d curr_cursorspalte: %d\n",curr_cursorzeile,curr_cursorspalte);
                         /*
                          lcd_gotoxy(5,1);
                          lcd_puthex(curr_cursorzeile);
@@ -5024,7 +4992,7 @@ void loop()
          code = 0;
          if (r > 0) // 
          {
-          //  Serial.printf("usb r: %d\n",r);
+            //Serial.printf("usb r: %d\n",r);
          //   noInterrupts();
             
             code = buffer[0];
@@ -5252,3 +5220,4 @@ void loop()
       //Serial.printf("USB OK end\n");
    }// usb
 } // loop
+
