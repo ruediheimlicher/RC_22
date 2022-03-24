@@ -67,16 +67,16 @@ uint8_t loopLED;
 int8_t r;
 
 // USB
-volatile uint8_t inbuffer[USB_DATENBREITE]={};
-volatile uint8_t outbuffer[USB_DATENBREITE]={};
-volatile uint16_t          usb_recv_counter=0;
-volatile uint16_t          cnc_recv_counter=0;
+ uint8_t inbuffer[USB_DATENBREITE]={};
+ uint8_t outbuffer[USB_DATENBREITE]={};
+ uint16_t          usb_recv_counter=0;
+ uint16_t          cnc_recv_counter=0;
 // end USB
 
 // RC 
 volatile uint8_t           timerstatus=0;
 volatile uint8_t           code=0;
-volatile uint8_t           servostatus=0;
+volatile uint8_t           servostatus=0; // interrupt
 
 
 
@@ -127,7 +127,7 @@ uint16_t displaycounter = 0;
 
 //IntervalTimer              delayTimer;
 
-volatile uint8_t           servoindex = 0;
+volatile uint8_t           servoindex = 0; // interrupt
 
 
 // Utilities
@@ -155,6 +155,10 @@ ADC *adc = new ADC(); // adc object
 #define SHIFT 0xFFFFF
 
 #define IMPULSBREITE 20
+
+
+void servoimpulsfunktion(void);// 
+void kanalimpulsfunktion(void);
 // Pot
 /*
 volatile uint16_t potlo = POTLO; // min pot
@@ -168,12 +172,12 @@ float pothi = POTHI; // max pot
 float ppmlo = PPMLO; // min ppm
 float ppmhi = PPMHI; // max ppm
 
-volatile uint16_t pot0 = 0;
+ uint16_t pot0 = 0;
 
-volatile unsigned char char_x = 0;
-volatile unsigned char char_y = 0;
-volatile unsigned char char_height_mul = 0;
-volatile unsigned char char_width_mul = 0;
+ unsigned char char_x = 0;
+ unsigned char char_y = 0;
+ unsigned char char_height_mul = 0;
+ unsigned char char_width_mul = 0;
 
 //uint8_t spieeprom_rdbyte(uint16_t addr);
 uint16_t potgrenzearray[NUM_SERVOS][2]; // obere und untere Grenze von adc
@@ -209,7 +213,7 @@ volatile int8_t              curr_trimmungarray[8];
 volatile int8_t              curr_richtung; // Bits fuer Richtung
 volatile int8_t              curr_on; // Bits fuer on
 
-volatile uint16_t                 blink_cursorpos=0xFFFF;
+volatile uint16_t             blink_cursorpos=0xFFFF;
 
 volatile uint16_t stopsekunde=0;
 volatile uint16_t stopminute=0;
@@ -224,29 +228,30 @@ volatile uint8_t sendestunde=0;
 
 volatile uint16_t batteriespannung =0;
  
-volatile uint8_t                 curr_model=0; // aktuelles modell
-volatile uint8_t                 speichermodel=0;
-volatile uint8_t                 curr_kanal=0; // aktueller kanal
-volatile uint8_t                 curr_impuls=0; // aktueller impuls
+ uint8_t                 curr_model=0; // aktuelles modell
+ uint8_t                 speichermodel=0;
+uint8_t                 curr_kanal=0; // aktueller kanal
+uint8_t                 curr_impuls=0; // aktueller impuls
 
-volatile uint8_t                 curr_setting=0; // aktuelles Setting fuer Modell
-uint8_t                          speichersetting=0;
+uint8_t                 curr_setting=0; // aktuelles Setting fuer Modell
+uint8_t                          speichersettingA=0;
+uint8_t                          speichersettingB=0;
 
-volatile uint8_t                 curr_trimmkanal=0; // aktueller  Kanal fuerTrimmung
-volatile uint8_t                 curr_trimmung=0; // aktuelle  Trimmung fuer Trimmkanal
+uint8_t                 curr_trimmkanal=0; // aktueller  Kanal fuerTrimmung
+uint8_t                 curr_trimmung=0; // aktuelle  Trimmung fuer Trimmkanal
 
 
-volatile uint8_t                 curr_screen=0; // aktueller screen
+uint8_t                 curr_screen=0; // aktueller screen
 
-volatile uint8_t                 curr_page=7; // aktuelle page
-volatile uint8_t                 curr_col=0; // aktuelle colonne
+ uint8_t                 curr_page=7; // aktuelle page
+ uint8_t                 curr_col=0; // aktuelle colonne
 
-volatile uint8_t                 curr_cursorzeile=0; // aktuelle zeile des cursors
-volatile uint8_t                 curr_cursorspalte=0; // aktuelle colonne des cursors
-volatile uint8_t                 last_cursorzeile=0; // letzte zeile des cursors
-volatile uint8_t                 last_cursorspalte=0; // letzte colonne des cursors
+ uint8_t                 curr_cursorzeile=0; // aktuelle zeile des cursors
+ uint8_t                 curr_cursorspalte=0; // aktuelle colonne des cursors
+ uint8_t                 last_cursorzeile=0; // letzte zeile des cursors
+ uint8_t                 last_cursorspalte=0; // letzte colonne des cursors
 
-volatile uint8_t             displaystatus=0x00; // Tasks fuer Display
+uint8_t                 displaystatus=0x00; // Tasks fuer Display
 
 volatile uint8_t                  masterstatus = 0;
 volatile uint8_t                  eepromsavestatus = 0;
@@ -254,17 +259,19 @@ volatile uint16_t                updatecounter=0; // Zaehler fuer Einschalten
 volatile uint16_t                manuellcounter=0;
 
 // Tastatur
-volatile uint8_t                 Tastenindex=0;
-volatile uint16_t                Tastenwert=0;
-volatile uint16_t                Trimmtastenwert=0;
-volatile uint8_t                 adcswitch=0;
-volatile uint16_t                lastTastenwert=0;
-volatile int16_t                 Tastenwertdiff=0;
-volatile uint16_t                tastaturcounter=0;
+ uint8_t                 Tastenindex=0;
+ uint16_t                Tastenwert=0;
+ uint16_t                Trimmtastenwert=0;
+ uint8_t                 adcswitch=0;
+ uint16_t                lastTastenwert=0;
+ int16_t                 Tastenwertdiff=0;
+ uint16_t                tastaturcounter=0;
 
-volatile uint16_t                paketcounter=0;
-volatile uint16_t                loopcounter=0;
+volatile uint16_t          paketcounter=0; // Interrupt
+uint                       loopcounter=0;
 
+uint16_t                adccounter=0;
+uint16_t                kanalimpulscounter=0;
 
 volatile uint8_t levelwert=0x32;
 volatile uint8_t levelb=0x12;
@@ -288,6 +295,7 @@ volatile uint16_t eepromstartadresse=0;
 uint8_t kontrollbuffer[USB_DATENBREITE]={};
 
 uint8_t eeprombuffer[USB_DATENBREITE]={};
+uint8_t neweeprombuffer[USB_DATENBREITE]={};
 
 uint8_t kanalsettingarray[ANZAHLMODELLE][NUM_SERVOS][KANALSETTINGBREITE] = {};
 
@@ -383,42 +391,6 @@ void read_eeprom_zeit(void);
 void write_eeprom_zeit(void);
 void write_eeprom_status(void);
 
-
-
-void kanalimpulsfunktion(void) // kurze HI-Impulse beenden
-{
-   digitalWriteFast(IMPULSPIN,LOW);
-   kanalimpulsTimer.end();
-   servoindex++;
-   // next impuls schon laden
-   servoimpulsTimer.update(impulstimearray[servoindex]);
-}
-
-void servoimpulsfunktion(void) // 
-{ 
-  // servoindex++; // Version B: end und neu begin 
-   if (servoindex <= NUM_SERVOS)
-   { 
-      //Version B:
-      //servoimpulsTimer.end();
-      //servoimpulsTimer.begin(servoimpulsfunktion,impulstimearray[servoindex]);
-      
-      // Version A
-      //servoimpulsTimer.update(impulstimearray[servoindex]); // zu spaet: timer ist schon in neuem Intervall
-      digitalWriteFast(IMPULSPIN,HIGH); // neuer impuls
-      OSZI_B_HI();
-      kanalimpulsTimer.begin(kanalimpulsfunktion,IMPULSBREITE); // neuer Kanalimpuls
-   }
-   else  // Paket beenden
-   {
-      servoimpulsTimer.end();
-      servostatus |= (1<<PAUSE);
-      servostatus |= (1<<ADC_OK); // ADCFenster starten
-      //digitalWriteFast(IMPULSPIN,LOW);
-   }
-   //kanalimpulsTimer.begin(kanalimpulsfunktion,IMPULSBREITE); // neuer Kanalimpuls
-   
-}
 
 // MARK: readSettings
 
@@ -1111,7 +1083,7 @@ void sekundentimerfunktion(void)
    }
 }
 
-void servopaketfunktion(void) // start Abschnitt
+void servopaketfunktion(void) // Impulspaket starten
 { 
    servostatus &= ~(1<<PAUSE);
    servostatus |= (1<<PAKET);// neues Paket starten
@@ -1120,23 +1092,49 @@ void servopaketfunktion(void) // start Abschnitt
    if (servostatus & (1<<RUN))
    {
       servoimpulsTimer.begin(servoimpulsfunktion,impulstimearray[servoindex]);
-      
       kanalimpulsTimer.begin(kanalimpulsfunktion, IMPULSBREITE); // neuer Kanalimpuls
       digitalWriteFast(IMPULSPIN,HIGH);
       OSZI_B_LO();
       paketcounter++;
-      
+   }
+   else
+   {
+      digitalWriteFast(IMPULSPIN,LOW);
    }
 }
 
+void kanalimpulsfunktion(void) // kurze HI-Impulse beenden
+{
+   digitalWriteFast(IMPULSPIN,LOW);
+   kanalimpulsTimer.end();
+   servoindex++;
+   // next impuls schon laden
+   kanalimpulscounter++;
+   servoimpulsTimer.update(impulstimearray[servoindex]);
+}
+
+void servoimpulsfunktion(void) // Kanalimpulse starten
+{ 
+   if (servoindex <= NUM_SERVOS)
+   { 
+      digitalWriteFast(IMPULSPIN,HIGH); // neuer impuls
+      
+      kanalimpulsTimer.begin(kanalimpulsfunktion,IMPULSBREITE); // neuer Kanalimpuls
+   }
+   else  // Paket beenden
+   {
+      servoimpulsTimer.end();
+      servostatus |= (1<<PAUSE);
+      servostatus |= (1<<ADC_OK); // ADCFenster starten
+      //digitalWriteFast(IMPULSPIN,LOW);
+      OSZI_B_HI();
+   }   
+}
 
 
 
 void displayinit()
 {
-   
- 
-
    
 }
 
@@ -1371,6 +1369,7 @@ void loop()
        */
    }
    // MARK:  -  sinc > 1000
+   loopcounter++;
    if (sincelastseccond > 1000)
    {
       
@@ -1390,7 +1389,8 @@ void loop()
       }
       //Serial.printf("update Kanalscreen CC\n");
       //Serial.printf("motorsekunde: %d programmstatus: %d manuellcounter: %d\n",motorsekunde, programmstatus, manuellcounter);
-      
+      Serial.printf("paketcounter \t %d  \t  startcounter: \t  %d  \t loopcounter: \t  %d  \t adccounter:  \t %d\n",paketcounter,startcounter, loopcounter , adccounter);
+
       if (sendesekunde == 60)
       {
          sendeminute++;
@@ -1579,7 +1579,7 @@ void loop()
    
    }// sinceblink
    
-// MARK:  -  ADC_OK
+
    /* 
     // Mixing
     for (i=0;i<4;i++) // 50 us
@@ -1613,9 +1613,10 @@ void loop()
     */
    // Impulsfolge ist fertig, Zeit nutzen. 
    // Zuerst potis lesen
+   // MARK:  -  ADC_OK   
    if (servostatus & (1<<ADC_OK)) //     20us pro kanal ohne printf
    {
-      loopcounter++;
+      adccounter++;
       //manuellcounter++;
       //Serial.printf("+A+");
       OSZI_C_LO();
@@ -1814,7 +1815,7 @@ void loop()
      // zeit fuer display-updates
       // 1. variable Daten auf homescreen updaten
       {
-         //OSZI_D_LO();
+         OSZI_D_LO();
          if (curr_screen == 0)
          {
             update_time(updatecounter & 0x0f);
@@ -1831,7 +1832,7 @@ void loop()
             //Serial.printf("senderfolg: %d\n",senderfolg);
          }
          updatecounter++;
-         //OSZI_D_HI();
+         OSZI_D_HI();
          
          displaystatus &= ~(1<<UHR_UPDATE);
          
@@ -1854,7 +1855,7 @@ void loop()
       //tastaturstatus &= ~(1<<TASTEOK);
       //Tastenindex = 0;
       
-      
+      //OSZI_A_LO();
       switch (Tastenindex)
       {
 #pragma mark Taste 0
@@ -3139,6 +3140,8 @@ void loop()
                                  {
                                     //lcd_gotoxy(2,2);
                                     //lcd_putc('3');
+                                    OSZI_A_LO();
+                                    servostatus &= ~(1<<RUN);
                                     //Serial.printf("*** settingstartcounter 3\n");
                                     programmstatus &= ~(1<< SETTINGWAIT);
                          //           programmstatus |= (1<<UPDATESCREEN);
@@ -3158,8 +3161,10 @@ void loop()
                                     last_cursorspalte=0;
                                     last_cursorzeile=0;
                                     blink_cursorpos=0xFFFF;
-                                   // Serial.printf("*H5*F \n");
+                                   Serial.printf("*H5*ret \n");
                                     manuellcounter = 1;
+                                    OSZI_A_HI();
+                                    servostatus |= (1<<RUN);
                                  } // if settingcounter <
                                  //manuellcounter = 0;
                               }
@@ -4960,7 +4965,7 @@ void loop()
          default:
             break;
       } // switch Tastenindex
-      
+  //    OSZI_A_HI();
   //    Serial.printf("V end Tastatur tastaturstatus: %d\n",tastaturstatus);
  //     programmstatus |= (1<<UPDATESCREEN);
       if (tastaturstatus & (1<<UPDATEOK))
@@ -4972,13 +4977,13 @@ void loop()
       }
 
       tastaturstatus &= ~(1<<TASTEOK);
-      //Serial.printf("update Kanalscreen AA\n");
+      Serial.printf("Tasten end\n");
    } // if Tastaturok
        
    // 
    if (servostatus & (1<<USB_OK))
    {
-      //Serial.printf("USB OK\n");
+     //Serial.printf("USB OK\n");
 #pragma mark - start_usb
       //if (sinceusb > 100)   
       {
