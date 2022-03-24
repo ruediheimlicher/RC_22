@@ -421,8 +421,9 @@ void servopaketfunktion(void) // start Abschnitt
       kanalimpulsTimer.begin(kanalimpulsfunktion, IMPULSBREITE); // neuer Kanalimpuls
       digitalWriteFast(IMPULSPIN,HIGH);
       OSZI_B_LO();
-      paketcounter++;
+      //paketcounter++;
    }
+   paketcounter++;
 }
 
 
@@ -1473,7 +1474,9 @@ void loop()
             sendesekunde = 0;
             if (curr_screen == 0)
             {
-            refresh_screen();
+               servostatus &=  ~(1<<RUN); 
+               refresh_screen();
+               servostatus |=  (1<<RUN); 
             }
          }
          if (sendeminute == 60)
@@ -1959,6 +1962,7 @@ void loop()
             {
                tastaturstatus &=  ~(1<<AKTIONOK);
                tastaturstatus |= (1<<UPDATEOK);
+               
                switch (curr_screen)
                {
                   case HOMESCREEN: // home
@@ -2083,6 +2087,7 @@ void loop()
                   case SETTINGSCREEN: // T2 Settings
                   {
                      //break;
+                     
                      if (blink_cursorpos == 0xFFFF && manuellcounter) // Kein Blinken
                      {
                         Serial.printf("T2 SETTINGSCREEN no blink");
@@ -3151,9 +3156,11 @@ void loop()
                {
                   tastaturstatus &=  ~(1<<AKTIONOK);
                   tastaturstatus |= (1<<UPDATEOK);
+                  servostatus &=  ~(1<<RUN);
                   switch (curr_screen)
                   {
 #pragma mark Taste 5 HOMESCREEN
+                     
                      case HOMESCREEN:
                      {
                         // lcd_gotoxy(14,2);
@@ -3202,6 +3209,8 @@ void loop()
                                  //Serial.printf("settingstartcounter: %d\n",settingstartcounter);
                                  if (settingstartcounter == 3)
                                  {
+                                    //servostatus &=  ~(1<<RUN);
+                                    OSZI_A_LO();
                                     //lcd_gotoxy(2,2);
                                     //lcd_putc('3');
                                     Serial.printf("*** settingstartcounter 3\n");
@@ -3225,6 +3234,8 @@ void loop()
                                     blink_cursorpos=0xFFFF;
                                    // Serial.printf("*H5*F \n");
                                     manuellcounter = 1;
+                                    //servostatus |=  (1<<RUN);
+                                    OSZI_A_HI();
                                  } // if settingcounter <
                                  //manuellcounter = 0;
                               }
@@ -3286,12 +3297,13 @@ void loop()
                      }break;
                         
                         
-                     case SETTINGSCREEN: // 5 setting
+                     case SETTINGSCREEN: // T5 setting
                      {
 #pragma mark  5 SETTINGSCREEN
                         //Serial.printf("display T5 Settingscreen curr_cursorzeile: %d\n",curr_cursorzeile);
                         if (manuellcounter)
                         {
+                           //servostatus &=  ~(1<<RUN); 
                            switch (curr_cursorzeile)
                            {
                               case 0: // Modell
@@ -3392,7 +3404,7 @@ void loop()
                                  
                                  
                            }// switch curr_cursorzeile
-                        
+                           //servostatus |=  (1<<RUN); 
                         } // if manuellcounter
                         //Serial.printf("T5 end\n");
                      }break;
@@ -3625,7 +3637,7 @@ void loop()
                      tastaturstatus &= ~(1<<UPDATEOK);
                      update_screen();
                   }
-                
+                  //servostatus |=  (1<<RUN);
                   
                } // if A
                
@@ -3988,6 +4000,7 @@ void loop()
             //Serial.printf("*** T7 ***\n");
             if (curr_screen) // nicht homescreen
             {
+               servostatus &=  ~(1<<RUN);
                if (tastaturstatus & (1<<AKTIONOK))
                {
                   //Serial.printf("*** T7 AKTIONOK***\n");
@@ -4065,6 +4078,7 @@ void loop()
                         
                      case SETTINGSCREEN: // Settings
                      {
+                        
                         //Serial.printf("T7  settingscreen\n");
                         programmstatus &= ~(1<< SETTINGWAIT);
                         if ((blink_cursorpos == 0xFFFF) && manuellcounter)
@@ -4107,7 +4121,7 @@ void loop()
                            blink_cursorpos = 0xFFFF;
                            manuellcounter=0;
                         }
-                        
+                         
                      }break;
                         
                      case KANALSCREEN: // Settings
@@ -4138,6 +4152,7 @@ void loop()
                            blink_cursorpos = 0xFFFF;
                            manuellcounter=0;
                         }
+                        
                      }break;
                         
                         
@@ -4294,7 +4309,9 @@ void loop()
                      //Serial.printf("H%d update curscreen: %d\n",Tastenindex,curr_screen);
                      tastaturstatus &= ~(1<<UPDATEOK);
                      update_screen();
+                     
                   }
+                  servostatus |=  (1<<RUN); 
 
                }
             }
@@ -4309,6 +4326,7 @@ void loop()
                lcd_gotoxy(14,2);
                lcd_puts("*H7*");
                 */
+               
                if (manuellcounter) // kurz warten
                {
                   if (tastaturstatus & (1<<AKTIONOK))
@@ -4317,7 +4335,9 @@ void loop()
                      programmstatus &= ~(1<<MOTOR_ON);
                      motorsekunde=0;
                      motorminute=0;
+                     servostatus &=  ~(1<<RUN); 
                      refresh_screen();
+                     servostatus |=  (1<<RUN); 
                   }
                   manuellcounter=0; // timeout zuruecksetzen
                   //update_time();
@@ -4333,6 +4353,7 @@ void loop()
             {
                tastaturstatus &=  ~(1<<AKTIONOK);
                tastaturstatus |= (1<<UPDATEOK);
+               servostatus &=  ~(1<<RUN); 
                switch (curr_screen)
                {
                   case HOMESCREEN: // home
@@ -4974,6 +4995,7 @@ void loop()
                   tastaturstatus &= ~(1<<UPDATEOK);
                   update_screen();
                }
+               servostatus |=  (1<<RUN); 
             }//if AKTIONOK
             
             
