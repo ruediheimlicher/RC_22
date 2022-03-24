@@ -352,7 +352,7 @@ void sethomescreen(void)
 
 void setsettingscreen(void)
 {
-   Serial.printf("setsettingscreen start\n");
+  // Serial.printf("setsettingscreen start\n");
    
    resetRegister();
    blink_cursorpos=0xFFFF;
@@ -443,7 +443,7 @@ void setsettingscreen(void)
    //char_x=0;
    display_write_str(SettingTable[6],2);
    
-   Serial.printf("setsettingscreen end\n");
+   //Serial.printf("setsettingscreen end\n");
 }// setsettingscreen
 
 

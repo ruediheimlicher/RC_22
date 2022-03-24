@@ -1655,7 +1655,7 @@ void loop()
       displaycounter++;
       for (uint8_t i=0;i<NUM_SERVOS;i++)
       {
-         //Serial.printf("A\n");
+         Serial.printf("A\n");
          //Serial.printf("i: %d pin: %d\n",i,adcpinarray[i]);
          if (adcpinarray[i] < 0xFF) // PIN belegt
          {
@@ -1667,7 +1667,7 @@ void loop()
             else 
             {
                
-               //Serial.printf("+B+");
+               Serial.printf("+B+");
                uint16_t potwert = adc->adc0->analogRead(adcpinarray[i]);
                //uint16_t potwert = adc->adc0->analogRead(14);
                //float ppmfloat = PPMLO + quot *(float(potwert) - POTLO);
@@ -1735,7 +1735,7 @@ void loop()
             }
          }
          
-         //Serial.printf("C\n");
+     //    Serial.printf("i: %d C\n",i);
       } // for i
       if (displaycounter == 25)
       {
@@ -1882,7 +1882,7 @@ void loop()
    
    if (tastaturstatus & (1<<TASTEOK))
    {
-      //Serial.printf("U Tastenindex: %d\n",Tastenindex);
+      Serial.printf("U Tastenindex: %d\n",Tastenindex);
       programmstatus |= (1<<UPDATESCREEN);
       //tastaturstatus &= ~(1<<TASTEOK);
       //Tastenindex = 0;
@@ -5024,7 +5024,7 @@ void loop()
          code = 0;
          if (r > 0) // 
          {
-            //Serial.printf("usb r: %d\n",r);
+          //  Serial.printf("usb r: %d\n",r);
          //   noInterrupts();
             
             code = buffer[0];
