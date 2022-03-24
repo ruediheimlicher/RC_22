@@ -1170,6 +1170,7 @@ uint8_t Tastenwahl(uint16_t Tastaturwert)
    return 0xFF;
 }
 
+//uint8_t AA[2]={};
 
 // Add setup code
 void setup()
