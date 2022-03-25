@@ -974,7 +974,7 @@ uint16_t eeprompartschreiben(void) // 23 ms
 uint8_t* encodeEEPROMChannelSettings(uint8_t modelindex)
 {
    uint8_t usbarray[USB_DATENBREITE] = {};
-      
+    // Kanal-Settings  
    for (uint8_t kanal = 0;kanal < 8;kanal++)
    {
       for (uint8_t dataindex = 0;dataindex < 4;dataindex++)
@@ -985,6 +985,8 @@ uint8_t* encodeEEPROMChannelSettings(uint8_t modelindex)
          //Serial.printf("kanal: %d dataindex: %d data: %d \n", kanal, dataindex,data);
       } // for dataindex
    } // for kanal
+   
+   // Mixing-Settings
    return usbarray;
 }
 
@@ -1062,10 +1064,15 @@ uint8_t decodeUSBMixingSettings(uint8_t buffer[USB_DATENBREITE])
    uint8_t mixkanalb = (mix1 & 0x70) >> 4; // Bit 4-6
    Serial.printf("mixkanalb: %d \n", mixkanalb);
    
-   mixingsettingarray[modelindex][mixnummer][0] = mix0;
+   for (uint8_t mixindex = 0;mixindex < 3;mixindex++)
+   {
+      uint8_t mix0 = buffer[USB_DATA_OFFSET + MODELSETTINGBREITE + 2 * mixindex] ; // Bit 3
+      uint8_t mix1 = buffer[USB_DATA_OFFSET + MODELSETTINGBREITE + 2 * mixindex + 1]; // Bit 3
+    
+      mixingsettingarray[modelindex][mixindex][0] = mix0;
+      mixingsettingarray[modelindex][mixindex][1] = mix1;
+   }
    curr_mixstatusarray[mixnummer] = mix0;
-   
-   mixingsettingarray[modelindex][mixnummer][1] = mix1;
    curr_mixkanalarray[mixnummer] = mix1;
    
    size_t n = sizeof(mixingsettingarray) / sizeof(mixingsettingarray[0]);
