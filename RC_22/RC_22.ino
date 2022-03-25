@@ -192,7 +192,7 @@ volatile uint16_t                cursorpos[8][8]={}; // Aktueller screen: werte 
 volatile uint8_t              curr_levelarray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
 volatile uint8_t              curr_expoarray[8] = {0x33,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
 volatile uint8_t              curr_mixarray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
-uint8_t                       curr_mixartarray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
+uint8_t                       curr_mixstatusarray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
 uint8_t                       curr_mixkanalarray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
 volatile uint8_t              curr_funktionarray[8] = {}; //{0x00,0x11,0x22,0x33,0x44,0x55,0x66,0x77};
 volatile uint8_t             curr_statusarray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
@@ -284,7 +284,7 @@ static volatile uint8_t eeprombuffer[USB_DATENBREITE]={};
 
 volatile uint8_t kanalsettingarray[ANZAHLMODELLE][NUM_SERVOS][KANALSETTINGBREITE] = {};
 
-uint8_t mixsettingarray[ANZAHLMODELLE][4][2] = {};
+uint8_t mixingsettingarray[ANZAHLMODELLE][4][2] = {};
 
 uint8_t readdata=0xaa;
 
@@ -1041,20 +1041,39 @@ uint8_t decodeUSBMixingSettings(uint8_t buffer[USB_DATENBREITE])
 {
    Serial.printf("decodeUSBMixingSettings\n");
    Serial.printf("mix data0 : %d data 1: %d\n",buffer[USB_DATA_OFFSET + MODELSETTINGBREITE],buffer[USB_DATA_OFFSET + MODELSETTINGBREITE +1 ]);
+   // uint8_t mixingsettingarray[ANZAHLMODELLE][4][2] = {};
    
    uint8_t mix0 = buffer[USB_DATA_OFFSET + MODELSETTINGBREITE] ; // Bit 3
    uint8_t mix1 = buffer[USB_DATA_OFFSET + MODELSETTINGBREITE + 1]; // Bit 3
    
+   uint8_t modelindex = mix0 & 0x03; // bit 0,1
+   Serial.printf("modelindex: %d \n",modelindex);
+   uint8_t mixart = (mix0 & 0x30) >> 4; // bit 4,5
+   Serial.printf("mixart: %d \n",mixart);
+   uint8_t mixnummer = (mix0 & 0xC0) >> 6; // bit 6,7
+   Serial.printf("mixnummer: %d \n",mixnummer);
    uint8_t mixon = (mix0 & 0x08) >> 3; // Bit 3
    Serial.printf("mixon: %d \n",mixon);
-   uint8_t mixart = (mix0 & 0x30) >> 4; // Bit 4,5
-   Serial.printf("mixart: %d \n",mixart);
+   
+   
    
    uint8_t mixkanala = mix1 & 0x07 ; // Bit 0-3
    Serial.printf("mixkanala: %d \n",mixkanala);
    uint8_t mixkanalb = (mix1 & 0x70) >> 4; // Bit 4-6
    Serial.printf("mixkanalb: %d \n", mixkanalb);
-
+   
+   mixingsettingarray[modelindex][mixnummer][0] = mix0;
+   curr_mixstatusarray[mixnummer] = mix0;
+   
+   mixingsettingarray[modelindex][mixnummer][1] = mix1;
+   curr_mixkanalarray[mixnummer] = mix1;
+   
+   size_t n = sizeof(mixingsettingarray) / sizeof(mixingsettingarray[0]);
+   Serial.printf("mixingsettingarray anz: %d: \n",n);
+   for (uint8_t i=0;i<n;i++)
+   {
+      Serial.printf("mix0: %d  mix1: %d\n",mixingsettingarray[modelindex][i][0],mixingsettingarray[modelindex][i][1]);
+   }
    return 0;
 }
 
