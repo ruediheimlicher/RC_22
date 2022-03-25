@@ -94,8 +94,9 @@
 
 #define  ANZAHLMODELLE        3
 #define  KANALSETTINGBREITE   4
-#define  MODELSETTINGBREITE   32
+#define  MODELSETTINGBREITE   32 // nur Kanalsettings. Anschliessend MixingSettings
 
+#define  EEPROM_MODELSETTINGBREITE 64 //Kanalsettings und MixingSettings
 
 #define  STATUS_OFFSET     0 
 #define  LEVEL_OFFSET      1 //0x20 // 32

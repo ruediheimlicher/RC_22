@@ -273,7 +273,7 @@ void sethomescreen(void)
    display_write_str(TitelTable[0],1);
    //display_write_str(TitelTable[0],1);
    //display_write_str("ABC",1);
-   display_inverse(0);
+   //display_inverse(0);
    char_height_mul = 1;
    char_width_mul = 1;
    
@@ -1251,7 +1251,7 @@ void set_parthomescreen(uint8_t code)
          display_write_str(TitelTable[0],1);
          //display_write_str(TitelTable[0],1);
          //display_write_str("ABC",1);
-         display_inverse(0);
+         //display_inverse(0);
          char_height_mul = 1;
          char_width_mul = 1;
          
@@ -1368,7 +1368,7 @@ uint8_t refresh_screen(void)
          display_write_str(TitelTable[0],1);
          //display_write_str(TitelTable[0],1);
          //display_write_str("ABC",1);
-         //display_inverse(0);
+         display_inverse(0);
          char_height_mul = 1;
          char_width_mul = 1;
          
