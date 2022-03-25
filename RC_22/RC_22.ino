@@ -1068,12 +1068,14 @@ uint8_t decodeUSBMixingSettings(uint8_t buffer[USB_DATENBREITE])
    {
       uint8_t mix0 = buffer[USB_DATA_OFFSET + MODELSETTINGBREITE + 2 * mixindex] ; // Bit 3
       uint8_t mix1 = buffer[USB_DATA_OFFSET + MODELSETTINGBREITE + 2 * mixindex + 1]; // Bit 3
-    
+      Serial.printf("mixindex: %d mix0: %d mix1: %d\n",mixindex,mix0,mix1);
       mixingsettingarray[modelindex][mixindex][0] = mix0;
       mixingsettingarray[modelindex][mixindex][1] = mix1;
+      
+      curr_mixstatusarray[mixindex] = mix0;
+      curr_mixkanalarray[mixindex] = mix1;
+
    }
-   curr_mixstatusarray[mixnummer] = mix0;
-   curr_mixkanalarray[mixnummer] = mix1;
    
    size_t n = sizeof(mixingsettingarray) / sizeof(mixingsettingarray[0]);
    Serial.printf("mixingsettingarray anz: %d: \n",n);

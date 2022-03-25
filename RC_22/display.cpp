@@ -763,7 +763,7 @@ void setausgangscreen(void)
 
 void setmixscreen(void)
 {
-   uint8_t delta=6;
+   uint8_t delta=3;
    resetRegister();
    blink_cursorpos=0xFFFF;
    
@@ -2689,6 +2689,20 @@ uint8_t update_screen(void)
           uint8_t modelindex = mix0 & 0x03; // bit 0,1
           
           */
+         /*
+          const char funktion0[]  = "Seite";
+          const char funktion1[]  = "Hoehe";
+          const char funktion2[]  = "Quer ";
+          const char funktion3[]  = "Motor";
+          const char funktion4[]  = "QuerL";
+          const char funktion5[]  = "QuerR";
+          const char funktion6[]  = "Lande";
+          const char funktion7[]  = "Aux  ";
+          
+          const char *FunktionTable[]  = {funktion0, funktion1, funktion2, funktion3, funktion4, funktion5, funktion6, funktion7};
+          
+          */
+
          if (programmstatus & (1<< UPDATESCREEN))
          {
             programmstatus &= ~(1<< UPDATESCREEN);
@@ -2698,30 +2712,17 @@ uint8_t update_screen(void)
             uint8_t mixart = (curr_mixstatusarray[0] & 0x30) >> 4; // bit 4,5
             uint8_t mixnummer = (curr_mixstatusarray[0] & 0xC0) >> 6; // bit 6,7
             uint8_t mixon = (curr_mixstatusarray[0] & 0x08) >> 3; // Bit 3
-            
-     //       uint8_t mixkanala = curr_mixkanalarray[1] & 0x07 ; // Bit 0-3
-      //      uint8_t mixkanalb = (curr_mixkanalarray[1] & 0x70) >> 4; // Bit 4-6
-            
-            char_y= (posregister[0][0] & 0xFF00)>> 10;
-            char_x = posregister[0][0] & 0x00FF;
-            display_write_str(MixTypTable[mixart],2); // Mix-Typ
-            uint8_t canalnummera=0,canalnummerb=0;
-   /*
-    const char funktion0[]  = "Seite";
-    const char funktion1[]  = "Hoehe";
-    const char funktion2[]  = "Quer ";
-    const char funktion3[]  = "Motor";
-    const char funktion4[]  = "QuerL";
-    const char funktion5[]  = "QuerR";
-    const char funktion6[]  = "Lande";
-    const char funktion7[]  = "Aux  ";
 
-    const char *FunktionTable[]  = {funktion0, funktion1, funktion2, funktion3, funktion4, funktion5, funktion6, funktion7};
-
-    */
             uint8_t mixkanala=0,mixkanalb=0;
-            if (mixart)
+            
+            Serial.printf("Mix 0 mixnummer: %d mixart: %d mixon: %d \n",mixnummer,mixart, mixon);
+
+            if (mixon)
             {
+               char_y= (posregister[0][0] & 0xFF00)>> 10;
+               char_x = posregister[0][0] & 0x00FF;
+               display_write_str(MixTypTable[mixart],2); // Mix-Typ
+
                //Kanal A
                char_y= (posregister[0][2] & 0xFF00)>> 10;
                char_x = posregister[0][2] & 0x00FF;
@@ -2729,12 +2730,12 @@ uint8_t update_screen(void)
                // Funktion anzeigen
                // Funktion fuer Seite A:
                mixkanala = curr_mixkanalarray[mixnummer] & 0x07 ; // Bit 0-3
-                // index in curr_funktionarray: Kanalnummer von Seite A: (curr_mixarray[0] & 0x70)>>4]], Bit 4,5
-              
+               // index in curr_funktionarray: Kanalnummer von Seite A: (curr_mixarray[0] & 0x70)>>4]], Bit 4,5
+               
                if (mixkanala < 8)
                {
                   display_write_int(mixkanala,2); // Kanalnummer A, von geradem Index
-                  display_write_str(": \0",2);
+                  display_write_str(":",2);
                   display_write_str(FunktionTable[mixkanala],1);
                   
                }
@@ -2743,7 +2744,7 @@ uint8_t update_screen(void)
                   display_write_str(" - ",1);
                   display_write_str("  OFF \0",1);
                }
-
+               
                
                //Kanal B
                char_y= (posregister[0][5] & 0xFF00)>> 10;
@@ -2751,15 +2752,15 @@ uint8_t update_screen(void)
                
                // Funktion anzeigen
                // Funktion fuer Seite B:
-              // canalnummerb = (curr_mixarray[0] & 0x0F);
+               // canalnummerb = (curr_mixarray[0] & 0x0F);
                mixkanalb = (curr_mixkanalarray[mixnummer] & 0x70) >> 4; // Bit 4-6
                
                // index in curr_funktionarray: Kanalnummer von Seite B: (curr_mixarray[0] & 0x70)]], Bit 0,1
                if (mixkanalb < 8)
                {
                   display_write_int(mixkanalb,2);// Kanalnummer B, von geradem Index
-                  display_write_str(": \0",2);
-
+                  display_write_str(":",2);
+                  
                   //strcpy(menubuffer, (&(FunktionTable[canalnummerb]))); // Funktion
                   display_write_str(FunktionTable[mixkanalb],1);
                }
@@ -2783,33 +2784,35 @@ uint8_t update_screen(void)
                
             }
             
-            
+           
             // Mix 1
-            mixart = curr_mixarray[3]& 0x03; // von ungeradem Index
-            mixart &= 0x03; // nur 4 Typen
-            //strcpy(menubuffer, (&(MixTypTable[mixtyp]))); // Leveltext
-            char_y= (posregister[1][0] & 0xFF00)>> 10;
-            char_x = posregister[1][0] & 0x00FF;
-            display_write_str(MixTypTable[mixart],2); // Mix-Typ
+            modelindex = curr_mixstatusarray[1] & 0x03; // bit 0,1
+            mixart = (curr_mixstatusarray[1] & 0x30) >> 4; // bit 4,5
+            mixnummer = (curr_mixstatusarray[1] & 0xC0) >> 6; // bit 6,7
+            mixon = (curr_mixstatusarray[1] & 0x08) >> 3; // Bit 3
+
+             mixkanala=0;
+            mixkanalb=0;
             
-            if (mixart)
+            Serial.printf("Mix 1 mixnummer: %d mixart: %d mixon: %d \n",mixnummer,mixart, mixon);
+            if (mixon)
             {
-               
+               char_y= (posregister[1][0] & 0xFF00)>> 10;
+               char_x = posregister[1][0] & 0x00FF;
+               display_write_str(MixTypTable[mixart],2); // Mix-Typ
+
                //Kanal A
                char_y= (posregister[1][2] & 0xFF00)>> 10;
                char_x = posregister[1][2] & 0x00FF;
                
                // Funktion anzeigen
                // Funktion fuer Seite A:
-               mixkanalb = ((curr_mixarray[2] & 0xF0)>>4);
-               if (mixkanalb < 8)
+               mixkanala = curr_mixkanalarray[mixnummer] & 0x07 ; // Bit 0-3
+               if (mixon)
                {
-                  display_write_int(((curr_mixarray[2] & 0xF0)>>4),2); // Kanalnummer A, von geradem Index
-                  display_write_str(": ",2);
-                  
-               // index in curr_funktionarray: Kanalnummer von Seite A: (curr_mixarray[0] & 0x70)>>4]], Bit 4,5
-                  //strcpy(menubuffer, (&(FunktionTable[canalnummera]))); // Funktion
-                  display_write_str(FunktionTable[mixkanalb],1);
+                  display_write_int(mixkanala,2); // Kanalnummer A, von geradem Index
+                  display_write_str(":",2);
+                  display_write_str(FunktionTable[mixkanala],1);
                }
                else
                {
@@ -2821,17 +2824,17 @@ uint8_t update_screen(void)
                //Kanal B
                char_y= (posregister[1][5] & 0xFF00)>> 10;
                char_x = (posregister[1][5] & 0x00FF);
-               mixkanalb = (curr_mixarray[2] & 0x0F);
+               mixkanalb = (curr_mixkanalarray[mixnummer] & 0x70) >> 4; // Bit 4-6
                
                // Funktion anzeigen
                // Funktion fuer Seite B:
                
                // index in curr_funktionarray: Kanalnummer von Seite B: (curr_mixarray[0] & 0x70)]], Bit 0,1
-               if (mixkanalb<8)
+               if (mixon)
                {
-                  display_write_int((curr_mixarray[2] & 0x0F),2);// Kanalnummer B, von geradem Index
-                  display_write_str(": ",2);
-
+                  display_write_int(mixkanalb,2);// Kanalnummer B, von geradem Index
+                  display_write_str(":",2);
+                  
                   //strcpy(menubuffer, (&(FunktionTable[canalnummerb]))); // Funktion
                   display_write_str(FunktionTable[mixkanalb],1);
                }
@@ -2853,9 +2856,9 @@ uint8_t update_screen(void)
                display_write_str("   OFF    \0",1);
                
             }
+           
             
-            
-         } // if updaate
+         } // if update
          
          
          
