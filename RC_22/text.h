@@ -75,14 +75,14 @@ const char *KanalTypTable[]  = {pitchtyp,schiebertyp,schaltertyp};
 
 
 // Mix
-const char mixtitel[]  = "Mix";
+const char mixtitel[]  = "Mixing";
 const char MixTable[]  = {mixtitel};
 
 // Mixtyp
-const char nada[]  = " -    ";
+const char nada[]  = "OFF ";
 const char vmix[]  = "V-Mix";
 const char butterfly[]  = "B-fly";
-const char A[]  = "A    ";
+const char A[]  = "ABCD ";
 
 const char *MixTypTable[]  = {nada,vmix,butterfly,A};
 

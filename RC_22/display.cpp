@@ -54,6 +54,7 @@ extern  volatile uint8_t cursortab[10] = {cursortab0,cursortab1,cursortab2,curso
 #define itemtab5  88
 #define itemtab6  110
 #define itemtab7  118
+
 extern volatile uint8_t itemtab[10] = {itemtab0,itemtab1,itemtab2,itemtab3,itemtab4,itemtab5,itemtab6,itemtab7,itemtab0,itemtab0};
 
 
@@ -763,63 +764,78 @@ void setausgangscreen(void)
 
 void setmixscreen(void)
 {
-   uint8_t delta=3;
+   uint8_t deltaplus =3;
+   uint8_t deltaminus =3;
+   uint8_t d1 = 6;
+   uint8_t d2 = 3;
+   uint8_t d5 = 6;
+   
    resetRegister();
    blink_cursorpos=0xFFFF;
    
    // Mix 0
-   posregister[0][0] =  itemtab[0] |    (4 << 10); //
-   posregister[0][1] =  itemtab[1] |    (4 << 10); //
-   posregister[0][2] =  (itemtab[2]-delta) |    (4 << 10); //
-   posregister[0][3] =  itemtab[3] |    (4 << 10); //
+   posregister[0][0] =  itemtab[0] |    (4 << 10); // Art
+   posregister[0][1] =  (itemtab[1]+d1) |    (4 << 10); // ON
+   posregister[0][2] =  (itemtab[2]-deltaminus) |    (4 << 10); //
+   posregister[0][3] =  (itemtab[3]-deltaminus) |    (4 << 10); //
    posregister[0][4] =  itemtab[4] |    (4 << 10); //
-   posregister[0][5] =  (itemtab[5]+delta) |    (4 << 10); //
+   posregister[0][5] =  (itemtab[5]+d5) |    (4 << 10); //
    posregister[0][6] =  itemtab[6] |    (4 << 10); // Level B wert
    posregister[0][7] =  itemtab[7] |    (4 << 10); // Level B wert
    
    // Mix 1
-   posregister[1][0] =  itemtab[0] |    (5 << 10); // Leveltext
-   posregister[1][1] =  itemtab[1] |    (5 << 10); // Level A text
-   posregister[1][2] =  (itemtab[2]-delta)  |    (5 << 10); // Level A wert
-   posregister[1][3] =  itemtab[3] |    (5 << 10); // Level B text
-   posregister[1][4] =  itemtab[4] |    (5 << 10); // Level B wert
-   posregister[1][5] =  (itemtab[5]+delta)  |  (5 << 10); // Level B wert
+   posregister[1][0] =  itemtab[0] |    (5 << 10); //
+   posregister[1][1] =  (itemtab[1]+d1) |    (5 << 10); //
+   posregister[1][2] =  (itemtab[2]-deltaminus) |    (5 << 10); //
+   posregister[1][3] =  (itemtab[3]-deltaminus) |    (5 << 10); //
+   posregister[1][4] =  itemtab[4] |    (5 << 10); //
+   posregister[1][5] =  (itemtab[5]+d5) |   (5 << 10); //
    posregister[1][6] =  itemtab[6] |    (5 << 10); // Level B wert
    posregister[1][7] =  itemtab[7] |    (5 << 10); // Level B wert
-   
-   
-   cursorpos[0][0] =cursortab[0] |   (4 << 10); // cursorpos fuer
-   cursorpos[0][1] =(cursortab[2]-delta) |   (4 << 10); // cursorpos fuer
-   cursorpos[0][2] =(cursortab[5]+delta) |   (4 << 10); // cursorpos fuer Mix 0
-   
-   cursorpos[1][0] =cursortab[0] |   (5 << 10); // cursorpos fuer
-   cursorpos[1][1] =(cursortab[2]-delta) |   (5 << 10); // cursorpos fuer
-   cursorpos[1][2] =(cursortab[5]+delta) |   (5 << 10); // cursorpos fuer Mix 0
 
-   cursorpos[2][0] =cursortab[0] |   (5 << 10); // cursorpos fuer
-   cursorpos[2][1] =(cursortab[2]-delta) |   (5 << 10); // cursorpos fuer
-   cursorpos[2][2] =(cursortab[5]+delta) |   (5 << 10); // cursorpos fuer Mix 0
+  
+   posregister[2][0] =  itemtab[0] |    (6 << 10); // Leveltext
+   posregister[2][1] =  itemtab[1] |    (6 << 10); // Level A text
+   posregister[2][2] =  (itemtab[2]-deltaminus)  |    (6 << 10); // Level A wert
+   posregister[2][3] =  itemtab[3] |    (6 << 10); // Level B text
+   posregister[2][4] =  itemtab[4] |    (6 << 10); // Level B wert
+   posregister[2][5] =  (itemtab[5]+deltaplus)  |  (6 << 10); // Level B wert
+   posregister[2][6] =  itemtab[6] |    (6 << 10); // Level B wert
+   posregister[2][7] =  itemtab[7] |    (6 << 10); // Level B wert
+   
+   
+   cursorpos[0][0] =cursortab[0] |   (4 << 10); // cursorpos fuer Typ
+   cursorpos[0][1] =(cursortab[1] + 6) |   (4 << 10); // cursorpos fuer OK
+   cursorpos[0][2] =(cursortab[3] -3) |   (4 << 10); // cursorpos fuer
+   cursorpos[0][3] =(cursortab[6] -2) |   (4 << 10); // cursorpos fuer Mix 0
+  
+   cursorpos[1][0] =cursortab[0] |   (5 << 10); // cursorpos fuer Typ
+   cursorpos[1][1] =(cursortab[1] + 6) |   (5 << 10); // cursorpos fuer OK
+   cursorpos[1][2] =(cursortab[3] -3) |   (5 << 10); // cursorpos fuer
+   cursorpos[1][3] =(cursortab[6] -2) |   (5 << 10); // cursorpos fuer Mix 0
 
- 
    //strcpy(menubuffer, (&(MixTable[0]))); // titel
    char_y= 1;
    char_x = itemtab[0] ;
    char_height_mul = 1;
    char_width_mul = 1;
-   display_write_str(MixTable[0],2);
+   //display_write_str(MixTable[0],2);
+   display_write_str("MIXING",2);
    
    // Tabellenkopf anzeigen
    char_y= 2;
    char_x = itemtab[0];
-   display_write_str("Typ\0",1);
+   display_write_str("Typ",1);
 
    char_y= 2;
-   char_x = itemtab[2]-delta;
-   display_write_str("Reverse",1); // Seite A
+   char_x = itemtab[2]-deltaminus;
+   //char_x = itemtab[4];
+   display_write_str("Rev",1); // Seite A
    
    char_y= 2;
-   char_x = itemtab[5]+delta;
-   display_write_str("Parallel",1);
+   char_x = itemtab[5]+deltaplus;
+   //char_x = itemtab[5];
+   display_write_str("Par",1);
 
    char_height_mul = 1;
    
@@ -2301,7 +2317,7 @@ uint8_t update_screen(void)
    uint8_t fehler=0;
    uint16_t cursorposition = cursorpos[curr_cursorzeile][curr_cursorspalte];
    fehler=1;
-   //Serial.printf("****************  update_screen: %d\n",curr_screen);
+   Serial.printf("****************  update_screen: %d programmstatus: %d\n",curr_screen, programmstatus);
    
    switch (curr_screen)
    {
@@ -2706,8 +2722,10 @@ uint8_t update_screen(void)
          if (programmstatus & (1<< UPDATESCREEN))
          {
             programmstatus &= ~(1<< UPDATESCREEN);
+            Serial.printf("\nupdate_screen curr_mixstatusarray[0]: %d curr_mixkanalarray[0]: %d\n",curr_mixstatusarray[0],curr_mixkanalarray[0]);
             
-            // Mix 0
+            // Mix 0 Byte 0 in curr_xy
+            
             uint8_t modelindex = curr_mixstatusarray[0] & 0x03; // bit 0,1
             uint8_t mixart = (curr_mixstatusarray[0] & 0x30) >> 4; // bit 4,5
             uint8_t mixnummer = (curr_mixstatusarray[0] & 0xC0) >> 6; // bit 6,7
@@ -2715,36 +2733,40 @@ uint8_t update_screen(void)
 
             uint8_t mixkanala=0,mixkanalb=0;
             
-            Serial.printf("Mix 0 mixnummer: %d mixart: %d mixon: %d \n",mixnummer,mixart, mixon);
+            Serial.printf("update_screen Mix0 mixnummer: %d mixart: %d mixon: %d mixtyp: %s\n",mixnummer,mixart, mixon,MixTypTable[mixart]);
 
-            if (mixon)
             {
+                
                char_y= (posregister[0][0] & 0xFF00)>> 10;
                char_x = posregister[0][0] & 0x00FF;
                display_write_str(MixTypTable[mixart],2); // Mix-Typ
 
+               char_y= (posregister[0][1] & 0xFF00)>> 10;
+               char_x = posregister[0][1] & 0x00FF;
+               if (mixon)
+               {
+                  display_write_str("OK",2); // Mix-Typ
+               }
+               else
+               {
+                  display_write_str("--",2); // Mix-Typ
+               }
+                
                //Kanal A
-               char_y= (posregister[0][2] & 0xFF00)>> 10;
-               char_x = posregister[0][2] & 0x00FF;
+               char_y= (posregister[0][3] & 0xFF00)>> 10;
+               char_x = posregister[0][3] & 0x00FF;
                
                // Funktion anzeigen
                // Funktion fuer Seite A:
                mixkanala = curr_mixkanalarray[mixnummer] & 0x07 ; // Bit 0-3
+               Serial.printf("update_screen mixkanala: %d \n",mixkanala);
                // index in curr_funktionarray: Kanalnummer von Seite A: (curr_mixarray[0] & 0x70)>>4]], Bit 4,5
                
-               if (mixkanala < 8)
-               {
+                  Serial.printf("update_screen mixkanala OK Fkt: %s\n ",FunktionTable[mixkanala]);
                   display_write_int(mixkanala,2); // Kanalnummer A, von geradem Index
                   display_write_str(":",2);
                   display_write_str(FunktionTable[mixkanala],1);
-                  
-               }
-               else
-               {
-                  display_write_str(" - ",1);
-                  display_write_str("  OFF \0",1);
-               }
-               
+                
                
                //Kanal B
                char_y= (posregister[0][5] & 0xFF00)>> 10;
@@ -2755,13 +2777,15 @@ uint8_t update_screen(void)
                // canalnummerb = (curr_mixarray[0] & 0x0F);
                mixkanalb = (curr_mixkanalarray[mixnummer] & 0x70) >> 4; // Bit 4-6
                
+               Serial.printf("update_screen mixkanalb: %d \n",mixkanalb);
+               
                // index in curr_funktionarray: Kanalnummer von Seite B: (curr_mixarray[0] & 0x70)]], Bit 0,1
                if (mixkanalb < 8)
                {
+                  Serial.printf("update_screen mixkanalb OK Fkt: %s\n ",FunktionTable[mixkanalb]);
                   display_write_int(mixkanalb,2);// Kanalnummer B, von geradem Index
                   display_write_str(":",2);
                   
-                  //strcpy(menubuffer, (&(FunktionTable[canalnummerb]))); // Funktion
                   display_write_str(FunktionTable[mixkanalb],1);
                }
                else
@@ -2770,7 +2794,8 @@ uint8_t update_screen(void)
                   display_write_str("  OFF \0",1);
                }
                
-            }
+            } // if mixon
+            /*
             else // Mix 0 ist OFF
             {
                char_y= (posregister[0][2] & 0xFF00)>> 10;
@@ -2783,19 +2808,22 @@ uint8_t update_screen(void)
                display_write_str("   OFF    \0",1);
                
             }
-            
+            */
            
-            // Mix 1
+            
+            
+            // Mix 1 Byte 1 in curr_xy
+            
             modelindex = curr_mixstatusarray[1] & 0x03; // bit 0,1
             mixart = (curr_mixstatusarray[1] & 0x30) >> 4; // bit 4,5
             mixnummer = (curr_mixstatusarray[1] & 0xC0) >> 6; // bit 6,7
             mixon = (curr_mixstatusarray[1] & 0x08) >> 3; // Bit 3
 
-             mixkanala=0;
+            mixkanala=0;
             mixkanalb=0;
             
-            Serial.printf("Mix 1 mixnummer: %d mixart: %d mixon: %d \n",mixnummer,mixart, mixon);
-            if (mixon)
+            Serial.printf("update_screen Mix1 mixnummer: %d mixart: %d mixon: %d \n",mixnummer,mixart, mixon);
+            //if (mixon)
             {
                char_y= (posregister[1][0] & 0xFF00)>> 10;
                char_x = posregister[1][0] & 0x00FF;
@@ -2840,12 +2868,14 @@ uint8_t update_screen(void)
                }
                else
                {
-                  display_write_str(" - ",1);
-                  display_write_str("  OFF ",1);
+                  //display_write_str(" - ",1);
+                  //display_write_str("  OFF ",1);
                }
             }
+            /*
             else // Mix 1 ist OFF
             {
+               
                char_y= (posregister[1][2] & 0xFF00)>> 10;
                char_x = posregister[1][2] & 0x00FF;
                display_write_str(" -\0",1);
@@ -2856,7 +2886,7 @@ uint8_t update_screen(void)
                display_write_str("   OFF    \0",1);
                
             }
-           
+           */
             
          } // if update
          
@@ -2891,7 +2921,7 @@ uint8_t update_screen(void)
          }
          char_height_mul = 1;
          
-         
+         Serial.printf("update_screen end\n\n");
       }break;
          
       case ZUTEILUNGSCREEN:

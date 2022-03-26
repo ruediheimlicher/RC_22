@@ -192,8 +192,8 @@ volatile uint16_t                cursorpos[8][8]={}; // Aktueller screen: werte 
 volatile uint8_t              curr_levelarray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
 volatile uint8_t              curr_expoarray[8] = {0x33,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
 volatile uint8_t              curr_mixarray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
-uint8_t                       curr_mixstatusarray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
-uint8_t                       curr_mixkanalarray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
+uint8_t                       curr_mixstatusarray[4] = {24,96,0,0};//
+uint8_t                       curr_mixkanalarray[4] = {16,50,0,0};//
 volatile uint8_t              curr_funktionarray[8] = {}; //{0x00,0x11,0x22,0x33,0x44,0x55,0x66,0x77};
 volatile uint8_t             curr_statusarray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
 volatile uint8_t             curr_ausgangarray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
@@ -239,7 +239,7 @@ volatile uint8_t                 curr_cursorspalte=0; // aktuelle colonne des cu
 volatile uint8_t                 last_cursorzeile=0; // letzte zeile des cursors
 volatile uint8_t                 last_cursorspalte=0; // letzte colonne des cursors
 
-volatile uint8_t             displaystatus=0x00; // Tasks fuer Display
+volatile uint8_t                 displaystatus=0x00; // Tasks fuer Display
 
 volatile uint8_t                  masterstatus = 0;
 volatile uint8_t                  eepromsavestatus = 0;
@@ -1253,9 +1253,9 @@ void setup()
 {
    Serial.begin(9600);
   // Wait for USB Serial
-  while (!Serial) {
-    yield();
-  }
+ // while (!Serial) {
+ //   yield();
+ // }
   // pinMode(LOOPLED, OUTPUT);
    pinMode(LOOPLED, OUTPUT);
 //   dog_7565R DOG;
@@ -1403,6 +1403,8 @@ void setup()
 
    servostatus &= ~(1<<RUN);
    
+   //curr_mixstatusarray = {24,96,0,0};
+   //curr_mixkanalarray = [16,50,0,0];
    // Tastatur
    
    pinMode(TASTATURPIN, INPUT);
@@ -1415,7 +1417,7 @@ void loop()
   
    if (!(servostatus & (1<<RUN))) // first run
    {
-      Serial.printf("first run\n");
+      Serial.printf("run start\n");
       servostatus |= (1<<RUN);
       // Mitte lesen
       //Serial.printf("Mitte lesen quot: %.4f expoquot:  %.4f\n",quot, expoquot);
@@ -1559,7 +1561,7 @@ void loop()
             sendesekunde = 0;
             if (curr_screen == 0)
             {
-               Serial.printf("refresh_screen sendeminute: %d",sendeminute);
+               Serial.printf("refresh_screen sendeminute: %d\n",sendeminute);
                servostatus &=  ~(1<<RUN); 
                
                refresh_screen();
@@ -2170,11 +2172,9 @@ void loop()
                      
                      
                      
-                     
+#pragma mark 2 SETTINGSCREEN                     
                   case SETTINGSCREEN: // T2 Settings
                   {
-                     //break;
-                     
                      if (blink_cursorpos == 0xFFFF && manuellcounter) // Kein Blinken
                      {
                         Serial.printf("T2 SETTINGSCREEN no blink");
@@ -2293,7 +2293,8 @@ void loop()
                      else if (manuellcounter) // blinken ist on
                      {
                         
-                        //switch((blink_cursorpos & 0xFF00)>>8) // zeile
+                        Serial.printf("T2 KANALSCREEN curr_cursorspalte: %d\n",curr_cursorspalte);
+                        
                         switch(curr_cursorzeile) // zeile
                         {
                            case 0: // Kanalnummer
@@ -2434,7 +2435,7 @@ void loop()
                         manuellcounter=0;
                      } // if manuellcounter
                   }break; // canalscreen
-                     
+#pragma mark 2 MIXSCREEN                      
                   case MIXSCREEN:
                   {
                      if (blink_cursorpos == 0xFFFF && manuellcounter) // Kein Blinken
@@ -2459,20 +2460,46 @@ void loop()
                      }
                      else if (manuellcounter) // blinken ist on
                      {
+                        Serial.printf("\nT2 mixscreen curr_cursorspalte: %d curr_cursorzeile: %d\n",curr_cursorspalte, curr_cursorzeile);
                         eepromsavestatus |= (1<<SAVE_MIX);
                         switch (curr_cursorspalte)
                         {
                            case 0: // T2 Mix weiterschalten
                            {
-                              
-                              if (curr_mixarray[2*curr_cursorzeile+1])
+                              uint8_t mixnummer = (curr_mixstatusarray[curr_cursorzeile] & 0xC0) >> 6; // bit 6,7
+                              Serial.printf("T2 mixscreen mixnummer: %d\n",mixnummer);
+
+                              Serial.printf("T2 mixscreen curr_mixstatusarray(%d) vor: %d\n",curr_cursorzeile,curr_mixstatusarray[curr_cursorzeile]); 
+                              if ((curr_mixstatusarray[curr_cursorzeile] & 0x30) > 0x10  )
                               {
-                                 curr_mixarray[2*curr_cursorzeile+1] -= 0x01;// Mix ist auf ungerader zeile
+                                 curr_mixstatusarray[curr_cursorzeile] -= 0x10;
+                                 if ((curr_mixstatusarray[curr_cursorzeile] & 0x03) == 0) // > OFF
+                                 {
+                                    Serial.printf("mixscreen > OFF\n");
+                                    //curr_mixstatusarray[curr_cursorzeile] &= ~0x08; // OFF
+                                 }
+                                 
                               }
-                              
+                              Serial.printf("mixscreen curr_mixstatusarray(%d) nach: %d\n",curr_cursorzeile,curr_mixstatusarray[curr_cursorzeile]);
+
                            }break;
                               
-                           case 1: // Kanal A zurueckschalten
+                           case 1: // T2 ON toggle
+                           {
+                              uint8_t mixnummer = (curr_mixstatusarray[0] & 0xC0) >> 6; // bit 6,7
+                              if (curr_mixstatusarray[curr_cursorzeile] & 0x08)
+                              {
+                                 curr_mixstatusarray[curr_cursorzeile] &= ~0x08;
+                              }
+                              else
+                              {
+                                 curr_mixstatusarray[curr_cursorzeile] |= 0x08;
+                              }
+                           }break;
+   
+                              
+                              
+                           case 2: // Kanal A zurueckschalten
                            {
                               uint8_t tempdata =(curr_mixarray[2*curr_cursorzeile] & 0xF0)>>4;// kanal a ist auf gerader zeile in bit 4-6, 8 ist OFF
                               
@@ -2484,7 +2511,7 @@ void loop()
                               
                            }break;
                               
-                           case 2: // Kanal B zurueckschalten
+                           case 3: // Kanal B zurueckschalten
                            {
                               uint8_t tempdata =(curr_mixarray[2*curr_cursorzeile] & 0x0F);// kanal b ist auf gerader zeile in bit 0-2, 8 ist OFF
                               
@@ -3247,12 +3274,12 @@ void loop()
                   switch (curr_screen)
                   {
 #pragma mark Taste 5 HOMESCREEN
-                     
+                        
                      case HOMESCREEN:
                      {
                         // lcd_gotoxy(14,2);
                         // lcd_puts("*H5*");
-                     Serial.printf("*H5* \t");
+                        Serial.printf("*H5* \t");
                         
                         
                         tastaturstatus &=  ~(1<<AKTIONOK);
@@ -3302,15 +3329,15 @@ void loop()
                                     //lcd_putc('3');
                                     Serial.printf("*** settingstartcounter 3\n");
                                     programmstatus &= ~(1<< SETTINGWAIT);
-                         //           programmstatus |= (1<<UPDATESCREEN);
+                                    //           programmstatus |= (1<<UPDATESCREEN);
                                     settingstartcounter=0;
                                     startcounter=0;
                                     eepromsavestatus = 0;
                                     // Umschalten
                                     display_clear();
                                     //lcd_putc('D');
-                                   // Serial.printf("*H5*D \t");
-                                   setsettingscreen();
+                                    // Serial.printf("*H5*D \t");
+                                    setsettingscreen();
                                     //lcd_putc('E');
                                     //Serial.printf("*H5*E \t");
                                     curr_screen = SETTINGSCREEN;
@@ -3319,7 +3346,7 @@ void loop()
                                     last_cursorspalte=0;
                                     last_cursorzeile=0;
                                     blink_cursorpos=0xFFFF;
-                                   // Serial.printf("*H5*F \n");
+                                    // Serial.printf("*H5*F \n");
                                     manuellcounter = 1;
                                     //servostatus |=  (1<<RUN);
                                     OSZI_A_HI();
@@ -3528,7 +3555,7 @@ void loop()
                                     case 2: // funktion
                                     {
                                        blink_cursorpos =  cursorpos[0][2];
-                                    
+                                       
                                     }break;
                                        
                                        
@@ -3616,89 +3643,84 @@ void loop()
 #pragma mark  5 MIXSCREEN
                         if (manuellcounter)
                         {
-                           blink_cursorpos =  cursorpos[curr_cursorzeile][curr_cursorspalte];
-                           manuellcounter=0;
-                        } // if manuellcounter
+                           //blink_cursorpos =  cursorpos[curr_cursorzeile][curr_cursorspalte];
+                           //manuellcounter=0;
+                        //} // if manuellcounter
                         
-                        /*
-                         if (manuellcounter)
-                         {
-                         lcd_gotoxy(0,0);
-                         lcd_puthex(curr_cursorzeile);
-                         lcd_putc(' ');
-                         lcd_puthex(curr_cursorspalte);
-                         lcd_putc(' ');
-                         //lcd_puthex(posregister[curr_cursorzeile][curr_cursorspalte+1]);
-                         
-                         switch (curr_cursorzeile)
-                         {
-                         case 0: // Mix 0
-                         {
-                         
-                         switch (curr_cursorspalte)
-                         {
-                         case 0:
-                         {
-                         blink_cursorpos =  cursorpos[0][0]; // Typ
-                         }break;
-                         
-                         case 1: // Kanal A
-                         {
-                         blink_cursorpos =  cursorpos[0][1]; // richtungpfeilcursor
-                         
-                         }break;
-                         case 2: // Kanal B
-                         {
-                         blink_cursorpos =  cursorpos[0][2];
-                         }break;
-                         
-                         
-                         } // switch curr_cursorspalte
-                         }break;// case 0
-                         
-                         case 1: // Mix 1
-                         {
-                         
-                         switch (curr_cursorspalte)
-                         {
-                         case 0:// Typ
-                         {
-                         
-                         blink_cursorpos =  cursorpos[1][0]; // Typ
-                         }break;
-                         
-                         case 1: // kanalwert A
-                         
-                         {
-                         blink_cursorpos =  cursorpos[1][1]; // Kanal A
-                         
-                         }break;
-                         case 2:
-                         {
-                         blink_cursorpos =  cursorpos[1][2];// Kanal B
-                         }break;
-                         
-                         } //  case curr_cursorspalte
-                         
-                         }break;
-                         
-                         case 2: //
-                         {
-                         }break;
-                         
-                         case 3:
-                         {
-                         
-                         }break;
-                         
-                         
-                         }// switch cursorzeile                        }break;
-                         manuellcounter=0;
-                         } // if manuellcounter
-                         */
+                        switch (curr_cursorzeile)
+                        {
+                           case 0: // Mix 0
+                           {
+                              switch (curr_cursorspalte)
+                              {
+                                 case 0:
+                                 {
+                                    blink_cursorpos =  cursorpos[0][0]; // Typ
+                                 }break;
+                                    
+                                 case 1: // Kanal A
+                                 {
+                                    blink_cursorpos =  cursorpos[0][1]; // OK
+                                 }break;
+                                 case 2: // Kanal B
+                                 {
+                                    blink_cursorpos =  cursorpos[0][2]; // Kanal A
+                                 }break;
+                                 case 3: // Kanal B
+                                 {
+                                    blink_cursorpos =  cursorpos[0][3]; // Kanal N
+                                 }break;
+                                    
+                                    
+                              } // switch curr_cursorspalte
+                           }break;// case 0
+                              
+                           case 1: // Mix 1
+                           {
+                              
+                              switch (curr_cursorspalte)
+                              {
+                                 case 0:// Typ
+                                 {
+                                    
+                                    blink_cursorpos =  cursorpos[1][0]; // Typ
+                                 }break;
+                                    
+                                 case 1: // kanalwert A
+                                 {
+                                    blink_cursorpos =  cursorpos[1][1]; // OK
+                                    
+                                 }break;
+                                 case 2:
+                                 {
+                                    blink_cursorpos =  cursorpos[1][2];// Kanal A
+                                 }break;
+                                 case 3:
+                                 {
+                                    blink_cursorpos =  cursorpos[1][3];// Kanal B
+                                 }break;
+                                   
+                              } //  case curr_cursorspalte
+                              
+                           }break;
+                              
+                           case 2: //
+                           {
+                           }break;
+                              
+                           case 3:
+                           {
+                              
+                           }break;
+                              
+                              
+                        }// switch cursorzeile                        }break;
+                        manuellcounter=0;
+                     } // if manuellcounter
                         
                         
-                     }break; // case mixscreen
+                        
+                  }break; // case mixscreen
                         
                      case ZUTEILUNGSCREEN: // Zuteilung
                      case AUSGANGSCREEN:
@@ -4783,18 +4805,54 @@ void loop()
                          lcd_puthex(curr_cursorspalte);
                          lcd_putc(' ');
                          */
+                        /*
+                         uint8_t modelindex = mix0 & 0x03; // bit 0,1
+                         Serial.printf("modelindex: %d \n",modelindex);
+                         uint8_t mixart = (mix0 & 0x30) >> 4; // bit 4,5
+                         Serial.printf("mixart: %d \n",mixart);
+                         uint8_t mixnummer = (mix0 & 0xC0) >> 6; // bit 6,7
+                         Serial.printf("mixnummer: %d \n",mixnummer);
+                         uint8_t mixon = (mix0 & 0x08) >> 3; // Bit 3
+                         Serial.printf("mixon: %d \n",mixon);
+
+                         */
+                        Serial.printf("\nT8 mixscreen curr_cursorspalte: %d curr_cursorzeile: %d\n",curr_cursorspalte, curr_cursorzeile);
                         eepromsavestatus |= (1<<SAVE_MIX);
                         switch (curr_cursorspalte)
                         {
-                           case 0: // Mix weiterschalten
+                           case 0: //T8 Mix weiterschalten
                            {
-                              if (curr_mixarray[2*curr_cursorzeile+1]<3)
+                              uint8_t mixnummer = (curr_mixstatusarray[curr_cursorzeile] & 0xC0) >> 6; // bit 6,7
+                              Serial.printf("T8 mixscreen mixnummer: %d\n",mixnummer);
+                              Serial.printf("T8 mixscreen curr_mixstatusarray(%d) vor: %d\n",curr_cursorzeile,curr_mixstatusarray[curr_cursorzeile]);
+                              if ((curr_mixstatusarray[curr_cursorzeile] & 0x30) < 0x30  )
                               {
-                                 curr_mixarray[2*curr_cursorzeile+1] += 0x01;// Mix ist auf ungerader zeile
+                                 if ((curr_mixstatusarray[curr_cursorzeile] & 0x30) == 0) // noch OFF
+                                 {
+                                    Serial.printf("mixscreen > ON\n");
+                                       //curr_mixstatusarray[curr_cursorzeile] |= 0x30; // ON
+                                  }
+                                 curr_mixstatusarray[curr_cursorzeile] += 0x10;
                               }
+                              Serial.printf("mixscreen curr_mixstatusarray(%d) nach: %d\n",curr_cursorzeile,curr_mixstatusarray[curr_cursorzeile]);
+     
                            }break;
                               
-                           case 1: // Kanal A weiterschalten
+                           case 1: //T8 ON toggle
+                           {
+                              uint8_t mixnummer = (curr_mixstatusarray[curr_cursorzeile] & 0xC0) >> 6; // bit 6,7
+                              if (curr_mixstatusarray[curr_cursorzeile] & 0x08)
+                              {
+                                 curr_mixstatusarray[curr_cursorzeile] &= ~0x08;
+                              }
+                              else
+                              {
+                                 curr_mixstatusarray[curr_cursorzeile] |= 0x08;
+                              }
+                           }break;
+
+                              
+                           case 2: // Kanal A weiterschalten
                            {
                               uint8_t tempdata =(curr_mixarray[2*curr_cursorzeile] & 0xF0)>>4;// kanal a ist auf gerader zeile in bit 4-6, 8 ist OFF
                               
@@ -4807,7 +4865,7 @@ void loop()
                               
                            }break;
                               
-                           case 2: // Kanal B weiterschalten
+                           case 3: // Kanal B weiterschalten
                            {
                               uint8_t tempdata =(curr_mixarray[2*curr_cursorzeile] & 0x0F);// kanal b ist auf gerader zeile in bit 0-2, 8 ist OFF
                               
