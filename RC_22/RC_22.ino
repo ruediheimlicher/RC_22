@@ -2501,11 +2501,12 @@ void loop()
                               
                            case 2: // Kanal A zurueckschalten
                            {
-                              uint8_t tempdata =(curr_mixarray[2*curr_cursorzeile] & 0xF0)>>4;// kanal a ist auf gerader zeile in bit 4-6, 8 ist OFF
                               
-                              if (tempdata) //
+                               uint8_t kanala = curr_mixkanalarray[curr_cursorzeile] & 0x07;
+                              
+                              if (kanala) //
                               {
-                                 curr_mixarray[2*curr_cursorzeile] -= 0x10;
+                                 curr_mixkanalarray[curr_cursorzeile] -= 0x01;
                               }
                               
                               
@@ -2513,13 +2514,13 @@ void loop()
                               
                            case 3: // Kanal B zurueckschalten
                            {
-                              uint8_t tempdata =(curr_mixarray[2*curr_cursorzeile] & 0x0F);// kanal b ist auf gerader zeile in bit 0-2, 8 ist OFF
-                              
-                              if (tempdata)
-                              {
-                                 curr_mixarray[2*curr_cursorzeile] -= 0x01;
-                              }
-                              
+                              uint8_t kanalb = curr_mixkanalarray[curr_cursorzeile] & 0x70;
+                             
+                             if (kanalb) //
+                             {
+                                curr_mixkanalarray[curr_cursorzeile]  -= 0x10;
+                             }
+                            
                            }break;
                               
                         }// switch curr_cursorspalte
@@ -3658,11 +3659,20 @@ void loop()
                                     blink_cursorpos =  cursorpos[0][0]; // Typ
                                  }break;
                                     
-                                 case 1: // Kanal A
+                                 case 1: // OK
                                  {
-                                    blink_cursorpos =  cursorpos[0][1]; // OK
+                                    if (curr_mixstatusarray[curr_cursorzeile] & 0x08)
+                                    {
+                                       curr_mixstatusarray[curr_cursorzeile] &= ~0x08;
+                                    }
+                                    else
+                                    {
+                                       curr_mixstatusarray[curr_cursorzeile] |= 0x08;
+                                    }
+
+                                    //blink_cursorpos =  cursorpos[0][1]; // OK
                                  }break;
-                                 case 2: // Kanal B
+                                 case 2: // Kanal A
                                  {
                                     blink_cursorpos =  cursorpos[0][2]; // Kanal A
                                  }break;
@@ -4854,25 +4864,24 @@ void loop()
                               
                            case 2: // Kanal A weiterschalten
                            {
-                              uint8_t tempdata =(curr_mixarray[2*curr_cursorzeile] & 0xF0)>>4;// kanal a ist auf gerader zeile in bit 4-6, 8 ist OFF
-                              
-                              if (tempdata < 8) //
-                              {
-                                 curr_mixarray[2*curr_cursorzeile] += 0x10;
-                                 
-                              }
+                              uint8_t kanala = curr_mixkanalarray[curr_cursorzeile] & 0x07;
+                             
+                             if (kanala < 7) //
+                             {
+                                curr_mixkanalarray[curr_cursorzeile] += 0x01;
+                             }
                               
                               
                            }break;
                               
                            case 3: // Kanal B weiterschalten
                            {
-                              uint8_t tempdata =(curr_mixarray[2*curr_cursorzeile] & 0x0F);// kanal b ist auf gerader zeile in bit 0-2, 8 ist OFF
-                              
-                              if (tempdata < 8)
-                              {
-                                 curr_mixarray[2*curr_cursorzeile] += 0x01;
-                              }
+                              uint8_t kanalb = curr_mixkanalarray[curr_cursorzeile] & 0x70;
+                             
+                             if (kanalb < 0x70) //
+                             {
+                                curr_mixkanalarray[curr_cursorzeile] += 0x10;
+                             }
                               
                            }break;
                               
