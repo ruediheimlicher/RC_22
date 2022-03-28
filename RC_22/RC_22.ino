@@ -1868,33 +1868,80 @@ void loop()
          //Serial.printf("-\n");
       }
 // Mixing abarbeiten
-      for (uint8_t i=0;i<4;i++) // 50 us
+      for (uint8_t mixindex=0;mixindex<4;mixindex++) // 50 us
       {
-         // Mixing lesen
-         /*
-         uint8_t mixkanal = MixArray[i];
-         if (mixkanal[0] & 0x08) // ON
+         uint8_t mix0 = mixingsettingarray[0][mixindex][0];
+         
+         if (mix0 & 0x08) // ON
          {
-            uint8_t mixart = (mixkanal[0] & 0x03) >> 4;
-            uint8_t kanala = mixkanal[1] & 0x07;         // beteiligter erster Kanal
-            uint8_t kanalb = (mixkanal[1] & 0x70) >>4;   // beteiligter zweiter Kanal
+            uint8_t mixart = (mix0 & 0x30) >> 4;
+            uint8_t mix1 = mixingsettingarray[0][mixindex][1];
+            uint8_t kanala = (mix1 & 0x03);
+            uint8_t kanalb = (mix1 & 0x30) >> 4;
+            
+            
             switch (mixart) // mixart ist gesetzt
             {
                case 1: // V-Mix
                {
                   // Originalwert fuer jeden Kanal lesen
-                  kanalwerta = impulstimearray[kanala];// Wert fuer ersten Kanal
-                  kanalwertb = impulstimearray[kanalb];// Wert fuer zweiten Kanal
+                  uint16_t kanalwerta = impulstimearray[kanala];// Wert fuer ersten Kanal
+                  uint16_t kanalwertb = impulstimearray[kanalb];// Wert fuer zweiten Kanal
+
+                  uint16_t mixkanalwerta = impulstimearray[kanala];// Wert fuer ersten Kanal
+                  uint16_t mixkanalwertb = impulstimearray[kanalb];// Wert fuer zweiten Kanal
+                  
+                  uint16_t mittea = servomittearray[kanala];
+                  uint16_t mitteb = servomittearray[kanalb];
+                  
+                  //Serial.printf("mixindex: %d kanalwerta: %d kanalwertb: %d mittea: %d mitteb: %d\n",mixindex,kanalwerta,kanalwertb, mittea, mitteb); 
+                  uint16_t diffa = 0;
+                  if(kanalwerta > mittea)
+                  {
+                     diffa = kanalwerta - mittea;
+                     mixkanalwerta = mittea + diffa;
+                     mixkanalwertb = mitteb + diffa;
+                     
+                  }
+                  else 
+                  {
+                     diffa = mittea - kanalwerta;
+                     mixkanalwerta = mittea - diffa;
+                     mixkanalwertb = mitteb - diffa;
+                     
+                     //diffa |= 0xF000; // bit 15
+                  }
+                  uint16_t diffb = 0;
+                  if(kanalwertb > mitteb)
+                  {
+                     diffb = kanalwertb - mitteb;
+                     mixkanalwerta += diffb;
+                     mixkanalwertb -= diffb;
+                     
+                  }
+                  else 
+                  {
+                     diffb = mitteb - kanalwertb;
+                     //diffa |= 0xF000; // bit 15
+                     mixkanalwerta -= diffb;
+                     mixkanalwertb += diffb;
+                  }
+                  
+                  if (displaycounter == 20)
+                     {
+                 // Serial.printf("mixindex: %d kanalwerta : \t%d \tkanalwertb : \t%d\t mixkanalwerta: \t%d\t mixkanalwertb: \t%d\t diffa: \t%d\t diffb: \t%d\t \n",mixindex,kanalwerta ,kanalwerta , mixkanalwerta, mixkanalwertb, diffa, diffb); 
+                     }
                   
                   // Wert mixen und neu speichern
-                  impulstimearray[kanala] = kanalwerta + kanalwertb;
-                  impulstimearray[kanalb] = kanalwerta - kanalwertb;
+                  
+                  impulstimearray[kanala] = mixkanalwerta;
+                  impulstimearray[kanalb] = mixkanalwertb;
                   
                }break;
             } // switch
             
          }// if on
-         */
+         
       }//for i
        servostatus &= ~(1<<ADC_OK);
       
