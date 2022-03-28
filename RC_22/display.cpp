@@ -2317,7 +2317,7 @@ uint8_t update_screen(void)
    uint8_t fehler=0;
    uint16_t cursorposition = cursorpos[curr_cursorzeile][curr_cursorspalte];
    fehler=1;
-   Serial.printf("****************  update_screen: %d programmstatus: %d\n",curr_screen, programmstatus);
+   //Serial.printf("****************  update_screen: %d programmstatus: %d\n",curr_screen, programmstatus);
    
    switch (curr_screen)
    {
@@ -2722,7 +2722,7 @@ uint8_t update_screen(void)
          if (programmstatus & (1<< UPDATESCREEN))
          {
             programmstatus &= ~(1<< UPDATESCREEN);
-            Serial.printf("\nupdate_screen curr_mixstatusarray[0]: %d curr_mixkanalarray[0]: %d\n",curr_mixstatusarray[0],curr_mixkanalarray[0]);
+            //Serial.printf("\nupdate_screen curr_mixstatusarray[0]: %d curr_mixkanalarray[0]: %d\n",curr_mixstatusarray[0],curr_mixkanalarray[0]);
             
             // Mix 0 Byte 0 in curr_xy
             
@@ -2733,7 +2733,7 @@ uint8_t update_screen(void)
 
             uint8_t mixkanala=0,mixkanalb=0;
             
-            Serial.printf("update_screen Mix0 mixnummer: %d mixart: %d mixon: %d mixtyp: %s\n",mixnummer,mixart, mixon,MixTypTable[mixart]);
+            //Serial.printf("update_screen Mix0 mixnummer: %d mixart: %d mixon: %d mixtyp: %s\n",mixnummer,mixart, mixon,MixTypTable[mixart]);
 
             {
                 
@@ -2759,10 +2759,10 @@ uint8_t update_screen(void)
                // Funktion anzeigen
                // Funktion fuer Seite A:
                mixkanala = curr_mixkanalarray[mixnummer] & 0x07 ; // Bit 0-3
-               Serial.printf("update_screen mixkanala: %d \n",mixkanala);
+               //Serial.printf("update_screen mixkanala: %d \n",mixkanala);
                // index in curr_funktionarray: Kanalnummer von Seite A: (curr_mixarray[0] & 0x70)>>4]], Bit 4,5
                
-                  Serial.printf("update_screen mixkanala OK Fkt: %s\n ",FunktionTable[mixkanala]);
+                  //Serial.printf("update_screen mixkanala OK Fkt: %s\n ",FunktionTable[mixkanala]);
                   display_write_int(mixkanala,2); // Kanalnummer A, von geradem Index
                   display_write_str(":",2);
                   display_write_str(FunktionTable[mixkanala],1);
@@ -2777,12 +2777,12 @@ uint8_t update_screen(void)
                // canalnummerb = (curr_mixarray[0] & 0x0F);
                mixkanalb = (curr_mixkanalarray[mixnummer] & 0x70) >> 4; // Bit 4-6
                
-               Serial.printf("update_screen mixkanalb: %d \n",mixkanalb);
+               //Serial.printf("update_screen mixkanalb: %d \n",mixkanalb);
                
                // index in curr_funktionarray: Kanalnummer von Seite B: (curr_mixarray[0] & 0x70)]], Bit 0,1
                if (mixkanalb < 8)
                {
-                  Serial.printf("update_screen mixkanalb OK Fkt: %s\n ",FunktionTable[mixkanalb]);
+                  //Serial.printf("update_screen mixkanalb OK Fkt: %s\n ",FunktionTable[mixkanalb]);
                   display_write_int(mixkanalb,2);// Kanalnummer B, von geradem Index
                   display_write_str(":",2);
                   
@@ -2822,7 +2822,7 @@ uint8_t update_screen(void)
             mixkanala=0;
             mixkanalb=0;
             
-            Serial.printf("update_screen Mix1 mixnummer: %d mixart: %d mixon: %d \n",mixnummer,mixart, mixon);
+            //Serial.printf("update_screen Mix1 mixnummer: %d mixart: %d mixon: %d \n",mixnummer,mixart, mixon);
             //if (mixon)
             {
                char_y= (posregister[1][0] & 0xFF00)>> 10;
@@ -2921,7 +2921,7 @@ uint8_t update_screen(void)
          }
          char_height_mul = 1;
          
-         Serial.printf("update_screen end\n\n");
+         //Serial.printf("update_screen end\n\n");
       }break;
          
       case ZUTEILUNGSCREEN:
