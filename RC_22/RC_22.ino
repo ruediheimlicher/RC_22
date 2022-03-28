@@ -438,6 +438,160 @@ void servopaketfunktion(void) // start Abschnitt
 
 
 // MARK: readSettings
+void load_EEPROM_Settings(uint8_t model)
+{
+   Serial.printf("load_EEPROM_Settings model: %d\n",model);
+   uint8_t pos = USB_DATA_OFFSET;
+   for (uint8_t kanal = 0;kanal < 8;kanal++) // kanal mit je 4 bytes: status(modeöl, on, kanalindex, Ri), level. expo, device(Fkt, device)
+   {
+      for (uint8_t dataindex = 0;dataindex < 4;dataindex++)
+      {
+         // kanalsettingarray[ANZAHLMODELLE][NUM_SERVOS][KANALSETTINGBREITE] 
+         
+         uint8_t data = EEPROM.read(model *  MODELSETTINGBREITE  + kanal * KANALSETTINGBREITE + dataindex);
+         
+         kanalsettingarray[model][kanal][dataindex] = data;
+         
+         if (kanal==0)
+         {
+            Serial.printf("load_EEPROM_Settings kanal: %d dataindex: %d **  data: %d \n",kanal, dataindex, data);
+         }
+      }
+
+      // aktuelle Werte setzen
+      Serial.printf("curr_statusarray: %d\t",buffer[pos] );
+      curr_statusarray[kanal] = buffer[pos ]; // Modell, ON, Kanal, RI
+      
+      Serial.printf("curr_levelarray: %d\t",buffer[pos+ 1]);
+      curr_levelarray[kanal] = buffer[pos + 1]; // level A, level B
+      
+      Serial.printf("curr_expoarray: %d\t",buffer[pos + 2]);
+      curr_expoarray[kanal] = buffer[pos + 2]; // expo A, expo B
+      
+      Serial.printf("curr_funktionarray: %d\n",buffer[pos + 3]);
+      curr_devicearray[kanal] = buffer[pos + 3]; // funktion, device
+
+      
+      pos += KANALSETTINGBREITE;
+   } // for kanal 
+   
+   
+   
+      
+   return;
+   
+   
+   uint8_t modelindex =0;
+   modelindex = model; // welches model soll gelesen werden
+   uint16_t readstartadresse=0;
+
+   uint8_t verbose=buffer[4];
+   
+   //EE_CS_LO;
+   //_delay_us(LOOPDELAY);
+  // uint16_t readstartadresse=0;
+   //uint8_t modelindex = curr_model; // welches model soll gelesen werden
+   // uint8_t pos=0;
+   
+    // Level lesen
+   //cli();
+    readstartadresse = TASK_OFFSET  + LEVEL_OFFSET + modelindex*EEPROM_MODELSETTINGBREITE;
+   //sei();
+    // startadresse fuer Settings des models
+    for (pos=0;pos<8;pos++)
+    {
+       curr_levelarray[pos] = EEPROM.read(readstartadresse+pos);
+       
+    }
+    _delay_us(100);
+   
+    // Expo lesen
+    readstartadresse = TASK_OFFSET  + EXPO_OFFSET + modelindex*SETTINGBREITE;
+    for (pos=0;pos<8;pos++)
+    {
+       curr_expoarray[pos] = EEPROM.read(readstartadresse+pos);
+       
+    }
+    _delay_us(100);
+   
+   
+   // Mix lesen
+   //cli();
+    readstartadresse = TASK_OFFSET  + FUNKTION_OFFSET + modelindex*SETTINGBREITE;
+   //sei();
+   /*
+   lcd_gotoxy(0,0);
+   //lcd_putc('+');
+   //lcd_putint1(modelindex);
+   //lcd_putc('+');
+   lcd_putint12(readstartadresse);
+   lcd_putc('*');
+   lcd_puthex((readstartadresse & 0xFF00)>>8);
+   lcd_puthex((readstartadresse & 0x00FF));
+ */
+   
+    for (pos=0;pos<8;pos++)
+    {
+       if (pos==0)
+       {
+       //OSZI_D_LO;
+       }
+       //cli();
+       curr_mixarray[pos] = EEPROM.read(readstartadresse+pos);
+       //OSZI_D_HI;
+
+    }
+   
+   
+   
+   _delay_us(EE_READ_DELAY);
+   
+   // Funktion lesen
+   cli();
+   readstartadresse = TASK_OFFSET  + FUNKTION_OFFSET + modelindex*SETTINGBREITE;
+   sei();
+   /*
+    lcd_gotoxy(0,0);
+    //lcd_putc('+');
+    //lcd_putint1(modelindex);
+    //lcd_putc('+');
+    lcd_putint12(readstartadresse);
+    lcd_putc('*');
+    lcd_puthex((readstartadresse & 0xFF00)>>8);
+    lcd_puthex((readstartadresse & 0x00FF));
+    */
+   
+   for (pos=0;pos<8;pos++)
+   {
+      if (pos==0)
+      {
+         //OSZI_D_LO;
+      }
+      //cli();
+      curr_funktionarray[pos] = eeprombytelesen(readstartadresse+pos);
+      //OSZI_D_HI;
+      
+   }
+   
+   /*
+   lcd_gotoxy(0,1);
+   
+   lcd_puthex(curr_funktionarray[0]);
+   lcd_putc('$');
+   lcd_puthex(curr_funktionarray[1]);
+   lcd_putc('$');
+   lcd_puthex(curr_funktionarray[2]);
+   lcd_putc('$');
+   lcd_puthex(curr_funktionarray[3]);
+   lcd_putc('$');
+    */
+   
+   _delay_us(EE_READ_DELAY);
+
+   
+   //EE_CS_HI;
+}
+
 
 void read_Ext_EEPROM_Settings(void)
 {
@@ -501,6 +655,8 @@ void read_Ext_EEPROM_Settings(void)
        //OSZI_D_HI;
 
     }
+   
+   
    
    _delay_us(EE_READ_DELAY);
    
@@ -1138,7 +1294,7 @@ uint8_t  decodeUSBChannelSettings(uint8_t buffer[USB_DATENBREITE])
          // kanalsettingarray[ANZAHLMODELLE][NUM_SERVOS][KANALSETTINGBREITE] 
          kanalsettingarray[modelindex][kanal][dataindex] = buffer[pos + dataindex];
          
-         EEPROM.write(modelindex * + MODELSETTINGBREITE  + kanal * KANALSETTINGBREITE + dataindex,buffer[pos + dataindex]);
+         EEPROM.write(modelindex *  MODELSETTINGBREITE  + kanal * KANALSETTINGBREITE + dataindex,buffer[pos + dataindex]);
          if (kanal==0)
          {
             Serial.printf("kanal: %d dataindex: %d **  data: %d \n",kanal, dataindex, buffer[pos + dataindex]);
@@ -1390,6 +1546,8 @@ void setup()
    _delay_ms(50);
    display_clear();
    _delay_us(50);
+   
+   load_EEPROM_Settings(0);
    
    
    curr_levelarray[0] = 0x30;
@@ -1909,7 +2067,7 @@ void loop()
             
             if ((displaycounter == 20) )
                {
-                 Serial.printf("mix on mix0: %d mix1: %d \n",mix0,mix1 );
+                 //Serial.printf("mix on mix0: %d mix1: %d \n",mix0,mix1 );
                
                }
           
@@ -2555,12 +2713,7 @@ void loop()
                               {
                                  curr_mixstatusarray[curr_cursorzeile] -= 0x10;
                                  
-                                 if ((curr_mixstatusarray[curr_cursorzeile] & 0x03) == 0) // > OFF
-                                 {
-                                    Serial.printf("mixscreen > OFF\n");
-                                    //curr_mixstatusarray[curr_cursorzeile] &= ~0x08; // OFF
-                                 }
-                                 
+                                  
                               }
                               //Serial.printf("mixscreen curr_mixstatusarray(%d) nach: %d\n",curr_cursorzeile,curr_mixstatusarray[curr_cursorzeile]);
 
@@ -2572,13 +2725,14 @@ void loop()
                               if (curr_mixstatusarray[curr_cursorzeile] & 0x08)
                               {
                                  curr_mixstatusarray[curr_cursorzeile] &= ~0x08;
-                                 mixingsettingarray[0][mixindex][0] &= ~0x08;
+                                 
                               }
                               else
                               {
                                  curr_mixstatusarray[curr_cursorzeile] |= 0x08;
-                                 mixingsettingarray[0][mixindex][0] |= 0x08;
+                                // mixingsettingarray[0][mixindex][0] |= 0x08;
                               }
+                              mixingsettingarray[0][mixindex][0] = curr_mixstatusarray[curr_cursorzeile];
                            }break;
    
                               
@@ -2591,6 +2745,7 @@ void loop()
                               if (kanala) //
                               {
                                  curr_mixkanalarray[curr_cursorzeile] -= 0x01;
+                              
                               }
                               
                               
@@ -3752,7 +3907,7 @@ void loop()
                                     {
                                        Serial.printf("T5 08 da\n");
                                        curr_mixstatusarray[curr_cursorzeile] &= ~0x08;
-                                       //mixingsettingarray[0][mixindex][0] &= ~0x08;
+                                       //mixingsettingarray[0][mixindex][0] = curr_mixstatusarray[curr_cursorzeile];
                                     }
                                     else
                                     {
@@ -3761,10 +3916,11 @@ void loop()
                                        //mixingsettingarray[0][mixindex][0] |= 0x08;
                                        
                                     }
+                                    // update
+                                    mixingsettingarray[0][mixindex][0] = curr_mixstatusarray[curr_cursorzeile];
                                     
                                     
-                                    
-                                    Serial.printf("T5 mixindex: %d: mix0 nach: %d\n",mixindex, mixingsettingarray[0][mixindex][0]);
+                                   // Serial.printf("T5 mixindex: %d: mix0 nach: %d\n",mixindex, mixingsettingarray[0][mixindex][0]);
                                     //blink_cursorpos =  cursorpos[0][1]; // OK
                                  }break;
                                  case 2: // Kanal A
@@ -4939,6 +5095,7 @@ void loop()
                                   }
                                  curr_mixstatusarray[curr_cursorzeile] += 0x10;
                               }
+                              
                               Serial.printf("mixscreen curr_mixstatusarray(%d) nach: %d\n",curr_cursorzeile,curr_mixstatusarray[curr_cursorzeile]);
      
                            }break;
