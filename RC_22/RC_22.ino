@@ -444,153 +444,60 @@ void load_EEPROM_Settings(uint8_t model)
    uint8_t pos = USB_DATA_OFFSET;
    for (uint8_t kanal = 0;kanal < 8;kanal++) // kanal mit je 4 bytes: status(modeöl, on, kanalindex, Ri), level. expo, device(Fkt, device)
    {
+      //Serial.printf("load_EEPROM_Settings kanal: %d\n",kanal);
       for (uint8_t dataindex = 0;dataindex < 4;dataindex++)
       {
          // kanalsettingarray[ANZAHLMODELLE][NUM_SERVOS][KANALSETTINGBREITE] 
          
          uint8_t data = EEPROM.read(model *  MODELSETTINGBREITE  + kanal * KANALSETTINGBREITE + dataindex);
-         
+         //Serial.printf("load_EEPROM_Settings kanal: %d dataindex: %d **  data: %d \n",kanal, dataindex, data);
          kanalsettingarray[model][kanal][dataindex] = data;
          
-         if (kanal==0)
+         switch (dataindex)
          {
-            Serial.printf("load_EEPROM_Settings kanal: %d dataindex: %d **  data: %d \n",kanal, dataindex, data);
+            case 0: // status
+            {
+               curr_statusarray[kanal] = data;
+               //Serial.printf("dataindex: %d curr_status: %d\n",dataindex,curr_statusarray[kanal]);
+            }break;
+            case 1: //leveld: 
+            {
+               curr_levelarray[kanal] = data;
+            }break;
+            case 2: // expo
+            {
+               curr_expoarray[kanal] = data;
+            }break;
+            case 3: // device
+            {
+               curr_devicearray[kanal] = data;
+            }break;
+         }// switch kanal
+         
+         //Serial.printf("load_EEPROM_Settings nach data: %d\n",data);
+         
+         //if (kanal==0)
+         {
+           // Serial.printf("load_EEPROM_Settings kanal: %d dataindex: %d **  data: %d \n",kanal, dataindex, data);
          }
-      }
-
-      // aktuelle Werte setzen
-      Serial.printf("curr_statusarray: %d\t",buffer[pos] );
-      curr_statusarray[kanal] = buffer[pos ]; // Modell, ON, Kanal, RI
+         
+      }// for dataindex
       
-      Serial.printf("curr_levelarray: %d\t",buffer[pos+ 1]);
-      curr_levelarray[kanal] = buffer[pos + 1]; // level A, level B
-      
-      Serial.printf("curr_expoarray: %d\t",buffer[pos + 2]);
-      curr_expoarray[kanal] = buffer[pos + 2]; // expo A, expo B
-      
-      Serial.printf("curr_funktionarray: %d\n",buffer[pos + 3]);
-      curr_devicearray[kanal] = buffer[pos + 3]; // funktion, device
-
-      
+      //Serial.printf("load_EEPROM_Settings kanal: %d status; %d level: %d\n", kanal, curr_statusarray);
+ 
+         
       pos += KANALSETTINGBREITE;
    } // for kanal 
    
    
-   
-      
-   return;
-   
-   
-   uint8_t modelindex =0;
-   modelindex = model; // welches model soll gelesen werden
-   uint16_t readstartadresse=0;
-
-   uint8_t verbose=buffer[4];
-   
-   //EE_CS_LO;
-   //_delay_us(LOOPDELAY);
-  // uint16_t readstartadresse=0;
-   //uint8_t modelindex = curr_model; // welches model soll gelesen werden
-   // uint8_t pos=0;
-   
-    // Level lesen
-   //cli();
-    readstartadresse = TASK_OFFSET  + LEVEL_OFFSET + modelindex*EEPROM_MODELSETTINGBREITE;
-   //sei();
-    // startadresse fuer Settings des models
-    for (pos=0;pos<8;pos++)
-    {
-       curr_levelarray[pos] = EEPROM.read(readstartadresse+pos);
-       
-    }
-    _delay_us(100);
-   
-    // Expo lesen
-    readstartadresse = TASK_OFFSET  + EXPO_OFFSET + modelindex*SETTINGBREITE;
-    for (pos=0;pos<8;pos++)
-    {
-       curr_expoarray[pos] = EEPROM.read(readstartadresse+pos);
-       
-    }
-    _delay_us(100);
-   
-   
-   // Mix lesen
-   //cli();
-    readstartadresse = TASK_OFFSET  + FUNKTION_OFFSET + modelindex*SETTINGBREITE;
-   //sei();
-   /*
-   lcd_gotoxy(0,0);
-   //lcd_putc('+');
-   //lcd_putint1(modelindex);
-   //lcd_putc('+');
-   lcd_putint12(readstartadresse);
-   lcd_putc('*');
-   lcd_puthex((readstartadresse & 0xFF00)>>8);
-   lcd_puthex((readstartadresse & 0x00FF));
- */
-   
-    for (pos=0;pos<8;pos++)
-    {
-       if (pos==0)
-       {
-       //OSZI_D_LO;
-       }
-       //cli();
-       curr_mixarray[pos] = EEPROM.read(readstartadresse+pos);
-       //OSZI_D_HI;
-
-    }
-   
-   
-   
-   _delay_us(EE_READ_DELAY);
-   
-   // Funktion lesen
-   cli();
-   readstartadresse = TASK_OFFSET  + FUNKTION_OFFSET + modelindex*SETTINGBREITE;
-   sei();
-   /*
-    lcd_gotoxy(0,0);
-    //lcd_putc('+');
-    //lcd_putint1(modelindex);
-    //lcd_putc('+');
-    lcd_putint12(readstartadresse);
-    lcd_putc('*');
-    lcd_puthex((readstartadresse & 0xFF00)>>8);
-    lcd_puthex((readstartadresse & 0x00FF));
-    */
-   
-   for (pos=0;pos<8;pos++)
+   for (uint8_t i=0;i<8;i++)
    {
-      if (pos==0)
-      {
-         //OSZI_D_LO;
-      }
-      //cli();
-      curr_funktionarray[pos] = eeprombytelesen(readstartadresse+pos);
-      //OSZI_D_HI;
-      
+      Serial.printf("load_EEPROM_Settings i: %d status: %d level: %d expo: %d device: %d\n",i,curr_statusarray[i],curr_levelarray[i], curr_expoarray[i], curr_devicearray[i]);
    }
-   
-   /*
-   lcd_gotoxy(0,1);
-   
-   lcd_puthex(curr_funktionarray[0]);
-   lcd_putc('$');
-   lcd_puthex(curr_funktionarray[1]);
-   lcd_putc('$');
-   lcd_puthex(curr_funktionarray[2]);
-   lcd_putc('$');
-   lcd_puthex(curr_funktionarray[3]);
-   lcd_putc('$');
-    */
-   
-   _delay_us(EE_READ_DELAY);
 
    
-   //EE_CS_HI;
-}
+      
+  }
 
 
 void read_Ext_EEPROM_Settings(void)
@@ -1547,7 +1454,7 @@ void setup()
    display_clear();
    _delay_us(50);
    
-   load_EEPROM_Settings(0);
+ //  load_EEPROM_Settings(0);
    
    
    curr_levelarray[0] = 0x30;
@@ -1560,7 +1467,12 @@ void setup()
    curr_expoarray[2] = 0x11;
    curr_expoarray[3] = 0x00;
    
-   
+   /*
+   for (uint8_t i=0;i<8;i++)
+   {
+      Serial.printf("load_EEPROM_Settings i: %d status: %d level: %d expo: %d device: %d\n",i,curr_statusarray[i],curr_levelarray[i], curr_expoarray[i], curr_devicearray[i]);
+   }
+*/
    
    //curr_levelarray[0] = 1;
    sethomescreen();
@@ -1614,7 +1526,11 @@ void loop()
          }
          
       } // for servo
-      
+      for (uint8_t i=0;i<8;i++)
+      {
+         Serial.printf("load_EEPROM_Settings i: %d status: %d level: %d expo: %d device: %d\n",i,curr_statusarray[i],curr_levelarray[i], curr_expoarray[i], curr_devicearray[i]);
+      }
+
       /*
       for (uint8_t i=0;i<8;i++)
       {
@@ -1710,7 +1626,7 @@ void loop()
    if (zeitintervall > 500) 
    {   
       sendbuffer[0] = 0xA0;
-      uint8_t senderfolg = RawHID.send(sendbuffer, 50);
+    //  uint8_t senderfolg = RawHID.send(sendbuffer, 50);
       sekundencounter++;
       if (sekundencounter%2)
       {
@@ -5571,7 +5487,11 @@ void loop()
                   uint8_t mixkanalb = (mix1 & 0x70) >> 4; // Bit 4-6
                   Serial.printf("mixkanalb: %d \n", mixkanalb);
 */
-                  
+                  for (uint8_t i=0;i<8;i++)
+                  {
+                     Serial.printf("F4 load_EEPROM_Settings i: %d status: %d level: %d expo: %d device: %d\n",i,curr_statusarray[i],curr_levelarray[i], curr_expoarray[i], curr_devicearray[i]);
+                  }
+
                   
                   
                   break;

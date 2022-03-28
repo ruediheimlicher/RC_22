@@ -1,0 +1,61 @@
+// MARK: readSettings
+void load_EEPROM_Settings(uint8_t model)
+{
+   Serial.printf("load_EEPROM_Settings model: %d\n",model);
+   uint8_t pos = USB_DATA_OFFSET;
+   for (uint8_t kanal = 0;kanal < 8;kanal++) // kanal mit je 4 bytes: status(modeöl, on, kanalindex, Ri), level. expo, device(Fkt, device)
+   {
+      //Serial.printf("load_EEPROM_Settings kanal: %d\n",kanal);
+      for (uint8_t dataindex = 0;dataindex < 4;dataindex++)
+      {
+         // kanalsettingarray[ANZAHLMODELLE][NUM_SERVOS][KANALSETTINGBREITE] 
+         
+         uint8_t data = EEPROM.read(model *  MODELSETTINGBREITE  + kanal * KANALSETTINGBREITE + dataindex);
+         //Serial.printf("load_EEPROM_Settings kanal: %d dataindex: %d **  data: %d \n",kanal, dataindex, data);
+         kanalsettingarray[model][kanal][dataindex] = data;
+         
+         switch (dataindex)
+         {
+            case 0: // status
+            {
+               curr_statusarray[kanal] = data;
+               //Serial.printf("dataindex: %d curr_status: %d\n",dataindex,curr_statusarray[kanal]);
+            }break;
+            case 1: //leveld: 
+            {
+               curr_levelarray[kanal] = data;
+            }break;
+            case 2: // expo
+            {
+               curr_expoarray[kanal] = data;
+            }break;
+            case 3: // device
+            {
+               curr_devicearray[kanal] = data;
+            }break;
+         }// switch kanal
+         
+         //Serial.printf("load_EEPROM_Settings nach data: %d\n",data);
+         
+         //if (kanal==0)
+         {
+           // Serial.printf("load_EEPROM_Settings kanal: %d dataindex: %d **  data: %d \n",kanal, dataindex, data);
+         }
+         
+      }// for dataindex
+      
+      //Serial.printf("load_EEPROM_Settings kanal: %d status; %d level: %d\n", kanal, curr_statusarray);
+ 
+         
+      pos += KANALSETTINGBREITE;
+   } // for kanal 
+   
+   
+   for (uint8_t i=0;i<8;i++)
+   {
+      Serial.printf("load_EEPROM_Settings i: %d status: %d level: %d expo: %d device: %d\n",i,curr_statusarray[i],curr_levelarray[i], curr_expoarray[i], curr_devicearray[i]);
+   }
+
+   
+      
+  }
