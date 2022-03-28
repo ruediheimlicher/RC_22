@@ -552,6 +552,7 @@ void read_Ext_EEPROM_Settings(void)
 
 
 
+
 // MARK: writeSettings
 void write_Ext_EEPROM_Settings(void)
 {
@@ -1909,7 +1910,7 @@ void loop()
             
             if ((displaycounter == 20) )
                {
-                 Serial.printf("mix on mix0: %d mix1: %d \n",mix0,mix1 );
+                 //Serial.printf("mix on mix0: %d mix1: %d \n",mix0,mix1 );
                
                }
           
