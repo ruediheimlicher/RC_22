@@ -1397,6 +1397,13 @@ void setup()
    curr_expoarray[2] = 0x11;
    curr_expoarray[3] = 0x00;
    
+   curr_mixstatusarray[0] = 0x10; // 16, mix0
+   curr_mixkanalarray[0] = 0x10; // 16, mix1
+
+   
+   //
+   // : 0 mix0: 24 mix1: 16 kanala: 0 kanalb: 1
+// mixindex: 0 mix0: 24 mix1: 16 kanala: 0 kanalb: 
    //curr_levelarray[0] = 1;
    sethomescreen();
    //display_write_str("abc",2);
@@ -1513,7 +1520,7 @@ void loop()
       {
       //   lcd_gotoxy(15,0);
       //   lcd_putint2(stopsekunde);
-
+ 
          stopsekunde++;
          if (stopsekunde == 60)
          {
@@ -1737,9 +1744,9 @@ void loop()
    }// zeitintervall
    
 // MARK:  -  ADC_OK
-   /* 
+   /*
     // Mixing
-    for (i=0;i<4;i++) // 50 us
+    for (uint8_t i=0;i<4;i++) // 50 us
     {
        // Mixing lesen
        
@@ -1869,7 +1876,7 @@ void loop()
       }
 // Mixing abarbeiten
       for (uint8_t i=0;i<4;i++) // 50 us
-      {
+            {
          // Mixing lesen
          /*
          uint8_t mixkanal = MixArray[i];
@@ -3296,6 +3303,7 @@ void loop()
                               settingstartcounter=1;
                               manuellcounter = 1;
                            }
+                        
                         }
                         
                         else 
@@ -5368,7 +5376,7 @@ void loop()
                   Serial.printf("getmodel: %d getkanal: %d\n",getmodel, getkanal);
                   //uint8_t* usbarray[USB_DATENBREITE] = {};
                
-                  // Kaanalsettings laden
+                  // Kanalsettings laden
                   uint8_t* temparray = encodeEEPROMChannelSettings(getmodel);
                   
                   uint8_t* mixarray = encodeEEPROMMixingSettings(getmodel);

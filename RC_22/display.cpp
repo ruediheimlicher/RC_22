@@ -261,11 +261,11 @@ void sethomescreen(void)
    char_y = 1;
    char_height_mul = 1;
    char_width_mul = 1;
-   display_go_to(char_x+1,0);
+   //display_go_to(char_x+1,0);
    
-   display_write_byte(DATEN,0xFF);
+   //display_write_byte(DATEN,0xFF);
    //char_x++;
-   
+  
    //display_inverse(1);
    char_height_mul = 1;
    char_width_mul = 1;
