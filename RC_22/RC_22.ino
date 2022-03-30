@@ -621,7 +621,8 @@ void load_EEPROM_Settings(uint8_t model)
 // MARK: writeSettings
 void write_Ext_EEPROM_Settings(void)
 {
-   
+   Serial.printf("write_Ext_EEPROM_Settings\n");
+   return;
    // Halt einschalten
   // masterstatus |= (1<<HALT_BIT); // Halt-Bit aktiviert Task bei ausgeschaltetem Slave
 //   MASTER_PORT &= ~(1<<SUB_BUSY_PIN);
@@ -710,9 +711,9 @@ void write_Ext_EEPROM_Settings(void)
       _delay_us(EE_READ_DELAY);
    }
    
-   if (eepromsavestatus & (1<<SAVE_FUNKTION))
+   if (eepromsavestatus & (1<<SAVE_STATUS))
    {
-      eepromsavestatus &= ~(1<<SAVE_FUNKTION);
+      eepromsavestatus &= ~(1<<SAVE_STATUS);
       
       // Funktion schreiben
       cli();
@@ -2529,7 +2530,7 @@ void loop()
                                  {
                                      //Bezeichnung von: FunktionTable[curr_funktionarray[curr_kanal]]
                                     // Funktion ist bit 0-2, Steuerdevice ist bit 4-6!!
-                                    eepromsavestatus |= (1<<SAVE_FUNKTION);
+                                    eepromsavestatus |= (1<<SAVE_STATUS);
                                     if (curr_devicearray[curr_kanal] )
                                     {
                                        curr_devicearray[curr_kanal] -= 0x01;
