@@ -2557,7 +2557,7 @@ void loop()
                               
                            }break;
                               
-                           case  1: // Zeile level
+                           case  1: // T2 Zeile level
                            {
                               eepromsavestatus |= (1<<SAVE_LEVEL);
                               switch (curr_cursorspalte)
@@ -3575,26 +3575,25 @@ void loop()
                      case SAVESCREEN:
                      {
 #pragma mark  5 SAVESCREEN
+                        Serial.printf("T5 SAVESCREEN\n");
                         switch (curr_cursorspalte)
                         {
                            case 0: // sichern
                            {
+                              Serial.printf("T5 SAVESCREEN > save\n");
+                              //write_Ext_EEPROM_Settings();// neue Einstellungen setzen
                               
-                              write_Ext_EEPROM_Settings();// neue Einstellungen setzen
-                              
-                              // In write_Ext_EEPROM_Settings wird masterstatus & 1<<DOGM_BIT gesetzt.
-                              //  In der Loop wird damit
-                              //    task_out |= (1<< RAM_SEND_DOGM_TASK);
-                              //    task_outdata = curr_model;//modelindex;
-                              // ausgeloest.
-                              
+                              eepromsavestatus=0;
+                                
                            }break;
                               
                            case 1: // abbrechen
                            {
+                              Serial.printf("T5 SAVESCREEN > cancel\n");
                               eepromsavestatus=0;
-                              read_Ext_EEPROM_Settings();// zuruecksetzen
+                              //read_Ext_EEPROM_Settings();// zuruecksetzen
                               
+                              //load_EEPROM_Settings(0);
                            }break;
                               
                         }// switch curr_cursorspalte
@@ -3864,6 +3863,7 @@ void loop()
                                     
                                  case 1: // OK
                                  {
+                                    eepromsavestatus |= (1<<SAVE_MIX);
                                     uint8_t mixindex = (curr_mixstatusarray[curr_cursorzeile] & 0xC0) >> 6;
                                     Serial.printf("T5 mixindex: %d: mix0 vor: %d curr_mixstatusarray%d\n",mixindex, mixingsettingarray[0][mixindex][0], curr_mixstatusarray[curr_cursorzeile]);
                                     if (curr_mixstatusarray[curr_cursorzeile] & 0x08)
@@ -4425,11 +4425,10 @@ void loop()
                            settingstartcounter=0;
                            startcounter=0;
                            ///          
-                           eepromsavestatus=0;
+                           //eepromsavestatus=0;
                            ///          
                            if (eepromsavestatus)
                            {
-                              
                               curr_screen=SAVESCREEN;
                               setsavescreen();
                            }
@@ -4869,8 +4868,10 @@ void loop()
                         
                         switch(curr_cursorzeile) // zeile
                         {
+                              
                            case 0: // Kanal
                            {
+                              eepromsavestatus |= (1<<SAVE_STATUS);
                               Serial.printf("T8 curr_cursorspalte: %d\n",curr_cursorspalte);
                               switch (curr_cursorspalte)
                               {
@@ -4896,7 +4897,7 @@ void loop()
                                     
                                  case 2: // Funktion
                                  {
-                                    eepromsavestatus |= (1<<SAVE_FUNKTION);
+                                    eepromsavestatus |= (1<<SAVE_DEVICE);
                                       if (curr_devicearray[curr_kanal] < 4)
                                     {
                                        curr_devicearray[curr_kanal] += 0x01;
