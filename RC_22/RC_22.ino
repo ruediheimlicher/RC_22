@@ -562,25 +562,22 @@ void read_Ext_EEPROM_Settings(void)
 
 void load_EEPROM_Settings(uint8_t model)
 {
+   // kanalsettingarray[ANZAHLMODELLE][NUM_SERVOS][KANALSETTINGBREITE] 
+   
+
    Serial.printf("load_EEPROM_Settings model: %d\n",model);
    uint8_t pos = USB_DATA_OFFSET;
    for (uint8_t kanal = 0;kanal < 8;kanal++) // kanal mit je 4 bytes: status(modeöl, on, kanalindex, Ri), level. expo, device(Fkt, device)
    {
       pos = model *  EEPROM_MODELSETTINGBREITE  + kanal * KANALSETTINGBREITE;
-      
       Serial.printf("load_EEPROM_Settings kanal: %d pos: %d\n",kanal,pos);
       for (uint8_t dataindex = 0;dataindex < 4;dataindex++)
       {
-         // kanalsettingarray[ANZAHLMODELLE][NUM_SERVOS][KANALSETTINGBREITE] 
-         
-         uint8_t eepromdata = EEPROM.read(model *  EEPROM_MODELSETTINGBREITE  + kanal * KANALSETTINGBREITE + dataindex);
+          uint8_t eepromdata = EEPROM.read(model *  EEPROM_MODELSETTINGBREITE  + kanal * KANALSETTINGBREITE + dataindex);
          //Serial.printf("load_EEPROM_Settings kanal: %d dataindex: %d **  eepromdata: %d \n",kanal, dataindex, eepromdata);
-         
          kanalsettingarray[model][kanal][dataindex] = eepromdata;
-         
          switch (dataindex)
            {
- 
               case 1: // level
               {
                  curr_levelarray[kanal] = eepromdata;
@@ -597,9 +594,7 @@ void load_EEPROM_Settings(uint8_t model)
               {
                  curr_statusarray[kanal] = eepromdata;
               }break;
-
              } // switch
-         
          
          //kanalsettingarray[model][kanal][dataindex] = eepromdata;
       }
@@ -1212,8 +1207,6 @@ uint8_t  decodeUSBChannelSettings(uint8_t buffer[USB_DATENBREITE])
             Serial.printf("kanal: %d dataindex: %d **  data: %d \n",kanal, dataindex, buffer[pos + dataindex]);
          }
       }
-      
-      
       //if (kanal==0)
       {
          // aktuelle Werte setzen
@@ -1416,7 +1409,7 @@ void setup()
    kanalimpulsTimer.priority(2);
    servopaketTimer.priority(1);
    
-   servopaketTimer.begin(servopaketfunktion, 20000);
+   //servopaketTimer.begin(servopaketfunktion, 20000);
    
    if (TEST)
    {
@@ -1488,6 +1481,8 @@ void setup()
 
    load_EEPROM_Settings(0);
    Serial.printf("nach load_EEPROM_Settings A\n"); 
+   
+   /*
    curr_statusarray[0] = 136;
    curr_statusarray[1] = 152;
    curr_statusarray[2] = 168;
@@ -1496,7 +1491,7 @@ void setup()
    curr_statusarray[5] = 216;
    curr_statusarray[6] = 232;
    curr_statusarray[7] = 248;
-   
+   */
    Serial.printf("Test load_EEPROM_Settings\n");
    
    for (uint8_t i=0;i<4;i++)
@@ -1544,6 +1539,7 @@ void setup()
    
    pinMode(TASTATURPIN, INPUT);
    //Serial.printf("W1: %d W2: %d W3: %d W4: %d W5: %d W6: %dW7: %d W8: %d W9: %d \n",WERT1, WERT2, WERT3, WERT4, WERT5, WERT6, WERT7, WERT8, WERT9);
+   servopaketTimer.begin(servopaketfunktion, 20000);
    pinMode(24, OUTPUT);
    digitalWriteFast(24, 0);
 }
@@ -1670,11 +1666,11 @@ void loop()
       displaystatus |= (1<<UHR_UPDATE);//XX
    } // 1000
    */
-    // MARK:  -  sinc > 500
+    // MARK:  -  sinc4 > 500
    if (zeitintervall > 500) 
    {   
       sendbuffer[0] = 0xA0;
-      uint8_t senderfolg = RawHID.send(sendbuffer, 50);
+      //uint8_t senderfolg = RawHID.send(sendbuffer, 50);
       sekundencounter++;
       if (sekundencounter%2)
       {

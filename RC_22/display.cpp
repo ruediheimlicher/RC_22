@@ -5443,7 +5443,6 @@ uint8_t spi_out(uint8_t Datenout)
    _delay_us(spidelay);
    for (pos=8;pos>0;pos--)
    {
-      
       if (tempDATEN & 0x80)
       {
          //DATEN_HI;

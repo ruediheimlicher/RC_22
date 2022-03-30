@@ -136,13 +136,13 @@
 
 #define TIMERINTERVALL 128
 
-#define RUN 0
+#define RUN          0
 #define PAUSE        1
-#define PAKET   2
-#define IMPULS    3
-#define ADC_OK 4
-#define USB_OK 5
-#define ENDEPAKET  7
+#define PAKET        2
+#define IMPULS       3
+#define ADC_OK       4
+#define USB_OK       5
+#define ENDEPAKET    7
 
 // USB
 #define DATAOFFSET   8
