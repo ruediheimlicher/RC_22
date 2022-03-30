@@ -239,6 +239,7 @@ uint8_t                  eepromsavestatus = 0;
 uint16_t                updatecounter=0; // Zaehler fuer Einschalten
 uint16_t                manuellcounter=0;
 
+
 // Tastatur
 
 uint8_t                 Tastenindex=0;
@@ -252,12 +253,10 @@ uint16_t                paketcounter=0;
 uint16_t                loopcounter=0;
 uint8_t                adccounter=0;
 
-uint8_t levelwert=0x32;
-volatile uint8_t levelb=0x12;
 
- uint8_t expowert=0;
- uint8_t expob=0;
 
+ uint8_t expowert=0; // !!!
+ 
 // MARK: EEPROM Var
 // EEPROM
  uint8_t  eeprom_indata=0;
@@ -626,6 +625,8 @@ void update_curr_settings(uint8_t model)
 }
 
 // MARK: writeSettings
+
+/*
 void write_Ext_EEPROM_Settings(void)
 {
    
@@ -690,16 +691,6 @@ void write_Ext_EEPROM_Settings(void)
       cli();
       writestartadresse = TASK_OFFSET  + FUNKTION_OFFSET + modelindex*SETTINGBREITE;
       sei();
-      /*
-       lcd_gotoxy(0,0);
-       //lcd_putc('+');
-       //lcd_putint1(modelindex);
-       //lcd_putc('+');
-       lcd_putint12(readstartadresse);
-       lcd_putc('*');
-       lcd_puthex((readstartadresse & 0xFF00)>>8);
-       lcd_puthex((readstartadresse & 0x00FF));
-       */
       
       for (pos=0;pos<8;pos++)
       {
@@ -725,16 +716,6 @@ void write_Ext_EEPROM_Settings(void)
       cli();
       writestartadresse = TASK_OFFSET  + FUNKTION_OFFSET + modelindex*SETTINGBREITE;
       sei();
-      /*
-       lcd_gotoxy(0,0);
-       //lcd_putc('+');
-       //lcd_putint1(modelindex);
-       //lcd_putc('+');
-       lcd_putint12(readstartadresse);
-       lcd_putc('*');
-       lcd_puthex((readstartadresse & 0xFF00)>>8);
-       lcd_puthex((readstartadresse & 0x00FF));
-       */
       
       for (pos=0;pos<8;pos++)
       {
@@ -770,64 +751,17 @@ void write_Ext_EEPROM_Settings(void)
    //task_out |= (1<< RAM_SEND_DOGM_TASK);
    //task_outdata = curr_model;//modelindex;
 }
-
+*/
 uint8_t eeprombytelesen(uint16_t readadresse) // 300 us ohne lcd_anzeige
 {
   
    //OSZI_B_LO;
-   readdata = EEPROM.read(readadresse);
+   uint8_t eepromreaddata = EEPROM.read(readadresse);
    //OSZI_B_HI;
-   return readdata;
+   return eepromreaddata;
 
-   
-   cli();
-//   SUB_EN_PORT &= ~(1<<SUB_EN_PIN);
- //  _delay_us(EE_READ_DELAY);
- //  spi_start();
- //  _delay_us(EE_READ_DELAY);
-//   SPI_PORT_Init();
-   _delay_us(EE_READ_DELAY);
- //  spieeprom_init();
-   _delay_us(EE_READ_DELAY);
-   
-   
-   //lcd_gotoxy(1,0);
-   //lcd_putc('r');
-   //lcd_putint12(readadresse);
-   //lcd_putc('*');
-   
-   eeprom_indata = 0xaa;
-   uint8_t readdata=0xaa;
-   
-   // Byte  read 270 us
-   EE_CS_LO();
-   _delay_us(EE_READ_DELAY);
-   readdata = spieeprom_rdbyte(readadresse);
-   _delay_us(EE_READ_DELAY);
-   _delay_us(10);
-   EE_CS_HI;
   
-   /*
-   sendbuffer[0] = 0xD5;
    
-   sendbuffer[1] = readadresse & 0x00FF;
-   sendbuffer[2] = (readadresse & 0xFF00)>>8;
-   sendbuffer[3] = readdata;
-   
-   eepromstatus &= ~(1<<EE_WRITE);
-   usbtask &= ~(1<<EEPROM_READ_BYTE_TASK);
-   
-   abschnittnummer =0;
-   
-   // wird fuer Darstellung der Read-Ergebnisse im Interface benutzt.
-   
-//   usb_rawhid_send((void*)sendbuffer, 50);
-   */
-   sei();
-   
-   //lcd_putc('*');
-
-   return readdata;
 }
 
 uint8_t eeprompartlesen(uint16_t readadresse) //   us ohne lcd_anzeige
@@ -841,8 +775,8 @@ uint8_t eeprompartlesen(uint16_t readadresse) //   us ohne lcd_anzeige
    for (i=0;i<EE_PARTBREITE;i++)
    {      
        _delay_us(LOOPDELAY);
-         readdata = (uint8_t)EEPROM.read(readadresse+i); // 220 us
-         sendbuffer[EE_PARTBREITE+i] = readdata;
+         uint8_t eepromreaddata = (uint8_t)EEPROM.read(readadresse+i); // 220 us
+         sendbuffer[EE_PARTBREITE+i] = eepromreaddata;
          _delay_us(LOOPDELAY);
       
    }
@@ -866,7 +800,7 @@ uint8_t eeprompartlesen(uint16_t readadresse) //   us ohne lcd_anzeige
    
    sei();
    //OSZI_B_HI;
-   return readdata;
+   return 0;
 }
 
 uint8_t eeprombyteschreiben(uint8_t code, uint16_t writeadresse,uint8_t eeprom_writedatabyte) //   1 ms ohne lcd-anzeige
@@ -2458,21 +2392,8 @@ void loop()
                                     {
                                        curr_devicearray[curr_kanal] -= 0x01;
                                     }
-                                    break;
-                                    uint8_t tempfunktion = curr_funktionarray[curr_kanal]&0x07; //bit 0-2
-                                    Serial.printf("T2 curr_funktionarray vor: %d\n",curr_funktionarray[curr_kanal]);
-                                    Serial.printf("T2 zeile %d spalte %d  tempfunktion vor: %d\n",curr_cursorzeile,curr_cursorspalte,tempfunktion);
+                                   
  
-                                    if (tempfunktion) // noch nicht 0
-                                    {
-                                       tempfunktion--;
-                                    }
-                                    
-                                    
-                                    curr_funktionarray[curr_kanal] = (curr_funktionarray[curr_kanal]&0xF0)|tempfunktion; // cycle in FunktionTable: Bit 4-7 BitOR mit tempfunktion
-                                    Serial.printf("T2 zeile %d spalte %d  tempfunktion nach: %d\n",curr_cursorzeile,curr_cursorspalte,tempfunktion);
-                                    Serial.printf("T2 curr_funktionarray nach: %d\n",curr_funktionarray[curr_kanal]);
-
                                  }break;
                                     
                                     
@@ -3494,7 +3415,7 @@ void loop()
                            case 0: // sichern
                            {
                               
-                              write_Ext_EEPROM_Settings();// neue Einstellungen setzen
+              // **                write_Ext_EEPROM_Settings();// neue Einstellungen setzen
                               
                               // In write_Ext_EEPROM_Settings wird masterstatus & 1<<DOGM_BIT gesetzt.
                               //  In der Loop wird damit
@@ -3507,7 +3428,7 @@ void loop()
                            case 1: // abbrechen
                            {
                               eepromsavestatus=0;
-                              read_Ext_EEPROM_Settings();// zuruecksetzen
+             // **                 read_Ext_EEPROM_Settings();// zuruecksetzen
                               
                            }break;
                               
@@ -5480,52 +5401,7 @@ void loop()
                case 0xFD: // read Sendersettings
                {
                   Serial.printf("0xFD\n");
-                  /*
-                   FUNKTION_OFFSET    0x60 // 96
-                   DEVICE_OFFSET      0x70 // 122
-                   AUSGANG_OFFSET     0x80 // 128
-                   
-                   */
-                  
-                  
-                  uint8_t modelindex =0;
-                  modelindex = buffer[3]; // welches model soll gelesen werden
-                  uint8_t pos=0;
-                  
-                  // funktion lesen
-                  uint16_t readstartadresse = TASK_OFFSET  + FUNKTION_OFFSET + modelindex*SETTINGBREITE;
-                  // startadresse fuer Settings des models
-                  for (pos=0;pos<8;pos++)
-                  {
-                     sendbuffer[EE_PARTBREITE + pos] = eeprombytelesen(readstartadresse+pos); // ab 0x60 32
-                  }
-                  
-                  // device lesen
-                  readstartadresse = TASK_OFFSET  + DEVICE_OFFSET + modelindex*SETTINGBREITE;
-                  //Im Sendbuffer ab pos 0x08 (8)
-                  for (pos=0;pos<8;pos++)
-                  {
-                     sendbuffer[EE_PARTBREITE + 0x08 + pos] = eeprombytelesen(readstartadresse+pos); // ab 0x28 40
-                  }
-                  
-                  // Ausgang lesen
-                  readstartadresse = TASK_OFFSET  + AUSGANG_OFFSET + modelindex*SETTINGBREITE;
-                  
-                  //Im Sendbuffer ab pos 0x10 (16)
-                  for (pos=0;pos<8;pos++)
-                  {
-                     sendbuffer[EE_PARTBREITE + 0x10 + pos] = eeprombytelesen(readstartadresse+pos); // ab 0x30 48
-                     
-                  }
-                  
-                  sendbuffer[1] = readstartadresse & 0x00FF;
-                  sendbuffer[2] = (readstartadresse & 0xFF00)>>8;
-                  sendbuffer[3] = modelindex;
-                  
-                  sendbuffer[0] = 0xFD;
-                  
-                  usb_rawhid_send((void*)sendbuffer, 50);
-                  
+     
                }
                   
                     

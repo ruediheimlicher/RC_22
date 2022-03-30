@@ -21,8 +21,6 @@
 #include "settings.h"
 
 #include "Arduino.h"
-extern  uint8_t levelwert;
-extern  uint8_t levelb;
 
 unsigned char char_x;
 unsigned char char_y;
