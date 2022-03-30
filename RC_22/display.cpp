@@ -24,14 +24,14 @@
 extern  uint8_t levelwert;
 extern  uint8_t levelb;
 
-extern  unsigned char char_x;
-extern  unsigned char char_y;
-extern  unsigned char char_height_mul;
-extern  unsigned char char_width_mul;
+unsigned char char_x;
+unsigned char char_y;
+unsigned char char_height_mul;
+unsigned char char_width_mul;
 
 
-extern  uint8_t expowert;
-extern  uint8_t expob;
+//extern  uint8_t expowert;//
+//extern  uint8_t expob;
 
 //extern   uint8_t cursortab[10] = {0+OFFSET_6_UHR,24+OFFSET_6_UHR,40+OFFSET_6_UHR,52+OFFSET_6_UHR,64+OFFSET_6_UHR,76+OFFSET_6_UHR,88+OFFSET_6_UHR,100+OFFSET_6_UHR,108+OFFSET_6_UHR,0};
 
@@ -226,6 +226,11 @@ void resetRegister(void)
          posregister[i][k]=0xFFFF;
       }
    }
+}
+
+void setheighmul(uint8_t wert)
+{
+   char_height_mul = wert ;
 }
 
 void sethomescreen(void)

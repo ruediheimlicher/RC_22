@@ -112,8 +112,8 @@ volatile uint8_t           servoindex = 0; // vol
 
 volatile uint16_t impulstimearray[NUM_SERVOS] = {}; // vol
 
-volatile uint8_t adcpinarray[NUM_SERVOS] = {};
-volatile uint16_t servomittearray[NUM_SERVOS] = {}; // Werte fuer Mitte
+uint8_t adcpinarray[NUM_SERVOS] = {};
+uint16_t servomittearray[NUM_SERVOS] = {}; // Werte fuer Mitte
 
 // Prototypes
 ADC *adc = new ADC(); // adc object
@@ -148,19 +148,19 @@ float ppmhi = PPMHI; // max ppm
 
 volatile uint16_t pot0 = 0;
 
-volatile unsigned char char_x = 0;
-volatile unsigned char char_y = 0;
-volatile unsigned char char_height_mul = 0;
-volatile unsigned char char_width_mul = 0;
+//volatile unsigned char char_x = 0;
+//volatile unsigned char char_y = 0;
+//volatile unsigned char char_height_mul = 0;
+//volatile unsigned char char_width_mul = 0;
 
 //uint8_t spieeprom_rdbyte(uint16_t addr);
 uint16_t potgrenzearray[NUM_SERVOS][2]; // obere und untere Grenze von adc
 
-volatile float quot = (ppmhi - ppmlo)/(pothi - potlo);
+float quot = (ppmhi - ppmlo)/(pothi - potlo);
 
-volatile float expoquot = (ppmhi - ppmlo)/2/0x200; // umrechnen der max expo (512) auf PPM  
+float expoquot = (ppmhi - ppmlo)/2/0x200; // umrechnen der max expo (512) auf PPM  
 
-volatile float quotarray[NUM_SERVOS] = {}; // Umrechnungsfaktor pro Pot
+float quotarray[NUM_SERVOS] = {}; // Umrechnungsfaktor pro Pot
 
 // display
 
@@ -178,26 +178,26 @@ uint8_t                       curr_mixstatusarray[4] = {24,96,0,0};//
 uint8_t                       curr_mixkanalarray[4] = {16,50,0,0};//
 
 
-volatile uint8_t              curr_funktionarray[8] = {}; //{0x00,0x11,0x22,0x33,0x44,0x55,0x66,0x77};
-volatile uint8_t             curr_statusarray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
-volatile uint8_t             curr_statusarraytest[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
+uint8_t              curr_funktionarray[8] = {}; //{0x00,0x11,0x22,0x33,0x44,0x55,0x66,0x77};
+ uint8_t             curr_statusarray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
+ uint8_t             curr_statusarraytest[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
 
-volatile uint8_t              curr_levelarray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
-volatile uint8_t              curr_levelarraytest[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
+ uint8_t              curr_levelarray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
+ uint8_t              curr_levelarraytest[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
 
-volatile uint8_t              curr_expoarray[8] = {0x33,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
-volatile uint8_t              curr_expoarraytest[8] = {};
+ uint8_t              curr_expoarray[8] = {0x33,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
+ uint8_t              curr_expoarraytest[8] = {};
 
 
-volatile uint8_t             curr_devicearray[8] = {};
-volatile uint8_t             curr_devicearraytest[8] = {};
-volatile uint8_t             curr_ausgangarray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
+ uint8_t             curr_devicearray[8] = {};
+ uint8_t             curr_devicearraytest[8] = {};
+ uint8_t             curr_ausgangarray[8] = {};//{0x11,0x22,0x33,0x44,0x00,0x00,0x00,0x00};
 
-volatile int8_t              curr_trimmungarray[8];
-volatile int8_t              curr_richtung; // Bits fuer Richtung
-volatile int8_t              curr_on; // Bits fuer on
+ int8_t              curr_trimmungarray[8];
+ int8_t              curr_richtung; // Bits fuer Richtung
+ int8_t              curr_on; // Bits fuer on
 
-volatile uint16_t                 blink_cursorpos=0xFFFF;
+ uint16_t                 blink_cursorpos=0xFFFF;
 
 volatile uint16_t stopsekunde=0;
 volatile uint16_t stopminute=0;
@@ -210,74 +210,72 @@ volatile uint16_t sendeminute=0;
 volatile uint8_t sendestunde=0;
 
 
-volatile uint16_t batteriespannung =0;
+ uint16_t batteriespannung =0;
  
-volatile uint8_t                 curr_model=0; // aktuelles modell
-volatile uint8_t                 speichermodel=0;
-volatile uint8_t                 curr_kanal=0; // aktueller kanal
-volatile uint8_t                 curr_impuls=0; // aktueller impuls
+ uint8_t                 curr_model=0; // aktuelles modell
+ uint8_t                 speichermodel=0;
+ uint8_t                 curr_kanal=0; // aktueller kanal
+ uint8_t                 curr_impuls=0; // aktueller impuls
 
-volatile uint8_t                 curr_setting=0; // aktuelles Setting fuer Modell
+ uint8_t                 curr_setting=0; // aktuelles Setting fuer Modell
 uint8_t                          speichersetting=0;
 
-volatile uint8_t                 curr_trimmkanal=0; // aktueller  Kanal fuerTrimmung
-volatile uint8_t                 curr_trimmung=0; // aktuelle  Trimmung fuer Trimmkanal
+ uint8_t                 curr_trimmkanal=0; // aktueller  Kanal fuerTrimmung
+ uint8_t                 curr_trimmung=0; // aktuelle  Trimmung fuer Trimmkanal
 
 
-volatile uint8_t                 curr_screen=0; // aktueller screen
+ uint8_t                 curr_screen=0; // aktueller screen
 
-volatile uint8_t                 curr_page=7; // aktuelle page
-volatile uint8_t                 curr_col=0; // aktuelle colonne
 
-volatile uint8_t                 curr_cursorzeile=0; // aktuelle zeile des cursors
-volatile uint8_t                 curr_cursorspalte=0; // aktuelle colonne des cursors
-volatile uint8_t                 last_cursorzeile=0; // letzte zeile des cursors
-volatile uint8_t                 last_cursorspalte=0; // letzte colonne des cursors
-
-volatile uint8_t                 displaystatus=0x00; // Tasks fuer Display
-
-volatile uint8_t                  masterstatus = 0;
-volatile uint8_t                  eepromsavestatus = 0;
-volatile uint16_t                updatecounter=0; // Zaehler fuer Einschalten
-volatile uint16_t                manuellcounter=0;
+uint8_t                 curr_page=7; // aktuelle page
+uint8_t                 curr_col=0; // aktuelle colonne
+uint8_t                 curr_cursorzeile=0; // aktuelle zeile des cursors
+uint8_t                 curr_cursorspalte=0; // aktuelle colonne des cursors
+uint8_t                 last_cursorzeile=0; // letzte zeile des cursors
+uint8_t                 last_cursorspalte=0; // letzte colonne des cursors
+uint8_t                 displaystatus=0x00; // Tasks fuer Display
+uint8_t                  masterstatus = 0;
+uint8_t                  eepromsavestatus = 0;
+uint16_t                updatecounter=0; // Zaehler fuer Einschalten
+uint16_t                manuellcounter=0;
 
 // Tastatur
-volatile uint8_t                 Tastenindex=0;
-volatile uint16_t                Tastenwert=0;
-volatile uint16_t                Trimmtastenwert=0;
-volatile uint8_t                 adcswitch=0;
-volatile uint16_t                lastTastenwert=0;
-volatile int16_t                 Tastenwertdiff=0;
-volatile uint16_t                tastaturcounter=0;
 
+uint8_t                 Tastenindex=0;
+uint16_t                Tastenwert=0;
+uint16_t                Trimmtastenwert=0;
+uint8_t                 adcswitch=0;
+uint16_t                lastTastenwert=0;
+int16_t                 Tastenwertdiff=0;
+uint16_t                tastaturcounter=0;
 uint16_t                paketcounter=0;
 uint16_t                loopcounter=0;
 uint8_t                adccounter=0;
 
-volatile uint8_t levelwert=0x32;
+uint8_t levelwert=0x32;
 volatile uint8_t levelb=0x12;
 
-volatile uint8_t expowert=0;
-volatile uint8_t expob=0;
+ uint8_t expowert=0;
+ uint8_t expob=0;
 
 // MARK: EEPROM Var
 // EEPROM
-volatile uint8_t  eeprom_indata=0;
-volatile uint8_t  eeprom_errcount=0;
-volatile uint16_t abschnittnummer=0;
+ uint8_t  eeprom_indata=0;
+ uint8_t  eeprom_errcount=0;
+ uint16_t abschnittnummer=0;
 
-volatile uint16_t usbcount=0;
+ uint16_t usbcount=0;
 
-volatile uint16_t minwert=0xFFFF;
-volatile uint16_t maxwert=0;
+ uint16_t minwert=0xFFFF;
+ uint16_t maxwert=0;
 
-volatile uint16_t eepromstartadresse=0;
+ uint16_t eepromstartadresse=0;
 
 static volatile uint8_t kontrollbuffer[USB_DATENBREITE]={};
 
 static volatile uint8_t eeprombuffer[USB_DATENBREITE]={};
 
-volatile uint8_t kanalsettingarray[ANZAHLMODELLE][NUM_SERVOS][KANALSETTINGBREITE] = {};
+ uint8_t kanalsettingarray[ANZAHLMODELLE][NUM_SERVOS][KANALSETTINGBREITE] = {};
 
 uint8_t mixingsettingarray[ANZAHLMODELLE][4][2] = {};
 
@@ -2389,15 +2387,7 @@ void loop()
                      {
                         if (curr_cursorzeile )//
                         {
-                           if (curr_cursorzeile<8)
-                           {
-                              char_height_mul=1;
-                           }
-                           else
-                           {
-                              char_height_mul=1;
-                           }
-                           
+                            
                            display_cursorweg();
                            last_cursorzeile =curr_cursorzeile;
                            
@@ -2574,14 +2564,6 @@ void loop()
                      {
                         if (curr_cursorzeile )//
                         {
-                           if (curr_cursorzeile<8)
-                           {
-                              char_height_mul=1;
-                           }
-                           else
-                           {
-                              char_height_mul=1;
-                           }
                            
                            display_cursorweg();
                            last_cursorzeile =curr_cursorzeile;
@@ -2791,7 +2773,6 @@ void loop()
                      {
                         if (curr_cursorzeile)// noch nicht zuoberst
                         {
-                           char_height_mul=1;
                            display_cursorweg();
                            last_cursorzeile =curr_cursorzeile;
                            if ((curr_impuls < 4) || (curr_impuls > 4))
@@ -2967,7 +2948,6 @@ void loop()
                      {
                         display_cursorweg();
                         
-                        char_height_mul=1;
                         last_cursorspalte =curr_cursorspalte;
                         curr_cursorspalte--;
                         //lcd_putc('+');
@@ -2998,7 +2978,7 @@ void loop()
                                  case 1: // Set text
                                  {
                                     display_cursorweg();
-                                    char_height_mul=1;
+                                    //char_height_mul=1;
                                     last_cursorspalte =curr_cursorspalte;
                                     curr_cursorspalte--;
                                  }break;
@@ -3021,7 +3001,7 @@ void loop()
                                  case 1: // Levelwert B
                                  {
                                     display_cursorweg();
-                                    char_height_mul=1;
+                                    //char_height_mul=1;
                                     last_cursorspalte =curr_cursorspalte;
                                     curr_cursorspalte--;
                                  }break;
@@ -3040,7 +3020,7 @@ void loop()
                                  case 1: // expowert B
                                  {
                                     display_cursorweg();
-                                    char_height_mul=1;
+                                    //char_height_mul=1;
                                     last_cursorspalte =curr_cursorspalte;
                                     
                                     curr_cursorspalte--;
@@ -3101,7 +3081,7 @@ void loop()
                                  default: // Richtung
                                  {
                                     display_cursorweg();
-                                    char_height_mul=1;
+                                    //char_height_mul=1;
                                     last_cursorspalte =curr_cursorspalte;
                                     
                                     curr_cursorspalte--;
@@ -3127,7 +3107,7 @@ void loop()
                                  default: // Levelwert B
                                  {
                                     display_cursorweg();
-                                    char_height_mul=1;
+                                    //char_height_mul=1;
                                     last_cursorspalte =curr_cursorspalte;
                                     
                                     curr_cursorspalte--;
@@ -3148,7 +3128,7 @@ void loop()
                                  case 1: // expowert B
                                  {
                                     display_cursorweg();
-                                    char_height_mul=1;
+                                    //char_height_mul=1;
                                     last_cursorspalte =curr_cursorspalte;
                                     
                                     curr_cursorspalte--;
@@ -3204,7 +3184,7 @@ void loop()
                         if (curr_cursorspalte)
                         {
                            display_cursorweg();
-                           char_height_mul=1;
+                           //char_height_mul=1;
                            last_cursorspalte =curr_cursorspalte;
                            
                            curr_cursorspalte--;
@@ -3266,7 +3246,7 @@ void loop()
                         if (curr_cursorspalte)
                         {
                            display_cursorweg();
-                           char_height_mul=1;
+                           //char_height_mul=1;
                            last_cursorspalte =curr_cursorspalte;
                            
                            curr_cursorspalte--;
@@ -3329,7 +3309,7 @@ void loop()
                         if (curr_cursorspalte)
                         {
                            display_cursorweg();
-                           char_height_mul=1;
+                           //char_height_mul=1;
                            last_cursorspalte =curr_cursorspalte;
                            
                            curr_cursorspalte--;
@@ -3933,7 +3913,7 @@ void loop()
                      {
                         display_cursorweg();
                         
-                        char_height_mul=1;
+                        //char_height_mul=1;
                         last_cursorspalte =curr_cursorspalte;
                         curr_cursorspalte++;
                         blink_cursorpos =  cursorpos[curr_cursorzeile][curr_cursorspalte];
@@ -3952,11 +3932,11 @@ void loop()
                         {
                            if (curr_cursorzeile ==0)
                            {
-                              char_height_mul=2;
+                              setheighmul(2);
                            }
                            display_cursorweg();
                            
-                           char_height_mul=1;
+                           setheighmul(1);
                            last_cursorspalte =curr_cursorspalte;
                            
                            curr_cursorspalte++;
@@ -3997,7 +3977,7 @@ void loop()
                         if (posregister[curr_cursorzeile][curr_cursorspalte+1]<0xFFFF)
                         {
                            display_cursorweg();
-                           char_height_mul=1;
+                           setheighmul(1);
                            last_cursorspalte =curr_cursorspalte;
                            //Serial.printf("T6 kanalscreen cursorspalte vor: %d\n",curr_cursorspalte);
 
@@ -4057,7 +4037,7 @@ void loop()
                         if (posregister[curr_cursorzeile][curr_cursorspalte+1]< 0xFFFF)
                         {
                            display_cursorweg();
-                           char_height_mul=1;
+                           setheighmul(1);
                            last_cursorspalte =curr_cursorspalte;
                            
                            curr_cursorspalte++;
@@ -4121,7 +4101,7 @@ void loop()
                         if (posregister[curr_cursorzeile][curr_cursorspalte+1]< 0xFFFF)
                         {
                            display_cursorweg();
-                           char_height_mul=1;
+                           setheighmul(1);
                            last_cursorspalte =curr_cursorspalte;
                            
                            curr_cursorspalte++;
@@ -4189,7 +4169,7 @@ void loop()
                         if (posregister[curr_cursorzeile][curr_cursorspalte+1]< 0xFFFF)
                         {
                            display_cursorweg();
-                           char_height_mul=1;
+                           setheighmul(1);
                            last_cursorspalte =curr_cursorspalte;
                            
                            curr_cursorspalte++;
@@ -4682,10 +4662,10 @@ void loop()
                         {
                            if (curr_cursorzeile == 0)
                            {
-                              char_height_mul = 2;
+                              setheighmul(2);
                            }
                            display_cursorweg();
-                           char_height_mul = 1;
+                           setheighmul(1);
                            last_cursorzeile =curr_cursorzeile;
                            
                            curr_cursorzeile++;
@@ -4776,15 +4756,15 @@ void loop()
                         {
                            if (curr_cursorzeile==1)
                            {
-                              char_height_mul=2;
+                              setheighmul(2);
                            }
                            else
                            {
-                              char_height_mul=1;
+                              setheighmul(1);
                            }
                            
                            display_cursorweg();
-                           char_height_mul=1;
+                           setheighmul(1);
                            last_cursorzeile =curr_cursorzeile;
                            
                            curr_cursorzeile++;
@@ -4932,7 +4912,7 @@ void loop()
                      {
                         if (posregister[curr_cursorzeile+1][curr_cursorspalte]<0xFFFF)//
                         {
-                           char_height_mul=1;
+                           setheighmul(1);
                            display_cursorweg();
                            last_cursorzeile =curr_cursorzeile;
                            
@@ -5047,7 +5027,7 @@ void loop()
                      {
                         if (posregister[curr_cursorzeile+1][curr_cursorspalte]<0xFFFF)//
                         {
-                           char_height_mul=1;
+                           setheighmul(1);
                            display_cursorweg();
                            last_cursorzeile =curr_cursorzeile;
                            
@@ -5171,7 +5151,7 @@ void loop()
                      {
                         if (posregister[curr_cursorzeile+1][curr_cursorspalte]<0xFFFF)//
                         {
-                           char_height_mul=1;
+                           setheighmul(1);
                            display_cursorweg();
                            last_cursorzeile =curr_cursorzeile;
                            if ((curr_cursorzeile < 3) || (curr_impuls > 3)) // Noch vor scrollen oder nach umschalten
