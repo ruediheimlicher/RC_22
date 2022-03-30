@@ -576,6 +576,8 @@ void load_EEPROM_Settings(uint8_t model)
           uint8_t eepromdata = EEPROM.read(model *  EEPROM_MODELSETTINGBREITE  + kanal * KANALSETTINGBREITE + dataindex);
          //Serial.printf("load_EEPROM_Settings kanal: %d dataindex: %d **  eepromdata: %d \n",kanal, dataindex, eepromdata);
          kanalsettingarray[model][kanal][dataindex] = eepromdata;
+         
+         /*
          switch (dataindex)
            {
               case 1: // level
@@ -595,7 +597,7 @@ void load_EEPROM_Settings(uint8_t model)
                  curr_statusarray[kanal] = eepromdata;
               }break;
              } // switch
-         
+         */
          //kanalsettingarray[model][kanal][dataindex] = eepromdata;
       }
       
@@ -617,6 +619,30 @@ void load_EEPROM_Settings(uint8_t model)
 
 
 }// load_EEPROM_Settings
+
+void update_curr_settings(uint8_t model)
+{
+   Serial.printf("update_curr_settings model: %d\n",model);
+   return;
+   uint8_t pos = USB_DATA_OFFSET;
+   for (uint8_t kanal = 0;kanal < 8;kanal++) // kanal mit je 4 bytes: status(modeöl, on, kanalindex, Ri), level. expo, device(Fkt, device)
+   {
+      //pos = model *  EEPROM_MODELSETTINGBREITE  + kanal * KANALSETTINGBREITE;
+      //Serial.printf("update_curr_settings kanal: %d pos: %d\n",kanal,pos);
+      
+      //curr_statusarray[kanal]= kanalsettingarray[model][kanal][0];
+      curr_levelarray[kanal] = kanalsettingarray[model][kanal][1];
+      curr_expoarray[kanal] = kanalsettingarray[model][kanal][2];
+      //curr_devicearray[kanal] = kanalsettingarray[model][kanal][3];
+      
+      
+   
+     
+   }// for kanal
+   //curr_statusarray[0]= kanalsettingarray[model][0][0];
+   
+   //curr_devicearray[0] = kanalsettingarray[model][0][3];
+}
 
 // MARK: writeSettings
 void write_Ext_EEPROM_Settings(void)
@@ -1405,10 +1431,11 @@ void setup()
    
    // Servopakete starten
    
+   /*
    servoimpulsTimer.priority(3);
    kanalimpulsTimer.priority(2);
    servopaketTimer.priority(1);
-   
+   */
    //servopaketTimer.begin(servopaketfunktion, 20000);
    
    if (TEST)
@@ -1525,9 +1552,7 @@ void setup()
 
    servostatus &= ~(1<<RUN);
    
-   //curr_mixstatusarray = {24,96,0,0};
-   //curr_mixkanalarray = [16,50,0,0];
-   //mixingsettingarray[0][0][0] = curr_mixstatusarray;
+    //mixingsettingarray[0][0][0] = curr_mixstatusarray;
    for (uint8_t i=0;i<4;i++)
    {
       mixingsettingarray[0][i][0] = curr_mixstatusarray[0];
@@ -1575,6 +1600,7 @@ void loop()
          
       } // for servo
       
+      update_curr_settings(0);      
       /*
       for (uint8_t i=0;i<8;i++)
       {
@@ -2375,7 +2401,7 @@ void loop()
                   {
                      if (blink_cursorpos == 0xFFFF && manuellcounter) // Kein Blinken
                      {
-                        Serial.printf("T2 SETTINGSCREEN no blink");
+                        Serial.printf("T2 SETTINGSCREEN no blink\n");
                         //lcd_gotoxy(0,1);
                         if (curr_cursorzeile ) // curr_cursorzeile ist >0,
                         {
@@ -2513,15 +2539,20 @@ void loop()
                                     
                                  case 1: // Richtung toggle
                                  {
-                                    eepromsavestatus |= (1<<SAVE_EXPO);
+                // *                    eepromsavestatus |= (1<<SAVE_EXPO);
                                     //if (curr_settingarray[curr_kanal][1] & 0x80)
-                                    if (curr_statusarray[curr_kanal] & 0x80)
+                                //    if (curr_statusarray[curr_kanal] & 0x80)
+                                    
+                                    if (kanalsettingarray[0][curr_kanal][0] & 0x80)
                                     {
                                        curr_statusarray[curr_kanal] &= ~0x80;
+                                       kanalsettingarray[0][curr_kanal][0] &= ~0x80;
                                     }
                                     else
                                     {
+                                       
                                        curr_statusarray[curr_kanal] |= 0x80;
+                                       kanalsettingarray[0][curr_kanal][0] |= 0x80;
                                     }
                                  }break;
                                     
@@ -2529,7 +2560,7 @@ void loop()
                                  {
                                      //Bezeichnung von: FunktionTable[curr_funktionarray[curr_kanal]]
                                     // Funktion ist bit 0-2, Steuerdevice ist bit 4-6!!
-                                    eepromsavestatus |= (1<<SAVE_FUNKTION);
+                                    // *                     eepromsavestatus |= (1<<SAVE_FUNKTION);
                                     if (curr_devicearray[curr_kanal] )
                                     {
                                        curr_devicearray[curr_kanal] -= 0x01;
@@ -2559,7 +2590,7 @@ void loop()
                               
                            case  1: // Zeile level
                            {
-                              eepromsavestatus |= (1<<SAVE_LEVEL);
+                              // *    eepromsavestatus |= (1<<SAVE_LEVEL);
                               switch (curr_cursorspalte)
                               {
                                  case 0: // Levelwert A
@@ -2661,7 +2692,7 @@ void loop()
                         uint8_t mixindex = (curr_mixstatusarray[curr_cursorzeile] & 0xC0) >> 6; // bit 6,7
 
                         Serial.printf("\nT2 mixscreen curr_cursorspalte: %d curr_cursorzeile: %d\n",curr_cursorspalte, curr_cursorzeile);
-                        eepromsavestatus |= (1<<SAVE_MIX);
+                        // *           eepromsavestatus |= (1<<SAVE_MIX);
                         switch (curr_cursorspalte)
                         {
                            case 0: // T2 Mix weiterschalten
@@ -2771,7 +2802,7 @@ void loop()
                          lcd_puthex(curr_cursorspalte);
                          lcd_putc(' ');
                          */
-                        eepromsavestatus |= (1<<SAVE_DEVICE);
+                        // *             eepromsavestatus |= (1<<SAVE_DEVICE);
                         switch (curr_cursorzeile)
                         {
                            case 0: // pitch vertikal
@@ -2893,7 +2924,7 @@ void loop()
                          lcd_puthex(curr_cursorspalte);
                          lcd_putc(' ');
                          */
-                        eepromsavestatus |= (1<<SAVE_AUSGANG);
+                        // *                eepromsavestatus |= (1<<SAVE_AUSGANG);
                         switch (curr_cursorspalte)
                         {
                            case 0: // Kanal
@@ -4883,7 +4914,7 @@ void loop()
                                  }break;
                                  case 1: // Richtung toggle
                                  {
-                                    eepromsavestatus |= (1<<SAVE_EXPO);
+                                    // *                               eepromsavestatus |= (1<<SAVE_EXPO);
                                     if (curr_statusarray[curr_kanal] & 0x80) // Bit 7 gesetzt
                                     {
                                        curr_statusarray[curr_kanal] &= ~0x80;
@@ -4896,7 +4927,7 @@ void loop()
                                     
                                  case 2: // Funktion
                                  {
-                                    eepromsavestatus |= (1<<SAVE_FUNKTION);
+                                    // *                                  eepromsavestatus |= (1<<SAVE_FUNKTION);
                                       if (curr_devicearray[curr_kanal] < 4)
                                     {
                                        curr_devicearray[curr_kanal] += 0x01;
@@ -4942,7 +4973,7 @@ void loop()
                               
                            case  2: // Expo
                            {
-                              eepromsavestatus |= (1<<SAVE_EXPO);
+                              // *                            eepromsavestatus |= (1<<SAVE_EXPO);
                               //Serial.printf("T8 Expowert curr level: %d\n",curr_expoarray[curr_kanal] );
                               switch (curr_cursorspalte)
                               {
@@ -5040,7 +5071,7 @@ void loop()
 
                          */
                         Serial.printf("\nT8 mixscreen curr_cursorspalte: %d curr_cursorzeile: %d\n",curr_cursorspalte, curr_cursorzeile);
-                        eepromsavestatus |= (1<<SAVE_MIX);
+                        // *                        eepromsavestatus |= (1<<SAVE_MIX);
                         switch (curr_cursorspalte)
                         {
                            case 0: //T8 Mix weiterschalten
@@ -5149,7 +5180,7 @@ void loop()
                         lcd_putc(' ');
                         lcd_puthex(curr_cursorspalte);
                         lcd_putc(' ');
-                        eepromsavestatus |= (1<<SAVE_DEVICE);
+                        // *                 eepromsavestatus |= (1<<SAVE_DEVICE);
                         switch (curr_cursorzeile)
                         {
                            case 0: // pitch vertikal
@@ -5272,7 +5303,7 @@ void loop()
                         lcd_putc(' ');
                         lcd_puthex(curr_cursorspalte);
                         lcd_putc(' ');
-                        eepromsavestatus |= (1<<SAVE_AUSGANG);
+                        // *                   eepromsavestatus |= (1<<SAVE_AUSGANG);
                         switch (curr_cursorspalte)
                         {
                            case 0: // Kanal

@@ -595,8 +595,8 @@ void setcanalscreen(void)
    
    
    // Funktion anzeigen
-   uint8_t funktionwert = curr_devicearray[curr_kanal];
-   char* funktionstring = FunktionTable[curr_devicearray[curr_kanal]];
+      uint8_t funktionwert = curr_devicearray[curr_kanal];
+     char* funktionstring = FunktionTable[curr_devicearray[curr_kanal]];
    
     
    // Niveau-Bezeichnung "Level" anzeigen
@@ -2515,7 +2515,7 @@ uint8_t update_screen(void)
             programmstatus &= ~(1<< UPDATESCREEN);
             
 #pragma mark update KANALSCREEN
-            //Serial.printf("update KANALSCREEN: %d\n",curr_screen);
+            Serial.printf("update KANALSCREEN: %d\n",curr_screen);
            
             for (uint8_t i=0;i<8;i++)
             {
@@ -2535,11 +2535,11 @@ uint8_t update_screen(void)
             char_width_mul = 1;
             
             // Funktion anzeigen
-             char* funktionstring = FunktionTable[curr_devicearray[curr_kanal]];
+            char* funktionstring = FunktionTable[curr_devicearray[curr_kanal]];
             //Serial.printf("update Kanalscreen funktionstring: %s\n",funktionstring);
             char_y= (posregister[0][5] & 0xFF00)>> 10;
             char_x = posregister[0][5] & 0x00FF;
-            display_write_str(funktionstring,2);
+        display_write_str(funktionstring,2);
             
             
               
