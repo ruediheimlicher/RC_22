@@ -358,10 +358,10 @@ void EE_CS_LO(void)
 }
 
 // MARK: Proto
-uint8_t eeprombyteschreiben(uint8_t code, uint16_t writeadresse,uint8_t eeprom_writedatabyte);
-uint8_t eeprombytelesen(uint16_t readadresse); // 300 us ohne lcd_anzeige
-uint8_t eeprompartlesen(uint16_t readadresse); //   us ohne lcd_anzeige
-uint16_t eeprompartschreiben(void); // 23 ms
+//uint8_t eeprombyteschreiben(uint8_t code, uint16_t writeadresse,uint8_t eeprom_writedatabyte);
+//uint8_t eeprombytelesen(uint16_t readadresse); // 300 us ohne lcd_anzeige
+//void eeprompartlesen(uint16_t readadresse); //   us ohne lcd_anzeige
+//uint16_t eeprompartschreiben(void); // 23 ms
 //void spieeprom_wrbyte(uint16_t addr, uint8_t data);
 
 
@@ -430,6 +430,7 @@ void servopaketfunktion(void) // start Abschnitt
 
 void read_Ext_EEPROM_Settings(void)
 {
+   return ;
    uint8_t modelindex =0;
    modelindex = buffer[3]; // welches model soll gelesen werden
    uint16_t readstartadresse=0;
@@ -443,9 +444,9 @@ void read_Ext_EEPROM_Settings(void)
    // uint8_t pos=0;
    
     // Level lesen
-   cli();
+   
     readstartadresse = TASK_OFFSET  + LEVEL_OFFSET + modelindex*EEPROM_MODELSETTINGBREITE;
-   sei();
+   
     // startadresse fuer Settings des models
     for (pos=0;pos<8;pos++)
     {
@@ -465,9 +466,9 @@ void read_Ext_EEPROM_Settings(void)
    
    
    // Mix lesen
-   //cli();
+   //
     readstartadresse = TASK_OFFSET  + FUNKTION_OFFSET + modelindex*SETTINGBREITE;
-   //sei();
+   //
    /*
    lcd_gotoxy(0,0);
    //lcd_putc('+');
@@ -485,7 +486,7 @@ void read_Ext_EEPROM_Settings(void)
        {
        //OSZI_D_LO;
        }
-       //cli();
+       //
        curr_mixarray[pos] = EEPROM.read(readstartadresse+pos);
        //OSZI_D_HI;
 
@@ -494,9 +495,9 @@ void read_Ext_EEPROM_Settings(void)
    _delay_us(EE_READ_DELAY);
    
    // Funktion lesen
-   cli();
+   
    readstartadresse = TASK_OFFSET  + FUNKTION_OFFSET + modelindex*SETTINGBREITE;
-   sei();
+   
    /*
     lcd_gotoxy(0,0);
     //lcd_putc('+');
@@ -514,8 +515,8 @@ void read_Ext_EEPROM_Settings(void)
       {
          //OSZI_D_LO;
       }
-      //cli();
-      curr_funktionarray[pos] = eeprombytelesen(readstartadresse+pos);
+      //
+      //curr_funktionarray[pos] = eeprombytelesen(readstartadresse+pos);
       //OSZI_D_HI;
       
    }
@@ -650,9 +651,9 @@ void write_Ext_EEPROM_Settings(void)
    {
       eepromsavestatus &= ~(1<<SAVE_LEVEL);
       // Level schreiben
-      cli();
+      
       writestartadresse = TASK_OFFSET  + LEVEL_OFFSET + modelindex*SETTINGBREITE;
-      sei();
+      
       // startadresse fuer Settings des models
       for (pos=0;pos<8;pos++)
       {
@@ -671,9 +672,9 @@ void write_Ext_EEPROM_Settings(void)
       eepromsavestatus &= ~(1<<SAVE_EXPO);
       
       // Expo schreiben
-      cli();
+      
       writestartadresse = TASK_OFFSET  + EXPO_OFFSET + modelindex*SETTINGBREITE;
-      sei();
+      
       
       for (pos=0;pos<8;pos++)
       {
@@ -688,9 +689,9 @@ void write_Ext_EEPROM_Settings(void)
       eepromsavestatus &= ~(1<<SAVE_MIX);
       
       // Mix schreiben
-      cli();
+      
       writestartadresse = TASK_OFFSET  + FUNKTION_OFFSET + modelindex*SETTINGBREITE;
-      sei();
+      
       
       for (pos=0;pos<8;pos++)
       {
@@ -698,13 +699,13 @@ void write_Ext_EEPROM_Settings(void)
          {
             //OSZI_D_LO;
          }
-         cli();
+         
          //eeprombyteschreiben(0xB0,writestartadresse+pos,curr_mixarray[pos]);
          EEPROM.write(writestartadresse+pos,curr_mixarray[pos]);
          //OSZI_D_HI;
          
       }
-      sei();
+      
       _delay_us(EE_READ_DELAY);
    }
    
@@ -713,9 +714,9 @@ void write_Ext_EEPROM_Settings(void)
       eepromsavestatus &= ~(1<<SAVE_FUNKTION);
       
       // Funktion schreiben
-      cli();
+      
       writestartadresse = TASK_OFFSET  + FUNKTION_OFFSET + modelindex*SETTINGBREITE;
-      sei();
+      
       
       for (pos=0;pos<8;pos++)
       {
@@ -723,13 +724,13 @@ void write_Ext_EEPROM_Settings(void)
          {
             //OSZI_D_LO;
          }
-         cli();
+         
          //eeprombyteschreiben(0xB0,writestartadresse+pos,curr_funktionarray[pos]);
          EEPROM.write(writestartadresse+pos,curr_funktionarray[pos]);
          //OSZI_D_HI;
          
       }
-      sei();
+      
       _delay_us(EE_READ_DELAY);
    }
    //EE_CS_HI;
@@ -764,14 +765,15 @@ uint8_t eeprombytelesen(uint16_t readadresse) // 300 us ohne lcd_anzeige
    
 }
 
-uint8_t eeprompartlesen(uint16_t readadresse) //   us ohne lcd_anzeige
+void eeprompartlesen(uint16_t readadresse) //   us ohne lcd_anzeige
 {
    //OSZI_B_LO;
-    
+   
    _delay_us(LOOPDELAY);
    //     OSZI_B_LO;
-   
+   /*
    uint8_t i=0;
+   
    for (i=0;i<EE_PARTBREITE;i++)
    {      
        _delay_us(LOOPDELAY);
@@ -781,7 +783,7 @@ uint8_t eeprompartlesen(uint16_t readadresse) //   us ohne lcd_anzeige
       
    }
    //     OSZI_B_HI;
-   
+   */
    //OSZI_C_HI;
    
    sendbuffer[0] = 0xDB;
@@ -796,11 +798,11 @@ uint8_t eeprompartlesen(uint16_t readadresse) //   us ohne lcd_anzeige
    
    abschnittnummer =0;
    
-   usb_rawhid_send((void*)sendbuffer, 50);
+   //usb_rawhid_send((void*)sendbuffer, 50);
    
-   sei();
+   //
    //OSZI_B_HI;
-   return 0;
+  // return 0;
 }
 
 uint8_t eeprombyteschreiben(uint8_t code, uint16_t writeadresse,uint8_t eeprom_writedatabyte) //   1 ms ohne lcd-anzeige
@@ -809,105 +811,8 @@ uint8_t eeprombyteschreiben(uint8_t code, uint16_t writeadresse,uint8_t eeprom_w
    //OSZI_B_LO;
    EEPROM.write(writeadresse,eeprom_writedatabyte);
    
-   uint8_t byte_errcount=0;
-   uint8_t checkbyte=0;
-   cli();
-//   SUB_EN_PORT &= ~(1<<SUB_EN_PIN);
-//   spi_start();
-//   SPI_PORT_Init();
-   /*
-      lcd_gotoxy(3,0);
-      lcd_putc('w');
-      lcd_putint12(writeadresse);
-      lcd_putc('*');
-   */
-   //spieeprom_init();
-   
-   // Test 131210
-   
-   // WREN schicken: Write ermoeglichen
-   /*
-   _delay_us(LOOPDELAY);
-   EE_CS_LO;
-   _delay_us(LOOPDELAY);
-   spieeprom_wren();
-   _delay_us(LOOPDELAY);
-   EE_CS_HI; // SS HI End
-   
-   //  lcd_putc('a');
-   // End Test
-   
-   
-   // Data schicken
-   EE_CS_LO;
-   
-   spieeprom_wrbyte(writeadresse,eeprom_writedatabyte);
-   
-   EE_CS_HI;
-   uint8_t w=0;
-   
-    
-   //   lcd_putc('c');
-   
-   // Kontrolle
-   _delay_us(LOOPDELAY);
-   EE_CS_LO;
-   _delay_us(LOOPDELAY);
-   
-   //checkbyte = spieeprom_rdbyte(writeadresse);
-   checkbyte = eeprombytelesen(writeadresse);
-   
-   //   lcd_putc('d');
-   _delay_us(LOOPDELAY);
-   EE_CS_HI;
-   
-   //lcd_putc('*');
-   
-   if ((eeprom_writedatabyte - checkbyte)||(checkbyte - eeprom_writedatabyte))
-   {
-      byte_errcount++;
-      eeprom_errcount ++;
-   }
-   //   lcd_putc('e');
-   
-   //OSZI_B_LO;
-   // Notewndig fuer schreiben der Expo-Settings (???)
-   _delay_ms(4);
-   */
-   /*
-   lcd_gotoxy(0,1);
-   lcd_putc('e');
-   lcd_puthex(byte_errcount);
-   lcd_putc(' ');
-   lcd_puthex(eeprom_writedatabyte);
-   lcd_putc(' ');
-   lcd_puthex(checkbyte);
-   */
-   //OSZI_B_HI;
-   
-   sendbuffer[1] = writeadresse & 0xFF;
-   sendbuffer[2] = (writeadresse & 0xFF00)>>8;
-   sendbuffer[3] = byte_errcount;
-   sendbuffer[4] = eeprom_writedatabyte;
-   sendbuffer[5] = checkbyte;
-   sendbuffer[6] = 0;
-   sendbuffer[7] = 0x00;
-   sendbuffer[8] = 0xF9;
-   sendbuffer[9] = 0xFA;
-   
-   sendbuffer[0] = code;
-   //eepromstatus &= ~(1<<EE_WRITE);
-   usbtask &= ~(1<<EEPROM_WRITE_BYTE_TASK);
-   
-   //lcd_putc('+');
-   usb_rawhid_send((void*)sendbuffer, 50);
-   //lcd_putc('+');
-   
-   sei();
-   // end Daten an EEPROM
-   //OSZI_D_HI ;
-   
-   return byte_errcount;
+   return 0;
+ 
 }
 
 uint16_t eeprompartschreiben(void) // 23 ms
@@ -978,7 +883,7 @@ uint16_t eeprompartschreiben(void) // 23 ms
     
    usb_rawhid_send((void*)kontrollbuffer, 50);
    
-   sei();
+   
     //OSZI_B_HI;
    return result;
 }
