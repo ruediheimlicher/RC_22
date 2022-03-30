@@ -21,19 +21,19 @@
 #include "settings.h"
 
 #include "Arduino.h"
-extern volatile uint8_t levelwert;
-extern volatile uint8_t levelb;
+extern  uint8_t levelwert;
+extern  uint8_t levelb;
 
-extern volatile unsigned char char_x;
-extern volatile unsigned char char_y;
-extern volatile unsigned char char_height_mul;
-extern volatile unsigned char char_width_mul;
+extern  unsigned char char_x;
+extern  unsigned char char_y;
+extern  unsigned char char_height_mul;
+extern  unsigned char char_width_mul;
 
 
-extern volatile uint8_t expowert;
-extern volatile uint8_t expob;
+extern  uint8_t expowert;
+extern  uint8_t expob;
 
-//extern  volatile uint8_t cursortab[10] = {0+OFFSET_6_UHR,24+OFFSET_6_UHR,40+OFFSET_6_UHR,52+OFFSET_6_UHR,64+OFFSET_6_UHR,76+OFFSET_6_UHR,88+OFFSET_6_UHR,100+OFFSET_6_UHR,108+OFFSET_6_UHR,0};
+//extern   uint8_t cursortab[10] = {0+OFFSET_6_UHR,24+OFFSET_6_UHR,40+OFFSET_6_UHR,52+OFFSET_6_UHR,64+OFFSET_6_UHR,76+OFFSET_6_UHR,88+OFFSET_6_UHR,100+OFFSET_6_UHR,108+OFFSET_6_UHR,0};
 
 #define cursortab0 2
 #define cursortab1 26
@@ -43,8 +43,8 @@ extern volatile uint8_t expob;
 #define cursortab5 78
 #define cursortab6 90
 #define cursortab7 100
-extern  volatile uint8_t cursortab[10] = {cursortab0,cursortab1,cursortab2,cursortab3,cursortab4,cursortab5,cursortab6,cursortab7,cursortab0,cursortab0};
-//extern volatile uint8_t itemtab[10] = {8+OFFSET_6_UHR,32+OFFSET_6_UHR,48+OFFSET_6_UHR,60+OFFSET_6_UHR,72+OFFSET_6_UHR,84+OFFSET_6_UHR,96+OFFSET_6_UHR,108+OFFSET_6_UHR,116+OFFSET_6_UHR,0+OFFSET_6_UHR};
+extern   uint8_t cursortab[10] = {cursortab0,cursortab1,cursortab2,cursortab3,cursortab4,cursortab5,cursortab6,cursortab7,cursortab0,cursortab0};
+//extern  uint8_t itemtab[10] = {8+OFFSET_6_UHR,32+OFFSET_6_UHR,48+OFFSET_6_UHR,60+OFFSET_6_UHR,72+OFFSET_6_UHR,84+OFFSET_6_UHR,96+OFFSET_6_UHR,108+OFFSET_6_UHR,116+OFFSET_6_UHR,0+OFFSET_6_UHR};
 
 #define itemtab0  10
 #define itemtab1  34
@@ -55,75 +55,75 @@ extern  volatile uint8_t cursortab[10] = {cursortab0,cursortab1,cursortab2,curso
 #define itemtab6  110
 #define itemtab7  118
 
-extern volatile uint8_t itemtab[10] = {itemtab0,itemtab1,itemtab2,itemtab3,itemtab4,itemtab5,itemtab6,itemtab7,itemtab0,itemtab0};
+extern  uint8_t itemtab[10] = {itemtab0,itemtab1,itemtab2,itemtab3,itemtab4,itemtab5,itemtab6,itemtab7,itemtab0,itemtab0};
 
 
-extern volatile uint16_t      motorsekunde;
+extern  uint16_t      motorsekunde;
 
-//extern volatile uint8_t       curr_settingarray[8][2];
-extern volatile uint8_t       curr_levelarray[8];
-extern volatile uint8_t       curr_expoarray[8];
-extern volatile uint8_t       curr_mixarray[8];
-extern volatile uint8_t       curr_funktionarray[8];
-extern volatile uint8_t       curr_statusarray[8];
-extern volatile uint8_t       curr_ausgangarray[8];
+//extern  uint8_t       curr_settingarray[8][2];
+extern  uint8_t       curr_levelarray[8];
+extern  uint8_t       curr_expoarray[8];
+extern  uint8_t       curr_mixarray[8];
+extern  uint8_t       curr_funktionarray[8];
+extern  uint8_t       curr_statusarray[8];
+extern  uint8_t       curr_ausgangarray[8];
 
-extern volatile uint8_t       curr_devicearray[8];
+extern  uint8_t       curr_devicearray[8];
 
-extern volatile int8_t        curr_trimmungarray[8];
+extern  int8_t        curr_trimmungarray[8];
 
 extern  uint8_t       curr_mixstatusarray[8];
 extern  uint8_t       curr_mixkanalarray[8];
 
-extern volatile uint8_t       curr_screen;
-extern volatile uint8_t       curr_page; // aktuelle page
-extern volatile uint8_t       curr_col; // aktuelle colonne
-extern volatile uint8_t       curr_model; // aktuelles modell
+extern  uint8_t       curr_screen;
+extern  uint8_t       curr_page; // aktuelle page
+extern  uint8_t       curr_col; // aktuelle colonne
+extern  uint8_t       curr_model; // aktuelles modell
 
-extern volatile uint8_t       curr_kanal; // aktueller kanal
+extern  uint8_t       curr_kanal; // aktueller kanal
 
-extern volatile uint8_t       curr_richtung; // aktuelle richtung
-extern volatile uint8_t       curr_impuls; // aktueller impuls
+extern  uint8_t       curr_richtung; // aktuelle richtung
+extern  uint8_t       curr_impuls; // aktueller impuls
 
-extern volatile uint8_t       eepromsavestatus;
-extern volatile uint8_t       programmstatus;
-extern volatile uint8_t       servostatus;
+extern  uint8_t       eepromsavestatus;
+extern  uint8_t       programmstatus;
+extern  uint8_t       servostatus;
 
-extern volatile uint8_t       curr_setting;
-extern volatile uint8_t       curr_cursorzeile; // aktuelle zeile des cursors
-extern volatile uint8_t       curr_cursorspalte; // aktuelle colonne des cursors
+extern  uint8_t       curr_setting;
+extern  uint8_t       curr_cursorzeile; // aktuelle zeile des cursors
+extern  uint8_t       curr_cursorspalte; // aktuelle colonne des cursors
 
-extern volatile uint8_t       last_cursorzeile; // letzte zeile des cursors
-extern volatile uint8_t       last_cursorspalte; // letzte colonne des cursors
-extern volatile uint16_t      blink_cursorpos;
+extern  uint8_t       last_cursorzeile; // letzte zeile des cursors
+extern  uint8_t       last_cursorspalte; // letzte colonne des cursors
+extern  uint16_t      blink_cursorpos;
 
-extern volatile uint8_t                 curr_trimmkanal; // aktueller  Kanal fuerTrimmung
-extern volatile uint8_t                 curr_trimmung; // aktuelle  Trimmung fuer Trimmkanal
-extern volatile int8_t                vertikaltrimm;
-extern volatile int8_t                horizontaltrimm;
+extern  uint8_t                 curr_trimmkanal; // aktueller  Kanal fuerTrimmung
+extern  uint8_t                 curr_trimmung; // aktuelle  Trimmung fuer Trimmkanal
+extern  int8_t                vertikaltrimm;
+extern  int8_t                horizontaltrimm;
 
 
-//extern volatile uint16_t      motorsekunde;
-extern volatile uint8_t       motorstunde;
-extern volatile uint16_t      motorminute;
-extern volatile uint16_t      motorsekunde;
-extern volatile uint16_t      stopsekunde;
-extern volatile uint16_t      motorminute;
-extern volatile uint16_t      stopminute;
-extern volatile uint16_t      batteriespannung;
+//extern  uint16_t      motorsekunde;
+extern  uint8_t       motorstunde;
+extern  uint16_t      motorminute;
+extern  uint16_t      motorsekunde;
+extern  uint16_t      stopsekunde;
+extern  uint16_t      motorminute;
+extern  uint16_t      stopminute;
+extern  uint16_t      batteriespannung;
 
-extern volatile uint16_t sendesekunde;
-extern volatile uint16_t sendeminute;
-extern volatile uint8_t sendestunde;
+extern  uint16_t sendesekunde;
+extern  uint16_t sendeminute;
+extern  uint8_t sendestunde;
 
-extern volatile uint16_t      tastentransfer;
+extern  uint16_t      tastentransfer;
 
-extern volatile uint16_t  posregister[8][8]; // Aktueller screen: werte fuer page und daraufliegende col fuer Menueintraege (hex). geladen aus progmem
+extern  uint16_t  posregister[8][8]; // Aktueller screen: werte fuer page und daraufliegende col fuer Menueintraege (hex). geladen aus progmem
 
-extern volatile uint16_t  cursorpos[8][8]; // Aktueller screen: werte fuer page und daraufliegende col fuer cursor (hex). geladen aus progmem
+extern  uint16_t  cursorpos[8][8]; // Aktueller screen: werte fuer page und daraufliegende col fuer cursor (hex). geladen aus progmem
 
 // 
-extern volatile uint16_t              updatecounter; // Zaehler fuer Einschalten
+extern  uint16_t              updatecounter; // Zaehler fuer Einschalten
 
 extern void OSZI_D_LO();
 extern void OSZI_D_HI();
@@ -181,7 +181,7 @@ const char marke_dick[8]=
 
 
 
-const volatile char DISPLAY_INIT[] =
+const  char DISPLAY_INIT[] =
 {
    0x40,// Display start line set --> 0
    
@@ -595,8 +595,8 @@ void setcanalscreen(void)
    
    
    // Funktion anzeigen
-      uint8_t funktionwert = curr_devicearray[curr_kanal];
-     char* funktionstring = FunktionTable[curr_devicearray[curr_kanal]];
+   uint8_t funktionwert = curr_devicearray[curr_kanal];
+   // **   char* funktionstring = FunktionTable[curr_devicearray[curr_kanal]];
    
     
    // Niveau-Bezeichnung "Level" anzeigen

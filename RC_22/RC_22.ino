@@ -19,23 +19,6 @@
 
 
 ///
-/// @file      RC_22.ino
-/// @brief      Main sketch
-///
-/// @details   <#details#>
-/// @n @a      Developed with [embedXcode+](https://embedXcode.weebly.com)
-///
-/// @author      Ruedi Heimlicher
-/// @author      ___ORGANIZATIONNAME___
-/// @date      04.02.2022 10:59
-/// @version   <#version#>
-///
-/// @copyright   (c) Ruedi Heimlicher, 2022
-/// @copyright   GNU General Public Licence
-///
-/// @see      ReadMe.txt for references
-/// @n
-///
 
 #include "spi_eeprom.h"
 #include "Arduino.h"
@@ -67,21 +50,21 @@ uint8_t loopLED;
 int8_t r;
 
 // USB
-volatile uint8_t inbuffer[USB_DATENBREITE]={};
-volatile uint8_t outbuffer[USB_DATENBREITE]={};
-volatile uint16_t          usb_recv_counter=0;
-volatile uint16_t          cnc_recv_counter=0;
+//volatile uint8_t inbuffer[USB_DATENBREITE]={};
+//volatile uint8_t outbuffer[USB_DATENBREITE]={};
+volatile uint16_t          usb_recv_counter=0; // usb
+//volatile uint16_t          cnc_recv_counter=0;
 // end USB
 
 // RC 
-volatile uint8_t           timerstatus=0;
+//volatile uint8_t           timerstatus=0;
 volatile uint8_t           code=0;
-volatile uint8_t           servostatus=0;
+volatile uint8_t           servostatus=0; // vol
 
 
 
 
-volatile uint8_t           tastaturstatus=0;
+ uint8_t           tastaturstatus=0;
 #define TASTEOK   1
 #define AKTIONOK 2
 #define UPDATEOK 3
@@ -109,25 +92,25 @@ IntervalTimer servoimpulsTimer;
 IntervalTimer kanalimpulsTimer;
 
 
-volatile uint8_t                 programmstatus=0x00;
+uint8_t                 programmstatus=0x00;
 
 uint16_t impulsdelaycounter = 0;
 uint16_t impulsdauer = 0;
 uint8_t impulscounter = 0;
 
-IntervalTimer microTimer; 
+
 uint16_t displaycounter = 0;
 
 #define IMPULSPIN  1
 
 //IntervalTimer              delayTimer;
 
-volatile uint8_t           servoindex = 0;
+volatile uint8_t           servoindex = 0; // vol
 
 
 // Utilities
 
-volatile uint16_t impulstimearray[NUM_SERVOS] = {};
+volatile uint16_t impulstimearray[NUM_SERVOS] = {}; // vol
 
 volatile uint8_t adcpinarray[NUM_SERVOS] = {};
 volatile uint16_t servomittearray[NUM_SERVOS] = {}; // Werte fuer Mitte
@@ -1611,87 +1594,7 @@ void loop()
    }
    loopcounter++;
    // MARK:  -  sinc > 1000
-   /*
-   if (sincelastseccond > 1000)
-   {
-      
-      sincelastseccond = 0;
-      
-      sendesekunde++;
-      
-      if (manuellcounter && (blink_cursorpos < 0xFFFF))
-      {
-         //display_setcursorblink(sendesekunde);
-      }
-
-      if (curr_screen )
-      {
-         //update_sendezeit();
-         //display_setcursorblink(sendesekunde);
-      }
-      //Serial.printf("update Kanalscreen CC\n");
-      //Serial.printf("motorsekunde: %d programmstatus: %d manuellcounter: %d\n",motorsekunde, programmstatus, manuellcounter);
-      Serial.printf("paketcounter \t %d  \t  startcounter: \t  %d  \t loopcounter: \t  %d  \t adccounter:  \t %d\n",paketcounter,startcounter, loopcounter , adccounter);
-
-      if (sendesekunde == 60)
-      {
-         sendeminute++;
-         sendesekunde = 0;
-         if (curr_screen == 0)
-         {
-         refresh_screen();
-         }
-      }
-      if (sendeminute == 60)
-      {
-         sendestunde++;
-         sendeminute = 0;
-      }
-      //Serial.printf("sendesekunde: %d programmstatus: %d servostatus: %d manuellcounter: %d curr_screen: %d\n",sendesekunde, programmstatus,servostatus,  manuellcounter, curr_screen);
-
-      
-      if (programmstatus & (1<<MOTOR_ON))
-      {
-         motorsekunde++;
-         if (motorsekunde==60)
-         {
-            motorminute++;
-            motorsekunde=0;
-         }
-         if (motorminute >= 60)
-         {
-            motorminute = 0;
-         }
-         if (curr_screen == 0)
-         {
-            //update_time();
-         }
-         
-      }
-      
-      if (programmstatus & (1<<STOP_ON))
-      {
-      //   lcd_gotoxy(15,0);
-      //   lcd_putint2(stopsekunde);
-
-         stopsekunde++;
-         if (stopsekunde == 60)
-         {
-            stopminute++;
-            stopsekunde=0;
-         }
-         if (stopminute >= 60)
-         {
-            stopminute = 0;
-         }
-         if (curr_screen == 0)
-         {
-            //update_time();
-         }
-      }
-      displaystatus |= (1<<UHR_UPDATE);//XX
-   } // 1000
-   */
+ 
     // MARK:  -  sinc4 > 500
    if (zeitintervall > 500) 
    {   
