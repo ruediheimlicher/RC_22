@@ -78,7 +78,9 @@ elapsedMicros sinceusb;
 
 elapsedMillis sincelastseccond;
 
-elapsedMicros sincelastimpuls;
+elapsedMillis sincelastpaket = 0;
+
+//elapsedMicros sincelastimpuls;
 
 static volatile uint8_t buffer[USB_DATENBREITE]={};   // Daten von usb
 static volatile uint8_t sendbuffer[USB_DATENBREITE]={};// Daten nach usb
@@ -344,6 +346,25 @@ void OSZI_D_HI(void)
 {
    if (TEST)
       digitalWriteFast(OSZI_PULS_D,HIGH);
+}
+
+void OSZI_E_LO(void)
+{
+   if (TEST)
+      digitalWriteFast(OSZI_PULS_E,LOW);
+}
+
+
+void OSZI_E_HI(void)
+{
+   if (TEST)
+      digitalWriteFast(OSZI_PULS_E,HIGH);
+}
+
+void OSZI_E_TOGG(void)
+{
+   if (TEST)
+      digitalWrite(OSZI_PULS_E, !digitalRead(OSZI_PULS_E));
 }
 
 
@@ -1172,7 +1193,7 @@ void print_curr(void)
 // Add setup code
 void setup()
 {
-   Serial.begin(9600);
+  // Serial.begin(9600);
   // Wait for USB Serial
  // while (!Serial) {
  //   yield();
@@ -1269,6 +1290,9 @@ void setup()
       
       pinMode(OSZI_PULS_D, OUTPUT);
       digitalWriteFast(OSZI_PULS_D, HIGH); 
+
+      pinMode(OSZI_PULS_E, OUTPUT);
+      digitalWriteFast(OSZI_PULS_E, HIGH); 
 
    }
    
@@ -1428,7 +1452,13 @@ void loop()
       digitalWriteFast(24, 1);
    }
    loopcounter++;
-   // MARK:  -  sinc > 1000
+   // MARK:  -  sinclastpaket
+   if (sincelastpaket > 20)
+   {
+      sincelastpaket = 0;
+      OSZI_E_TOGG();
+   }
+   
  
     // MARK:  -  sinc4 > 500
    if (zeitintervall > 500) 
@@ -1455,7 +1485,7 @@ void loop()
          //Serial.printf("update Kanalscreen CC\n");
          //Serial.printf("motorsekunde: %d programmstatus: %d manuellcounter: %d\n",motorsekunde, programmstatus, manuellcounter);
          //Serial.printf("paketcounter \t %d  \t  startcounter: \t  %d  \t loopcounter: \t  %d  \t adccounter:  \t %d\n",paketcounter,startcounter, loopcounter , adccounter);
-         if (sendesekunde % 10 == 0)
+         if (sendesekunde % 15 == 0)
          {
             refresh_screen();
          }
@@ -1522,7 +1552,10 @@ void loop()
             }
          }
          displaystatus |= (1<<UHR_UPDATE);//XX
-      }      //Serial.printf("pot0 %d pot1 %d\n",impulstimearray[0], impulstimearray[1]);
+      }      
+      //Serial.printf("pot0 %d pot1 %d\n",impulstimearray[0], impulstimearray[1]);
+      
+      //Blinken wenn cursorpos < 0xFFFF
       if (manuellcounter && (blink_cursorpos < 0xFFFF))
       {
          display_setcursorblink(updatecounter);
@@ -1535,7 +1568,7 @@ void loop()
       manuellcounter++;
       //Serial.printf("manuellcounter: %d\n",manuellcounter);
       zeitintervall = 0;
-      //Serial.printf("paketcounter %d  startcounter: %d loopcounter: %d \n",paketcounter,startcounter, loopcounter);
+      //Serial.printf("paketcounter %d  startcounter: %d loopcounter: %d adccounter: %d\n",paketcounter,startcounter, loopcounter, adccounter);
       if (programmstatus & (1<<SETTINGWAIT))
       {
          startcounter++;
@@ -1643,37 +1676,7 @@ void loop()
    }// zeitintervall
    
 // MARK:  -  ADC_OK
-   /* 
-    // Mixing
-    for (i=0;i<4;i++) // 50 us
-    {
-       // Mixing lesen
-       
-       uint8_t mixcanal = Mix_Array[2*i];
-       if (mixcanal ^ 0x88) // 88 bedeutet OFF
-       {
-          // Setting nicht OFF
-          uint8_t mixart = Mix_Array[2*i+1] & 0x07; // Art des mixings
-          uint8_t canala = mixcanal & 0x07;         // beteiligter erster Kanal
-          uint8_t canalb = (mixcanal & 0x70) >>4;   // beteiligter zweiter Kanal
-          
-          switch (mixart) // mixart ist gesetzt
-          {
-             case 1: // V-Mix
-             {
-                // Originalwert fuer jeden Kanal lesen
-                canalwerta = Servo_ArrayInt[canala];// Wert fuer ersten Kanal
-                canalwertb = Servo_ArrayInt[canalb];// Wert fuer zweiten Kanal
-                
-                // Wert mixen und neu speichern
-                Servo_ArrayInt[canala] = canalwerta + canalwertb;
-                Servo_ArrayInt[canalb] = canalwerta - canalwertb;
-             
-             }break;
-          } // switch
-       }
-    }
-    */
+
    // Impulsfolge ist fertig, Zeit nutzen. 
    // Zuerst potis lesen
    if (servostatus & (1<<ADC_OK)) //     20us pro kanal ohne printf
@@ -1699,9 +1702,7 @@ void loop()
                
                //Serial.printf("+B+");
                uint16_t potwert = adc->adc0->analogRead(adcpinarray[i]);
-               //uint16_t potwert = adc->adc0->analogRead(14);
-               //float ppmfloat = PPMLO + quot *(float(potwert) - POTLO);
-
+ 
                float ppmfloat = PPMLO + quotarray[i] *(float(potwert) - potgrenzearray[i][0]);
                uint16_t ppmint = uint16_t(ppmfloat);
                if (i == 0)
@@ -1711,6 +1712,7 @@ void loop()
                if (i < 4)
                {
                //Serial.printf("pot %d pot1 %d\t",i, ppmint);
+                  // potwerte in USB
                sendbuffer[ADCOFFSET + 2*i] = (ppmint & 0x00FF); // LO
                sendbuffer[ADCOFFSET + 2*i + 1] = (ppmint & 0xFF00)>>8; // Hi
                }
@@ -1797,7 +1799,7 @@ void loop()
             
             if ((displaycounter == 20) )
                {
-                 //Serial.printf("mix on mix0: %d mix1: %d \n",mix0,mix1 );
+                 Serial.printf("mix on mix0: %d mix1: %d \n",mix0,mix1 );
                
                }
           
@@ -3018,11 +3020,13 @@ void loop()
                            last_cursorspalte =curr_cursorspalte;
                            
                            curr_cursorspalte--;
+                           /*
                            lcd_puthex(curr_cursorzeile);
                            lcd_putc(' ');
                            lcd_puthex(curr_cursorspalte);
                            lcd_putc(' ');
                            lcd_puthex(posregister[curr_cursorzeile][curr_cursorspalte+1]);
+                            */
                         }
                         manuellcounter=0;
                         
@@ -3080,11 +3084,13 @@ void loop()
                            last_cursorspalte =curr_cursorspalte;
                            
                            curr_cursorspalte--;
+                           /*
                            lcd_puthex(curr_cursorzeile);
                            lcd_putc(' ');
                            lcd_puthex(curr_cursorspalte);
                            lcd_putc(' ');
                            lcd_puthex(posregister[curr_cursorzeile][curr_cursorspalte+1]);
+                            */
                         }
                         manuellcounter=0;
                         
@@ -3143,11 +3149,13 @@ void loop()
                            last_cursorspalte =curr_cursorspalte;
                            
                            curr_cursorspalte--;
+                           /*
                            lcd_puthex(curr_cursorzeile);
                            lcd_putc(' ');
                            lcd_puthex(curr_cursorspalte);
                            lcd_putc(' ');
                            lcd_puthex(posregister[curr_cursorzeile][curr_cursorspalte+1]);
+                            */
                         }
                         manuellcounter=0;
                         
@@ -3871,12 +3879,13 @@ void loop()
                            last_cursorspalte =curr_cursorspalte;
                            
                            curr_cursorspalte++;
-                           
+                           /*
                            lcd_puthex(curr_cursorzeile);
                            lcd_putc(' ');
                            lcd_puthex(curr_cursorspalte);
                            lcd_putc(' ');
                            lcd_puthex(posregister[curr_cursorzeile][curr_cursorspalte+1]);
+                            */
                         }
                         manuellcounter=0;
                         
@@ -3924,7 +3933,7 @@ void loop()
                      
                   case ZUTEILUNGSCREEN: // Zuteilung der Kanaele
                   {
-                     lcd_gotoxy(0,0);
+                     //lcd_gotoxy(0,0);
                      
                      if (blink_cursorpos == 0xFFFF && manuellcounter) // Kein Blinken
                      {
@@ -3935,12 +3944,13 @@ void loop()
                            last_cursorspalte =curr_cursorspalte;
                            
                            curr_cursorspalte++;
-                           
+                           /*
                            lcd_puthex(curr_cursorzeile);
                            lcd_putc(' ');
                            lcd_puthex(curr_cursorspalte);
                            lcd_putc(' ');
                            lcd_puthex(posregister[curr_cursorzeile][curr_cursorspalte+1]);
+                            */
                         }
                         manuellcounter=0;
                         
@@ -3988,12 +3998,13 @@ void loop()
                      
                   case AUSGANGSCREEN: // Ausgang
                   {
+                     /*
                      lcd_gotoxy(0,0);
                      lcd_puthex(curr_cursorzeile);
                      lcd_putc(' ');
                      lcd_puthex(curr_cursorspalte);
                      lcd_putc(' ');
-                     
+                     */
                      if (blink_cursorpos == 0xFFFF && manuellcounter) // Kein Blinken
                      {
                         if (posregister[curr_cursorzeile][curr_cursorspalte+1]< 0xFFFF)
@@ -4004,7 +4015,7 @@ void loop()
                            
                            curr_cursorspalte++;
                            
-                           lcd_puthex(posregister[curr_cursorzeile][curr_cursorspalte+1]);
+                         //  lcd_puthex(posregister[curr_cursorzeile][curr_cursorspalte+1]);
                         }
                         manuellcounter=0;
                         
@@ -4505,7 +4516,6 @@ void loop()
                         }
                         else
                         {
-                           
                            lcd_putc('-');
                         }
                         manuellcounter=0;
@@ -4520,7 +4530,7 @@ void loop()
                          lcd_putc(' ');
                          */
                         //switch((blink_cursorpos & 0xFF00)>>8) // zeile
-                        switch(curr_cursorzeile) // zeile
+                        switch(curr_cursorzeile) // T8 zeile
                         {
                            case 0: // modell
                            {
@@ -4530,7 +4540,7 @@ void loop()
                                  case 0:
                                  {
                                     //lcd_putc('0');
-                                    if (curr_model <8)
+                                    if (curr_model <ANZAHLMODELLE)
                                     {
                                        curr_model++;
                                     }
@@ -4596,15 +4606,17 @@ void loop()
                            display_cursorweg();
                            setheighmul(1);
                            last_cursorzeile =curr_cursorzeile;
-                           
-                           curr_cursorzeile++;
-                           lcd_puthex(curr_cursorzeile);
-                           lcd_putc('+');
+                           if (curr_cursorzeile<5)
+                           {
+                              curr_cursorzeile++;
+                           }
+                           //lcd_puthex(curr_cursorzeile);
+                           //lcd_putc('+');
                         }
                         else
                         {
-                           lcd_puthex(curr_cursorzeile);
-                           lcd_putc('-');
+                          // lcd_puthex(curr_cursorzeile);
+                           //lcd_putc('-');
                         }
                         manuellcounter=0;
                      }
@@ -4641,7 +4653,7 @@ void loop()
                                  case 2: // Funktion
                                  {
                                     // *                                  eepromsavestatus |= (1<<SAVE_FUNKTION);
-                                      if (curr_devicearray[curr_kanal] < 4)
+                                      if (curr_devicearray[curr_kanal] < 8)
                                     {
                                        curr_devicearray[curr_kanal] += 0x01;
                                     }
@@ -4678,7 +4690,7 @@ void loop()
                                     
                                  case 2: //
                                  {
-                                    //curr_cursorspalte = 1; // fehler, back
+                                    curr_cursorspalte = 1; // fehler, back
                                     
                                  }break;
                               }// switch curr_cursorspalte

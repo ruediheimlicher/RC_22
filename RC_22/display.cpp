@@ -1383,7 +1383,7 @@ uint8_t refresh_screen(void)
          char_width_mul = 1;
 
          display_write_str(TitelTable[0],1);
-         Serial.printf("refresh A\n"); 
+ //        Serial.printf("refresh A\n"); 
          char_height_mul = 1;
          char_width_mul = 1;
          
@@ -1391,14 +1391,14 @@ uint8_t refresh_screen(void)
          char_x = (posregister[2][0] & 0x00FF);
          char_y= (posregister[2][0] & 0xFF00)>> 10;
          display_write_str(TitelTable[2],2);
-         Serial.printf("refresh B\n"); 
+//         Serial.printf("refresh B\n"); 
          // Stoppzeit schreiben
          char_y= (posregister[2][1] & 0xFF00)>> 10;
          char_x = (posregister[2][1] & 0x00FF);
          char_height_mul = 2;
          char_width_mul = 2;
          display_write_stopzeit_BM(stopsekunde,stopminute);
-         Serial.printf("refresh C\n"); 
+         //Serial.printf("refresh C\n"); 
          char_height_mul = 1;
          char_width_mul = 1;
          
@@ -1408,7 +1408,7 @@ uint8_t refresh_screen(void)
          char_y= ((posregister[1][0] & 0xFF00)>> 10);
          char_height_mul = 1;
          display_write_str(TitelTable[3],2);
-         Serial.printf("refresh D\n"); 
+         //Serial.printf("refresh D\n"); 
          char_height_mul = 2;
          char_width_mul = 2;
 
@@ -1416,7 +1416,7 @@ uint8_t refresh_screen(void)
          char_x = posregister[1][1] & 0x00FF;
          // display_write_min_sek(motorsekunde,2);
          display_write_stopzeit(motorsekunde,motorminute, 2);
-         Serial.printf("refresh E\n"); 
+         //Serial.printf("refresh E\n"); 
          char_height_mul = 1;
          char_width_mul = 1;
         
@@ -1427,7 +1427,7 @@ uint8_t refresh_screen(void)
          //display_write_prop_str(char_y,char_x,0,titelbuffer,2);
          char_height_mul = 2;
          display_write_str(ModelTable[curr_model],1);
-         Serial.printf("refresh F\n"); 
+ //        Serial.printf("refresh F\n"); 
          char_height_mul = 1;
          //strcpy(titelbuffer, ((TitelTable[5])));
          char_y= (posregister[4][1] & 0xFF00)>> 10;
@@ -1436,9 +1436,8 @@ uint8_t refresh_screen(void)
          char_y= (posregister[4][2] & 0xFF00)>> 10;
          char_x = posregister[4][2] & 0x00FF;
          display_write_int(curr_setting,2);
-         Serial.printf("refresh G\n"); 
-         
-         
+  //       Serial.printf("refresh G\n"); 
+              
          char_height_mul = 1;
          char_width_mul = 1;
 
@@ -1447,7 +1446,7 @@ uint8_t refresh_screen(void)
          char_x = posregister[3][0] & 0x00FF;
          char_height_mul = 1;
          display_write_str(TitelTable[6],2);
-         Serial.printf("refresh H\n"); 
+  //       Serial.printf("refresh H\n"); 
          
          char_height_mul = 1;
          char_width_mul = 1;
@@ -1457,7 +1456,7 @@ uint8_t refresh_screen(void)
          char_y= (cursorpos[0][1] & 0xFF00)>> 10;
          char_x = cursorpos[0][1] & 0x00FF;
          display_write_symbol(pfeilvollrechts);
-         Serial.printf("refresh I\n"); 
+  //       Serial.printf("refresh I\n"); 
          char_x += 4;
          display_write_str(TitelTable[4],2);
          Serial.printf("refresh end\n");
@@ -1951,7 +1950,7 @@ uint8_t refresh_screen(void)
             uint8_t kanalindex=0;
             for (kanalindex=0;kanalindex<8;kanalindex++)
             {
-               uint8_t deviceindex = ((curr_funktionarray[kanalindex] & 0x70)>>4); // aktuelles device fuer kanal, bit 4-6
+              // uint8_t deviceindex = ((curr_funktionarray[kanalindex] & 0x70)>>4); // aktuelles device fuer kanal, bit 4-6
                // Kanal an deviceindex einsetzen
  //              curr_statusarray[deviceindex] = kanalindex ;
             }
