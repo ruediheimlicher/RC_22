@@ -95,6 +95,7 @@ elapsedMicros sinceusb;
 
 
 elapsedMillis sincelastseccond;
+elapsedMillis sinceimpulsstart;
 
 elapsedMillis sincelastpaket = 0;
 
@@ -406,6 +407,7 @@ void kanalimpulsfunktion(void) // kurze HI-Impulse beenden
    servoindex++;
    // next impuls schon laden
    servoimpulsTimer.update(impulstimearray[servoindex]);
+   OSZI_D_HI();
 }
 
 void servoimpulsfunktion(void) // 
@@ -422,7 +424,10 @@ void servoimpulsfunktion(void) //
       digitalWriteFast(IMPULSPIN,HIGH); // neuer impuls
       OSZI_B_HI();
       kanalimpulsTimer.begin(kanalimpulsfunktion,IMPULSBREITE); // neuer Kanalimpuls
-   
+      OSZI_D_LO();
+      servostatus |= (1<<IMPULS);
+  //    sinceimpulsstart = 0;
+
    }
    else  // Paket beenden
    {
@@ -430,6 +435,7 @@ void servoimpulsfunktion(void) //
       servostatus |= (1<<PAUSE);
       servostatus |= (1<<ADC_OK); // ADCFenster starten
       //digitalWriteFast(IMPULSPIN,LOW);
+      servostatus &= ~(1<<IMPULS);
    }
    //kanalimpulsTimer.begin(kanalimpulsfunktion,IMPULSBREITE); // neuer Kanalimpuls
    
@@ -445,10 +451,10 @@ void servopaketfunktion(void) // start Abschnitt
    if (servostatus & (1<<RUN))
    {
       servoimpulsTimer.begin(servoimpulsfunktion,impulstimearray[servoindex]);
-      
       kanalimpulsTimer.begin(kanalimpulsfunktion, IMPULSBREITE); // neuer Kanalimpuls
       digitalWriteFast(IMPULSPIN,HIGH);
       OSZI_B_LO();
+      OSZI_D_LO();
       //paketcounter++;
    }
    paketcounter++;
@@ -1374,6 +1380,9 @@ void loop()
       OSZI_E_TOGG();
       servopaketfunktion();
    }
+   
+   
+   
     // MARK:  -  sinc > 500
    if (zeitintervall > 500) 
    {   
