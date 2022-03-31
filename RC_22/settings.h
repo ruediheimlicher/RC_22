@@ -76,12 +76,6 @@
 
 #define LEDON           3
 
-#define SAVE_LEVEL   0
-#define SAVE_MIX  2
-#define SAVE_EXPO 3
-#define SAVE_FUNKTION 4
-#define SAVE_DEVICE 5
-#define SAVE_AUSGANG 6
 
 // USB Konstanten
 
@@ -107,13 +101,13 @@
 #define DEVICE_OFFSET      0x70 // 122
 #define AUSGANG_OFFSET     0x80 // 128
 
-
-#define SAVE_LEVEL   0
-#define SAVE_MIX  2
-#define SAVE_EXPO 3
-#define SAVE_FUNKTION 4
-#define SAVE_DEVICE 5
-#define SAVE_AUSGANG 6
+#define SAVE_STATUS      0
+#define SAVE_LEVEL      1
+#define SAVE_MIX        2
+#define SAVE_EXPO       3
+#define SAVE_FUNKTION   4
+#define SAVE_DEVICE     5
+#define SAVE_AUSGANG    6
 
 
 #define OSZI_PULS_A        25

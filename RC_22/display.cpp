@@ -967,51 +967,6 @@ void setzuteilungscreen(void)
       display_write_byte(DATEN,0xFF);
 
    }
-   /*
-   strcpy(menubuffer, (&(DeviceTable[1]))); // L_V
-   char_y= (posregister[0][0] & 0xFF00)>> 10;;
-   char_x = posregister[0][0] & 0x00FF ;
-   char_height_mul = 1;
-   char_width_mul = 1;
-   display_write_str(menubuffer,1);
-
-   strcpy(menubuffer, (&(DeviceTable[3]))); // R_V
-   char_y= (posregister[0][2] & 0xFF00)>> 10;;
-   char_x = posregister[0][2] & 0x00FF ;
-   char_height_mul = 1;
-   char_width_mul = 1;
-   display_write_str(menubuffer,1);
-  
-   strcpy(menubuffer, (&(DeviceTable[2]))); // L_H
-   char_y= (posregister[1][0] & 0xFF00)>> 10;;
-   char_x = posregister[1][0] & 0x00FF ;
-   char_height_mul = 1;
-   char_width_mul = 1;
-   display_write_str(menubuffer,1);
-
-   strcpy(menubuffer, (&(DeviceTable[0]))); // L_R
-   char_y= (posregister[1][2] & 0xFF00)>> 10;;
-   char_x = posregister[1][2] & 0x00FF ;
-   char_height_mul = 1;
-   char_width_mul = 1;
-   display_write_str(menubuffer,1);
- 
-   strcpy(menubuffer, (&(DeviceTable[4]))); // S_L
-   char_y= (posregister[2][0] & 0xFF00)>> 10;;
-   char_x = posregister[2][0] & 0x00FF ;
-   char_height_mul = 1;
-   char_width_mul = 1;
-   display_write_str(menubuffer,1);
-
-   strcpy(menubuffer, (&(DeviceTable[5]))); // S_R
-   char_y= (posregister[2][2] & 0xFF00)>> 10;;
-   char_x = posregister[2][2] & 0x00FF ;
-   char_height_mul = 1;
-   char_width_mul = 1;
-   display_write_str(menubuffer,1);
-  */
-
-
    
 
 
@@ -1033,7 +988,6 @@ void setsavescreen(void)
    cursorpos[0][0] = cursortab[0] |    (4 << 10); // sichern
    cursorpos[0][1] = cursortab[3] |    (4 << 10); //  abbrechen
   
-   strcpy(menubuffer, ((SichernTable[0]))); // titel
    char_y= 1;
    char_x = itemtab[0] ;
    char_height_mul = 2;
@@ -1041,25 +995,20 @@ void setsavescreen(void)
    //display_write_propchar('V',2);
    //display_write_propchar('?',2);
    //display_write_propchar(60,2);
-   display_write_str(menubuffer,2);
+   display_write_str(SichernTable[0],2); // 
    display_write_symbol(fragezeichen);
 
    char_y= (posregister[0][0] & 0xFF00)>> 10;
    char_x = posregister[0][0] & 0x00FF;
-   strcpy(menubuffer, ((SichernTable[1]))); // sichern
    char_height_mul = 1;
-   display_write_str(menubuffer,2);
+   display_write_str(SichernTable[1],2);
    
    
    char_y= (posregister[0][1] & 0xFF00)>> 10;
    char_x = posregister[0][1] & 0x00FF;
-   strcpy(menubuffer, ((SichernTable[2]))); // Abbrechen
-   display_write_str(menubuffer,2);
-
+   display_write_str(SichernTable[2],2);
    blink_cursorpos = cursorpos[0][0];
 
-  
-   
 }
 
 void settrimmscreen(void)
@@ -2267,7 +2216,7 @@ uint8_t refresh_screen(void)
          char_height_mul = 1;
          char_y= 5;
          char_x = 10+OFFSET_6_UHR;
-         display_write_int(eepromsavestatus,2);
+         //display_write_int(eepromsavestatus,2);
          
          
       }break;
@@ -3254,7 +3203,7 @@ uint8_t update_screen(void)
          char_height_mul = 1;
          char_y= 5;
          char_x = 10+OFFSET_6_UHR;
-         display_write_int(eepromsavestatus,2);
+         //display_write_int(eepromsavestatus,2);
          
          
       }break;
