@@ -1690,11 +1690,20 @@ void loop()
          //Serial.printf("update Kanalscreen CC\n");
          //Serial.printf("motorsekunde: %d programmstatus: %d manuellcounter: %d\n",motorsekunde, programmstatus, manuellcounter);
          //Serial.printf("paketcounter \t %d  \t  startcounter: \t  %d  \t loopcounter: \t  %d  \t adccounter:  \t %d\n",paketcounter,startcounter, loopcounter , adccounter);
+         if (sendesekunde%15 == 0)
+         {
+            servostatus &=  ~(1<<RUN); 
+            
+            refresh_screen();
+            servostatus |=  (1<<RUN); 
 
+         }
+         
          if (sendesekunde == 60)
          {
             sendeminute++;
             sendesekunde = 0;
+            /*
             if (curr_screen == 0)
             {
                Serial.printf("refresh_screen sendeminute: %d\n",sendeminute);
@@ -1703,6 +1712,7 @@ void loop()
                refresh_screen();
                servostatus |=  (1<<RUN); 
             }
+             */
          }
          if (sendeminute == 60)
          {
