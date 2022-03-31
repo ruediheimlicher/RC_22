@@ -97,6 +97,7 @@ elapsedMicros sinceusb;
 elapsedMillis sincelastseccond;
 
 elapsedMillis sincelastpaket = 0;
+elapsedMicros sinceimpulsstart = 0;
 
 static volatile uint8_t buffer[USB_DATENBREITE]={};   // Daten von usb
 static volatile uint8_t sendbuffer[USB_DATENBREITE]={};// Daten nach usb
@@ -413,28 +414,23 @@ void servoimpulsfunktion(void) //
   // servoindex++; // Version B: end und neu begin 
    if (servoindex <= NUM_SERVOS)
    { 
-      //Version B:
-      //servoimpulsTimer.end();
-      //servoimpulsTimer.begin(servoimpulsfunktion,impulstimearray[servoindex]);
-      
-      // Version A
-      //servoimpulsTimer.update(impulstimearray[servoindex]); // zu spaet: timer ist schon in neuem Intervall
       digitalWriteFast(IMPULSPIN,HIGH); // neuer impuls
       OSZI_B_HI();
-      kanalimpulsTimer.begin(kanalimpulsfunktion,IMPULSBREITE); // neuer Kanalimpuls
-   
+      servostatus |= (1<<IMPULS);
+      sinceimpulsstart = 0;
+      
+      //kanalimpulsTimer.begin(kanalimpulsfunktion,IMPULSBREITE); // neuer Kanalimpuls
    }
    else  // Paket beenden
    {
+      OSZI_D_HI();
       servoimpulsTimer.end();
       servostatus |= (1<<PAUSE);
       servostatus |= (1<<ADC_OK); // ADCFenster starten
       //digitalWriteFast(IMPULSPIN,LOW);
    }
    //kanalimpulsTimer.begin(kanalimpulsfunktion,IMPULSBREITE); // neuer Kanalimpuls
-   
 }
-
 
 void servopaketfunktion(void) // start Abschnitt
 { 
@@ -442,13 +438,18 @@ void servopaketfunktion(void) // start Abschnitt
    servostatus |= (1<<PAKET);// neues Paket starten
    servostatus |= (1<<IMPULS);
    servoindex = 0; // Index des aktuellen impulses
+   
    if (servostatus & (1<<RUN))
    {
-      servoimpulsTimer.begin(servoimpulsfunktion,impulstimearray[servoindex]);
       
-      kanalimpulsTimer.begin(kanalimpulsfunktion, IMPULSBREITE); // neuer Kanalimpuls
+      servoimpulsTimer.begin(servoimpulsfunktion,impulstimearray[servoindex]);
+      //kanalimpulsTimer.begin(kanalimpulsfunktion, IMPULSBREITE); // neuer Kanalimpuls
       digitalWriteFast(IMPULSPIN,HIGH);
       OSZI_B_LO();
+      servostatus |= (1<<IMPULS);
+      sinceimpulsstart = 0;
+      OSZI_D_LO();
+
       //paketcounter++;
    }
    paketcounter++;
@@ -1367,13 +1368,27 @@ void loop()
       digitalWriteFast(24, 1);
    }
    loopcounter++;
-
+   
+   
+   // MARK:  -  IMPULS
+   
    if (sincelastpaket > 20)
    {
       sincelastpaket = 0;
       OSZI_E_TOGG();
       servopaketfunktion();
    }
+   
+   if (servostatus & (1<<IMPULS) && (sinceimpulsstart > 50))
+   {
+      OSZI_D_HI();
+      sinceimpulsstart = 0;
+      servostatus &= ~(1<<IMPULS);
+      kanalimpulsfunktion(); // **
+      
+   }
+      
+   
     // MARK:  -  sinc > 500
    if (zeitintervall > 500) 
    {   
@@ -1387,7 +1402,7 @@ void loop()
          
          if (manuellcounter && (blink_cursorpos < 0xFFFF))
          {
-            display_setcursorblink(sendesekunde);
+            //display_setcursorblink(sendesekunde);
          }
 
          if (curr_screen )
@@ -1398,7 +1413,7 @@ void loop()
          //Serial.printf("update Kanalscreen CC\n");
          //Serial.printf("motorsekunde: %d programmstatus: %d manuellcounter: %d\n",motorsekunde, programmstatus, manuellcounter);
          //Serial.printf("paketcounter \t %d  \t  startcounter: \t  %d  \t loopcounter: \t  %d  \t adccounter:  \t %d\n",paketcounter,startcounter, loopcounter , adccounter);
-         if (sendesekunde%15 == 0)
+         if (sendesekunde%30 == 0)
          {
             servostatus &=  ~(1<<RUN); 
             
@@ -2062,7 +2077,7 @@ void loop()
                   {
                      if (blink_cursorpos == 0xFFFF && manuellcounter) // Kein Blinken
                      {
-                        Serial.printf("T2 SETTINGSCREEN no blink");
+                        Serial.printf("T2 SETTINGSCREEN no blink\n");
                         //lcd_gotoxy(0,1);
                         if (curr_cursorzeile ) // curr_cursorzeile ist >0,
                         {
