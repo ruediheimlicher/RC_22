@@ -393,20 +393,23 @@ void EE_CS_LO(void)
 //uint16_t eeprompartschreiben(void); // 23 ms
 //void spieeprom_wrbyte(uint16_t addr, uint8_t data);
 
-
+/*
 void read_eeprom_zeit(void);
 void write_eeprom_zeit(void);
 void write_eeprom_status(void);
-
+*/
 
 
 void kanalimpulsfunktion(void) // kurze HI-Impulse beenden
 {
    digitalWriteFast(IMPULSPIN,LOW);
    kanalimpulsTimer.end();
-   servoindex++;
-   // next impuls schon laden
-   servoimpulsTimer.update(impulstimearray[servoindex]);
+   servoindex++;   
+   if (servoindex <=7)
+   {
+      // next impuls schon laden
+      servoimpulsTimer.update(impulstimearray[servoindex]);
+   }
    OSZI_D_HI();
 }
 
@@ -463,75 +466,7 @@ void servopaketfunktion(void) // start Abschnitt
 
 // MARK: readSettings
 
-void read_Ext_EEPROM_Settings(void)
-{
-   uint8_t modelindex =0;
-   modelindex = buffer[3]; // welches model soll gelesen werden
-   uint16_t readstartadresse=0;
 
-   uint8_t pos=0, verbose=buffer[4];
-   
-   //EE_CS_LO;
-   _delay_us(LOOPDELAY);
-  // uint16_t readstartadresse=0;
-   //uint8_t modelindex = curr_model; // welches model soll gelesen werden
-   // uint8_t pos=0;
-   
-    // Level lesen
-   cli();
-    readstartadresse = TASK_OFFSET  + LEVEL_OFFSET + modelindex*EEPROM_MODELSETTINGBREITE;
-   sei();
-    // startadresse fuer Settings des models
-    for (pos=0;pos<8;pos++)
-    {
-       curr_levelarray[pos] = EEPROM.read(readstartadresse+pos);
-       
-    }
-    _delay_us(100);
-   
-    // Expo lesen
-    readstartadresse = TASK_OFFSET  + EXPO_OFFSET + modelindex*SETTINGBREITE;
-    for (pos=0;pos<8;pos++)
-    {
-       curr_expoarray[pos] = EEPROM.read(readstartadresse+pos);
-       
-    }
-    _delay_us(100);
-   
-   
-   // Mix lesen
-   //cli();
-    readstartadresse = TASK_OFFSET  + FUNKTION_OFFSET + modelindex*SETTINGBREITE;
-   //sei();
-   /*
-   lcd_gotoxy(0,0);
-   //lcd_putc('+');
-   //lcd_putint1(modelindex);
-   //lcd_putc('+');
-   lcd_putint12(readstartadresse);
-   lcd_putc('*');
-   lcd_puthex((readstartadresse & 0xFF00)>>8);
-   lcd_puthex((readstartadresse & 0x00FF));
- */
-   
-    for (pos=0;pos<8;pos++)
-    {
-       if (pos==0)
-       {
-       //OSZI_D_LO;
-       }
-       //cli();
-       curr_mixarray[pos] = EEPROM.read(readstartadresse+pos);
-       //OSZI_D_HI;
-
-    }
-   
-    
-   _delay_us(EE_READ_DELAY);
-
-   
- 
-}
 void load_EEPROM_Settings(uint8_t model)
 {
    Serial.printf("load_EEPROM_Settings model: %d\n",model);
@@ -540,7 +475,7 @@ void load_EEPROM_Settings(uint8_t model)
    {
       pos = model *  EEPROM_MODELSETTINGBREITE  + kanal * KANALSETTINGBREITE;
       
-      Serial.printf("load_EEPROM_Settings kanal: %d pos: %d\n",kanal,pos);
+      //Serial.printf("load_EEPROM_Settings kanal: %d pos: %d\n",kanal,pos);
       for (uint8_t dataindex = 0;dataindex < 4;dataindex++)
       {
          // kanalsettingarray[ANZAHLMODELLE][NUM_SERVOS][KANALSETTINGBREITE] 
@@ -550,7 +485,7 @@ void load_EEPROM_Settings(uint8_t model)
          
          kanalsettingarray[model][kanal][dataindex] = eepromdata;
          
-         /*
+         
          switch (dataindex)
            {
  
@@ -572,7 +507,7 @@ void load_EEPROM_Settings(uint8_t model)
               }break;
 
              } // switch
-         */
+         
          
          //kanalsettingarray[model][kanal][dataindex] = eepromdata;
       }
@@ -585,7 +520,7 @@ void load_EEPROM_Settings(uint8_t model)
    Serial.printf("kanalsettingarray\n");
    for (uint8_t kanal = 0;kanal < 8;kanal++) //
    {
-      Serial.printf("kanal: %d\n",kanal);
+      Serial.printf("kanal: %d\t",kanal);
       for (uint8_t dataindex = 0;dataindex < 4;dataindex++)
       {
          Serial.printf("%d: %d\t",dataindex,kanalsettingarray[model][kanal][dataindex]);
@@ -620,266 +555,8 @@ void update_curr_settings(uint8_t model)
 }
 
 
-
-
-
 // MARK: writeSettings
-void write_Ext_EEPROM_Settings(void)
-{
-   
-   // Halt einschalten
-  // masterstatus |= (1<<HALT_BIT); // Halt-Bit aktiviert Task bei ausgeschaltetem Slave
-//   MASTER_PORT &= ~(1<<SUB_BUSY_PIN);
-   
-   //   EEPROM.write(modelindex * MODELSETTINGBREITE + kanal * KANALSETTINGBREITE + dataindex,buffer[USB_DATA_OFFSET + kanal * KANALSETTINGBREITE + dataindex]);
 
-
-   
-//   lcd_clr_line(1);
-//   lcd_putint(eepromsavestatus);
-   //EE_CS_LO;
-   _delay_us(LOOPDELAY);
-   uint16_t writestartadresse=0;
-   uint8_t modelindex = curr_model; // welches model soll gelesen werden
-   uint8_t pos=0;
-   
-   if (eepromsavestatus & (1<<SAVE_LEVEL))
-   {
-      eepromsavestatus &= ~(1<<SAVE_LEVEL);
-      // Level schreiben
-      cli();
-      writestartadresse = TASK_OFFSET  + LEVEL_OFFSET + modelindex*SETTINGBREITE;
-      sei();
-      // startadresse fuer Settings des models
-      for (pos=0;pos<8;pos++)
-      {
-  //       lcd_gotoxy(4+2*pos,1);
-         //lcd_putc(' ');
-  //       lcd_puthex(curr_levelarray[pos]);
-         
-         EEPROM.write(writestartadresse+pos,curr_levelarray[pos]);
-      }
-      _delay_us(100);
-   }
-   
-   if (eepromsavestatus & (1<<SAVE_EXPO))
-   {
-      eepromsavestatus &= ~(1<<SAVE_EXPO);
-      
-      // Expo schreiben
-      cli();
-      writestartadresse = TASK_OFFSET  + EXPO_OFFSET + modelindex*SETTINGBREITE;
-      sei();
-      
-      for (pos=0;pos<8;pos++)
-      {
-         EEPROM.write(writestartadresse+pos,curr_expoarray[pos]);
-      }
-      _delay_us(100);
-   }
-   
-   if (eepromsavestatus & (1<<SAVE_MIX))
-   {
-      eepromsavestatus &= ~(1<<SAVE_MIX);
-      
-      // Mix schreiben
-      cli();
-      writestartadresse = TASK_OFFSET  + FUNKTION_OFFSET + modelindex*SETTINGBREITE;
-      sei();
-      /*
-       lcd_gotoxy(0,0);
-       //lcd_putc('+');
-       //lcd_putint1(modelindex);
-       //lcd_putc('+');
-       lcd_putint12(readstartadresse);
-       lcd_putc('*');
-       lcd_puthex((readstartadresse & 0xFF00)>>8);
-       lcd_puthex((readstartadresse & 0x00FF));
-       */
-      
-      for (pos=0;pos<8;pos++)
-      {
-         if (pos==0)
-         {
-            //OSZI_D_LO;
-         }
-        // cli();
-        // EEPROM.write(writestartadresse+pos,curr_mixarray[pos]);
-         //OSZI_D_HI;
-         
-      }
-      //sei();
-      _delay_us(EE_READ_DELAY);
-   }
-   
-   if (eepromsavestatus & (1<<SAVE_FUNKTION))
-   {
-      eepromsavestatus &= ~(1<<SAVE_FUNKTION);
-      
-      // Funktion schreiben
-      cli();
-      writestartadresse = TASK_OFFSET  + FUNKTION_OFFSET + modelindex*SETTINGBREITE;
-      sei();
-      /*
-       lcd_gotoxy(0,0);
-       //lcd_putc('+');
-       //lcd_putint1(modelindex);
-       //lcd_putc('+');
-       lcd_putint12(readstartadresse);
-       lcd_putc('*');
-       lcd_puthex((readstartadresse & 0xFF00)>>8);
-       lcd_puthex((readstartadresse & 0x00FF));
-       */
-      
-      for (pos=0;pos<8;pos++)
-      {
-         if (pos==0)
-         {
-            //OSZI_D_LO;
-         }
-         cli();
-         EEPROM.write(writestartadresse+pos,curr_funktionarray[pos]);
-         //OSZI_D_HI;
-         
-      }
-      sei();
-      _delay_us(EE_READ_DELAY);
-   }
-   //EE_CS_HI;
-   //Halt reseten
-   // RAM_SEND_PPM_STATUS schicken: Daten haben geaendert
-   
-   
-
-   masterstatus &= ~(1<<HALT_BIT); // Halt-Bit aktiviert Task bei ausgeschaltetem Slave
-//   MASTER_PORT |= (1<<SUB_BUSY_PIN);
-   _delay_us(100);
-   
-   masterstatus |= (1<<DOGM_BIT);
-   
-   // Löst in der loop das Setzen von task_out aus.
-   // Umständlich, aber sonst nicht machbar.
-
-   // das ist in loop verschoben
-   //task_out |= (1<< RAM_SEND_DOGM_TASK);
-   //task_outdata = curr_model;//modelindex;
-}
-
-uint8_t eeprombytelesen(uint16_t readadresse) // 300 us ohne lcd_anzeige
-{
-  
-   //OSZI_B_LO;
-   readdata = EEPROM.read(readadresse);
-   //OSZI_B_HI;
-   return readdata;
-
-   
-   cli();
-//   SUB_EN_PORT &= ~(1<<SUB_EN_PIN);
- //  _delay_us(EE_READ_DELAY);
- //  spi_start();
- //  _delay_us(EE_READ_DELAY);
-//   SPI_PORT_Init();
-   _delay_us(EE_READ_DELAY);
- //  spieeprom_init();
-   _delay_us(EE_READ_DELAY);
-   
-   
-   //lcd_gotoxy(1,0);
-   //lcd_putc('r');
-   //lcd_putint12(readadresse);
-   //lcd_putc('*');
-   
-   eeprom_indata = 0xaa;
-   uint8_t readdata=0xaa;
-   
-   // Byte  read 270 us
-   EE_CS_LO();
-   _delay_us(EE_READ_DELAY);
-   readdata = spieeprom_rdbyte(readadresse);
-   _delay_us(EE_READ_DELAY);
-   _delay_us(10);
-   EE_CS_HI;
-  
-   /*
-   sendbuffer[0] = 0xD5;
-   
-   sendbuffer[1] = readadresse & 0x00FF;
-   sendbuffer[2] = (readadresse & 0xFF00)>>8;
-   sendbuffer[3] = readdata;
-   
-   eepromstatus &= ~(1<<EE_WRITE);
-   usbtask &= ~(1<<EEPROM_READ_BYTE_TASK);
-   
-   abschnittnummer =0;
-   
-   // wird fuer Darstellung der Read-Ergebnisse im Interface benutzt.
-   
-//   usb_rawhid_send((void*)sendbuffer, 50);
-   */
-   sei();
-   
-   //lcd_putc('*');
-
-   return readdata;
-}
-
-
-
-
-
-
-uint16_t eeprompartschreiben(void) // 23 ms
-{
-   
-   //return;
-   //OSZI_B_LO;
-     uint16_t result = 0;
-   
-   eeprom_errcount=0;
-   
-   
-   uint16_t abschnittstartadresse = eepromstartadresse ; // Ladeort im EEPROM
-   
-    
-   uint8_t w=0;
-   uint8_t i=0;
-   for (i=0;i<1;i++)
-   {
-      
-      uint16_t tempadresse = abschnittstartadresse+i;
-      uint8_t databyte = eeprombuffer[EE_PARTBREITE+i]& 0xFF; // ab byte 32
-      {
-         sendbuffer[EE_PARTBREITE+i] = databyte;
-      }
-      result += databyte;
-       
-      _delay_us(LOOPDELAY);
-
-       
-      // Byte 0-31: codes
-      // Byte 32-63: data
-      
-      //EEPROM.write(tempadresse,databyte); // an abschnittstartadresse und folgende
-
-       //spieeprom_wrbyte(0,13); // an abschnittstartadresse und folgende
-      _delay_us(LOOPDELAY);
-      
-      
-      eeprom_indata = (uint8_t)EEPROM.read(tempadresse);
-     kontrollbuffer[EE_PARTBREITE+i] = eeprom_indata;
-      
- /*
-      if ((databyte - eeprom_indata)||(eeprom_indata - databyte))
-      {
-         eeprom_errcount++;
-      }
-       */
-   }
-   _delay_us(LOOPDELAY);
-   
-     return result;
-}
 
 uint8_t* encodeEEPROMChannelSettings(uint8_t modelindex)
 {
@@ -3276,7 +2953,7 @@ void loop()
                            case 0: // sichern
                            {
                               
-                              write_Ext_EEPROM_Settings();// neue Einstellungen setzen
+                             // write_Ext_EEPROM_Settings();// neue Einstellungen setzen
                               
                               // In write_Ext_EEPROM_Settings wird masterstatus & 1<<DOGM_BIT gesetzt.
                               //  In der Loop wird damit
@@ -3289,7 +2966,7 @@ void loop()
                            case 1: // abbrechen
                            {
                               eepromsavestatus=0;
-                              read_Ext_EEPROM_Settings();// zuruecksetzen
+                             // read_Ext_EEPROM_Settings();// zuruecksetzen
                               
                            }break;
                               
