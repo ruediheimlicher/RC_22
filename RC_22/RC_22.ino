@@ -96,7 +96,6 @@ uint8_t                 programmstatus=0x00;
 
 uint16_t impulsdelaycounter = 0;
 uint16_t impulsdauer = 0;
-uint8_t impulscounter = 0;
 
 
 uint16_t displaycounter = 0;
@@ -249,7 +248,9 @@ uint8_t                 adcswitch=0;
 uint16_t                lastTastenwert=0;
 int16_t                 Tastenwertdiff=0;
 uint16_t                tastaturcounter=0;
-uint16_t                paketcounter=0;
+volatile uint16_t                paketcounter=0;
+//volatile uint16_t                paketimpulscounter=0;
+uint8_t                impulscounter=0;
 uint16_t                loopcounter=0;
 uint8_t                adccounter=0;
 
@@ -365,10 +366,6 @@ void EE_CS_LO(void)
 //void spieeprom_wrbyte(uint16_t addr, uint8_t data);
 
 
-void read_eeprom_zeit(void);
-void write_eeprom_zeit(void);
-void write_eeprom_status(void);
-
 
 
 void kanalimpulsfunktion(void) // kurze HI-Impulse beenden
@@ -382,6 +379,7 @@ void kanalimpulsfunktion(void) // kurze HI-Impulse beenden
 
 void servoimpulsfunktion(void) // 
 { 
+   //paketimpulscounter++;
   // servoindex++; // Version B: end und neu begin 
    if (servoindex <= NUM_SERVOS)
    { 
@@ -1443,6 +1441,7 @@ void loop()
           
          sendesekunde++;
          
+         Serial.printf("paketcounter: %d \n",paketcounter);
          if (manuellcounter && (blink_cursorpos < 0xFFFF))
          {
             //display_setcursorblink(sendesekunde);
@@ -1456,6 +1455,10 @@ void loop()
          //Serial.printf("update Kanalscreen CC\n");
          //Serial.printf("motorsekunde: %d programmstatus: %d manuellcounter: %d\n",motorsekunde, programmstatus, manuellcounter);
          //Serial.printf("paketcounter \t %d  \t  startcounter: \t  %d  \t loopcounter: \t  %d  \t adccounter:  \t %d\n",paketcounter,startcounter, loopcounter , adccounter);
+         if (sendesekunde % 10 == 0)
+         {
+            refresh_screen();
+         }
 
          if (sendesekunde == 60)
          {
@@ -1466,7 +1469,8 @@ void loop()
                Serial.printf("refresh_screen sendeminute: %d\n",sendeminute);
                servostatus &=  ~(1<<RUN); 
                
-               refresh_screen();
+               //refresh_screen();
+               
                servostatus |=  (1<<RUN); 
             }
          }
