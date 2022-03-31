@@ -356,6 +356,25 @@ void OSZI_D_HI(void)
       digitalWriteFast(OSZI_PULS_D,HIGH);
 }
 
+void OSZI_E_LO(void)
+{
+   if (TEST)
+      digitalWriteFast(OSZI_PULS_E,LOW);
+}
+
+
+void OSZI_E_HI(void)
+{
+   if (TEST)
+      digitalWriteFast(OSZI_PULS_E,HIGH);
+}
+
+void OSZI_E_TOGG(void)
+{
+   if (TEST)
+      digitalWrite(OSZI_PULS_E, !digitalRead(OSZI_PULS_E));
+}
+
 
 void EE_CS_HI(void)
 {
@@ -502,53 +521,99 @@ void read_Ext_EEPROM_Settings(void)
 
     }
    
-   _delay_us(EE_READ_DELAY);
-   
-   // Funktion lesen
-   cli();
-   readstartadresse = TASK_OFFSET  + FUNKTION_OFFSET + modelindex*SETTINGBREITE;
-   sei();
-   /*
-    lcd_gotoxy(0,0);
-    //lcd_putc('+');
-    //lcd_putint1(modelindex);
-    //lcd_putc('+');
-    lcd_putint12(readstartadresse);
-    lcd_putc('*');
-    lcd_puthex((readstartadresse & 0xFF00)>>8);
-    lcd_puthex((readstartadresse & 0x00FF));
-    */
-   
-   for (pos=0;pos<8;pos++)
-   {
-      if (pos==0)
-      {
-         //OSZI_D_LO;
-      }
-      //cli();
-      curr_funktionarray[pos] = eeprombytelesen(readstartadresse+pos);
-      //OSZI_D_HI;
-      
-   }
-   
-   /*
-   lcd_gotoxy(0,1);
-   
-   lcd_puthex(curr_funktionarray[0]);
-   lcd_putc('$');
-   lcd_puthex(curr_funktionarray[1]);
-   lcd_putc('$');
-   lcd_puthex(curr_funktionarray[2]);
-   lcd_putc('$');
-   lcd_puthex(curr_funktionarray[3]);
-   lcd_putc('$');
-    */
-   
+    
    _delay_us(EE_READ_DELAY);
 
    
-   //EE_CS_HI;
+ 
 }
+void load_EEPROM_Settings(uint8_t model)
+{
+   Serial.printf("load_EEPROM_Settings model: %d\n",model);
+   uint8_t pos = USB_DATA_OFFSET;
+   for (uint8_t kanal = 0;kanal < 8;kanal++) // kanal mit je 4 bytes: status(modeöl, on, kanalindex, Ri), level. expo, device(Fkt, device)
+   {
+      pos = model *  EEPROM_MODELSETTINGBREITE  + kanal * KANALSETTINGBREITE;
+      
+      Serial.printf("load_EEPROM_Settings kanal: %d pos: %d\n",kanal,pos);
+      for (uint8_t dataindex = 0;dataindex < 4;dataindex++)
+      {
+         // kanalsettingarray[ANZAHLMODELLE][NUM_SERVOS][KANALSETTINGBREITE] 
+         
+         uint8_t eepromdata = EEPROM.read(model *  EEPROM_MODELSETTINGBREITE  + kanal * KANALSETTINGBREITE + dataindex);
+         //Serial.printf("load_EEPROM_Settings kanal: %d dataindex: %d **  eepromdata: %d \n",kanal, dataindex, eepromdata);
+         
+         kanalsettingarray[model][kanal][dataindex] = eepromdata;
+         
+         /*
+         switch (dataindex)
+           {
+ 
+              case 1: // level
+              {
+                 curr_levelarray[kanal] = eepromdata;
+              }break;
+              case 2: // expo
+              {
+                 curr_expoarray[kanal] = eepromdata;
+              }break;
+              case 3: // device
+              {
+                 curr_devicearray[kanal] = eepromdata;
+              }break;
+              case 0: // status
+              {
+                 curr_statusarray[kanal] = eepromdata;
+              }break;
+
+             } // switch
+         */
+         
+         //kanalsettingarray[model][kanal][dataindex] = eepromdata;
+      }
+      
+   
+      pos += KANALSETTINGBREITE;
+   }// for kanal
+
+   // kontrolle
+   Serial.printf("kanalsettingarray\n");
+   for (uint8_t kanal = 0;kanal < 8;kanal++) //
+   {
+      Serial.printf("kanal: %d\n",kanal);
+      for (uint8_t dataindex = 0;dataindex < 4;dataindex++)
+      {
+         Serial.printf("%d: %d\t",dataindex,kanalsettingarray[model][kanal][dataindex]);
+      }
+      Serial.printf("\n");
+      
+   }
+    
+}
+void update_curr_settings(uint8_t model)
+{
+   Serial.printf("update_curr_settings model: %d\n",model);
+   return;
+   uint8_t pos = USB_DATA_OFFSET;
+   for (uint8_t kanal = 0;kanal < 8;kanal++) // kanal mit je 4 bytes: status(modeöl, on, kanalindex, Ri), level. expo, device(Fkt, device)
+   {
+      //pos = model *  EEPROM_MODELSETTINGBREITE  + kanal * KANALSETTINGBREITE;
+      //Serial.printf("update_curr_settings kanal: %d pos: %d\n",kanal,pos);
+      
+      //curr_statusarray[kanal]= kanalsettingarray[model][kanal][0];
+      curr_levelarray[kanal] = kanalsettingarray[model][kanal][1];
+      curr_expoarray[kanal] = kanalsettingarray[model][kanal][2];
+      //curr_devicearray[kanal] = kanalsettingarray[model][kanal][3];
+      
+      
+   
+     
+   }// for kanal
+   //curr_statusarray[0]= kanalsettingarray[model][0][0];
+   
+   //curr_devicearray[0] = kanalsettingarray[model][0][3];
+}
+
 
 
 
@@ -635,13 +700,13 @@ void write_Ext_EEPROM_Settings(void)
          {
             //OSZI_D_LO;
          }
-         cli();
+        // cli();
          //eeprombyteschreiben(0xB0,writestartadresse+pos,curr_mixarray[pos]);
-         EEPROM.write(writestartadresse+pos,curr_mixarray[pos]);
+        // EEPROM.write(writestartadresse+pos,curr_mixarray[pos]);
          //OSZI_D_HI;
          
       }
-      sei();
+      //sei();
       _delay_us(EE_READ_DELAY);
    }
    
@@ -1354,14 +1419,17 @@ void setup()
       pinMode(OSZI_PULS_D, OUTPUT);
       digitalWriteFast(OSZI_PULS_D, HIGH); 
 
+      pinMode(OSZI_PULS_E, OUTPUT);
+      digitalWriteFast(OSZI_PULS_E, HIGH); 
+
    }
    
    
    // EEPROM
    
-   pinMode(SPI_EE_CS_PIN, OUTPUT);
-   digitalWriteFast(SPI_EE_CS_PIN, HIGH); 
-   
+   //pinMode(SPI_EE_CS_PIN, OUTPUT);
+   //digitalWriteFast(SPI_EE_CS_PIN, HIGH); 
+   load_EEPROM_Settings(0);
    delay(100);
    
    /* initialize the LCD */

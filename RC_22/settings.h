@@ -120,6 +120,7 @@
 #define OSZI_PULS_B        26
 #define OSZI_PULS_C        27
 #define OSZI_PULS_D        28
+#define OSZI_PULS_E        29
 
 #define SPI_EE_CS_PIN                         10
 
