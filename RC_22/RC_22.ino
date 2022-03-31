@@ -1328,7 +1328,7 @@ void print_curr(void)
 // Add setup code
 void setup()
 {
-   Serial.begin(9600);
+ //  Serial.begin(9600);
   // Wait for USB Serial
  // while (!Serial) {
  //   yield();
@@ -3590,7 +3590,7 @@ void loop()
                            case 0: // sichern
                            {
                               
-                              write_Ext_EEPROM_Settings();// neue Einstellungen setzen
+                             // write_Ext_EEPROM_Settings();// neue Einstellungen setzen
                               
                               // In write_Ext_EEPROM_Settings wird masterstatus & 1<<DOGM_BIT gesetzt.
                               //  In der Loop wird damit
