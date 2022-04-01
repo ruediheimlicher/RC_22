@@ -92,10 +92,10 @@ const char ZuteilungTable[]  = {zuteilungtitel};
 
 // Sichern
 const char frage[]  = "Aenderungen sichern";
-const char sichern[]  = "Sichern";
-const char abbrechen[]  = "Abbrechen";
+const char sichern[]  = "SICHERN";
+const char abbrechen[]  = "Ignorieren";
 
-const char* SichernTable[]  = {frage,sichern,abbrechen};
+const char* SichernTable[]  = {frage,abbrechen,sichern};
 
 // Funktion
 

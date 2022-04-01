@@ -457,7 +457,7 @@ void load_EEPROM_Settings(uint8_t model)
    {
       pos = model *  EEPROM_MODELSETTINGBREITE  + kanal * KANALSETTINGBREITE;
       
-      //Serial.printf("load_EEPROM_Settings kanal: %d pos: %d\n",kanal,pos);
+ //     Serial.printf("load_EEPROM_Settings kanal: %d pos: %d\n",kanal,pos);
       for (uint8_t dataindex = 0;dataindex < 4;dataindex++)
       {
          // kanalsettingarray[ANZAHLMODELLE][NUM_SERVOS][KANALSETTINGBREITE] 
@@ -465,8 +465,10 @@ void load_EEPROM_Settings(uint8_t model)
          uint8_t eepromdata = EEPROM.read(model *  EEPROM_MODELSETTINGBREITE  + kanal * KANALSETTINGBREITE + dataindex);
          //Serial.printf("load_EEPROM_Settings kanal: %d dataindex: %d **  eepromdata: %d \n",kanal, dataindex, eepromdata);
          
+//         Serial.printf("\tdataindex: %d  eepromdata: %d \n",dataindex, eepromdata);
          kanalsettingarray[model][kanal][dataindex] = eepromdata;
          
+        
          
          switch (dataindex)
            {
@@ -499,7 +501,7 @@ void load_EEPROM_Settings(uint8_t model)
    }// for kanal
 
    // kontrolle
-   Serial.printf("kanalsettingarray\n");
+   Serial.printf("loadEEPROM_Setting kontrolle kanalsettingarray\n");
    for (uint8_t kanal = 0;kanal < 8;kanal++) //
    {
       Serial.printf("kanal: %d\t",kanal);
@@ -584,6 +586,7 @@ uint8_t encodeCurrentChannelSettings(uint8_t kanalindex, uint8_t modelindex)
    Serial.printf("encodeCurrentChannelSettings curr_statusarray: %d curr_levelarray: %d curr_expoarray: %d curr_devicearray: %d\n",curr_statusarray[kanalindex], curr_levelarray[kanalindex],curr_expoarray[kanalindex],curr_devicearray[kanalindex]);
    
    
+   
    sendbuffer[USB_DATA_OFFSET] = curr_statusarray[kanalindex];
    sendbuffer[USB_DATA_OFFSET + 1] = curr_levelarray[kanalindex];
    sendbuffer[USB_DATA_OFFSET + 2] = curr_expoarray[kanalindex];
@@ -663,8 +666,8 @@ uint8_t decodeUSBMixingSettings(uint8_t buffer[USB_DATENBREITE])
       curr_mixstatusarray[mixindex] = mix0;
       curr_mixkanalarray[mixindex] = mix1;
 
-      EEPROM.write(((modelindex)* EEPROM_MODELSETTINGBREITE + MODELSETTINGBREITE + 2 * mixindex),mix0); // 
-      EEPROM.write(((modelindex) * EEPROM_MODELSETTINGBREITE + MODELSETTINGBREITE  + 2 * mixindex + 1),mix1);
+      EEPROM.update(((modelindex)* EEPROM_MODELSETTINGBREITE + MODELSETTINGBREITE + 2 * mixindex),mix0); // 
+      EEPROM.update(((modelindex) * EEPROM_MODELSETTINGBREITE + MODELSETTINGBREITE  + 2 * mixindex + 1),mix1);
 
    }
    
@@ -678,13 +681,105 @@ uint8_t decodeUSBMixingSettings(uint8_t buffer[USB_DATENBREITE])
    return 0;
 }
 
+void restoreSettings(uint8_t model)
+{
+   Serial.printf("restoreSettings\n");
+   for (uint8_t kanal = 0;kanal < 8;kanal++)
+   {
+      curr_statusarray[kanal] = kanalsettingarray[model][kanal][0];
+      curr_levelarray[kanal] = kanalsettingarray[model][kanal][1];
+      curr_expoarray[kanal] = kanalsettingarray[model][kanal][2];
+      curr_devicearray[kanal] = kanalsettingarray[model][kanal][3];
+   }
+   for (uint8_t mixindex = 0;mixindex < 3;mixindex++)
+   {
+      curr_mixstatusarray[mixindex] = mixingsettingarray[model][mixindex][0];
+      curr_mixkanalarray[mixindex] = mixingsettingarray[model][mixindex][1];
+   }
+
+   
+}
+
+void saveSettings(uint8_t model)
+{
+   Serial.printf("saveSettings\n");
+   Serial.printf("saveSettings kontrolle kanalsettingarray vor update\n");
+   for (uint8_t kanal = 0;kanal < 8;kanal++) //
+   {
+      Serial.printf("kanal: %d\t",kanal);
+      for (uint8_t dataindex = 0;dataindex < 4;dataindex++)
+      {
+         Serial.printf("%d: %d\t",dataindex,kanalsettingarray[model][kanal][dataindex]);
+      }
+      Serial.printf("\n");
+      
+   }
+
+   // kanalsettings updaten
+   // kanalsettingarray[ANZAHLMODELLE][NUM_SERVOS][KANALSETTINGBREITE] 
+   // kontrolle
+
+   for (uint8_t kanal = 0;kanal < 8;kanal++)
+   {
+      kanalsettingarray[model][kanal][0] = curr_statusarray[kanal];
+      kanalsettingarray[model][kanal][1] = curr_levelarray[kanal];
+      kanalsettingarray[model][kanal][2] = curr_expoarray[kanal];
+      kanalsettingarray[model][kanal][3] = curr_devicearray[kanal];
+      
+   }
+   
+   Serial.printf("saveSettings kontrolle kanalsettingarray nach update\n");
+   for (uint8_t kanal = 0;kanal < 8;kanal++) //
+   {
+      Serial.printf("kanal: %d\t",kanal);
+      for (uint8_t dataindex = 0;dataindex < 4;dataindex++)
+      {
+         Serial.printf("%d: %d\t",dataindex,kanalsettingarray[model][kanal][dataindex]);
+      }
+      Serial.printf("\n");
+      
+   }
+
+   //mixingarray updaten
+   for (uint8_t mixindex = 0;mixindex < 3;mixindex++)
+   {
+      mixingsettingarray[model][mixindex][0] = curr_mixstatusarray[mixindex];
+      mixingsettingarray[model][mixindex][1] = curr_mixkanalarray[mixindex];
+   }
+   
+   for (uint8_t kanal = 0;kanal < 8;kanal++)
+   {
+//      Serial.printf("kanal: %d\n",kanal);
+      for (uint8_t dataindex = 0;dataindex < 4;dataindex++)
+      {
+         // kanalsettingarray[ANZAHLMODELLE][NUM_SERVOS][KANALSETTINGBREITE] 
+         
+         EEPROM.update(model *  EEPROM_MODELSETTINGBREITE  + kanal * KANALSETTINGBREITE + dataindex, kanalsettingarray[model][kanal][dataindex]);
+         //if (kanal==0)
+         {
+//            Serial.printf("\tdataindex: %d **  data: %d \n",dataindex, kanalsettingarray[model][kanal][dataindex]);
+         }
+      }
+   } // for kanal  
+   
+   // mixing
+   for (uint8_t mixindex = 0;mixindex < 3;mixindex++)
+   {
+
+      EEPROM.update(((model)* EEPROM_MODELSETTINGBREITE + MODELSETTINGBREITE + 2 * mixindex),mixingsettingarray[model][mixindex][0]); // 
+      EEPROM.update(((model) * EEPROM_MODELSETTINGBREITE + MODELSETTINGBREITE  + 2 * mixindex + 1),mixingsettingarray[model][mixindex][1]);
+
+   }
+
+}
+
 // USB in EEPROM und curr_einstellungen
 uint8_t  decodeUSBChannelSettings(uint8_t buffer[USB_DATENBREITE])
 {
    // uint8_t kanalsettingarray[ANZAHLMODELLE][NUM_SERVOS][KANALSETTINGBREITE] = {};
    Serial.printf("decodeUSBChannelSettings\n");
    uint8_t modelindex = buffer[USB_DATA_OFFSET + modelindex * MODELSETTINGBREITE] & 0x03; // Bit 0,1 welches model soll gelesen werden
-
+   curr_model = modelindex;
    uint8_t kanalindex =  buffer[USB_DATA_OFFSET + modelindex * KANALSETTINGBREITE] & 0x70; // Bits 4,5,6
    
    uint8_t on = (buffer[USB_DATA_OFFSET + modelindex * KANALSETTINGBREITE] & 0x08) >>8; // Bit 3
@@ -698,7 +793,7 @@ uint8_t  decodeUSBChannelSettings(uint8_t buffer[USB_DATENBREITE])
          // kanalsettingarray[ANZAHLMODELLE][NUM_SERVOS][KANALSETTINGBREITE] 
          kanalsettingarray[modelindex][kanal][dataindex] = buffer[pos + dataindex];
          
-         EEPROM.write(modelindex * + MODELSETTINGBREITE  + kanal * KANALSETTINGBREITE + dataindex,buffer[pos + dataindex]);
+         EEPROM.update(modelindex * EEPROM_MODELSETTINGBREITE  + kanal * KANALSETTINGBREITE + dataindex,buffer[pos + dataindex]);
          if (kanal==0)
          {
             Serial.printf("kanal: %d dataindex: %d **  data: %d \n",kanal, dataindex, buffer[pos + dataindex]);
@@ -956,6 +1051,7 @@ void setup()
    load_EEPROM_Settings(0);
    delay(100);
 
+   /*
    curr_levelarray[0] = 0x30;
    curr_levelarray[1] = 0x22;
    curr_levelarray[2] = 0x11;
@@ -965,7 +1061,7 @@ void setup()
    curr_expoarray[1] = 0x22;
    curr_expoarray[2] = 0x11;
    curr_expoarray[3] = 0x00;
-   
+   */
    
    
    //curr_levelarray[0] = 1;
@@ -1686,7 +1782,7 @@ void loop()
                               {
                                  case 0:
                                  {
-                                    //lcd_putc('0');
+                                    
                                     if (curr_model )
                                     {
                                        curr_model--;
@@ -1766,10 +1862,17 @@ void loop()
                                  case 0:
                                  {
                                     //lcd_putc('0');
-                                    if (curr_model )
-                                    {
-                                       curr_model--;
-                                    }
+                                     if (curr_model )
+                                     {
+                                        Serial.printf("***** SETTINGSCREEN T2 \teepromsavestatus: %d\n",eepromsavestatus);
+                                        saveSettings(curr_model);
+                                        if (eepromsavestatus == 0)
+                                        {
+                                           
+                                           curr_model--;
+                                        }
+                                        // model aktualisieren
+                                     }
                                     
                                  }break;
                                     
@@ -1835,11 +1938,7 @@ void loop()
                            //lcd_puthex(curr_cursorzeile);
                            //lcd_putc('-');
                         }
-                        //lcd_putint2(curr_cursorzeile);
-                        
-                        //lcd_putc(' ');
-                        
-                        
+                         
                         manuellcounter=0;
                      }
                      else if (manuellcounter) // blinken ist on
@@ -1862,6 +1961,7 @@ void loop()
                                     {
                                        curr_kanal--;
                                        eepromsavestatus |= (1<<SAVE_STATUS);
+                                    
                                     }
                                     
                                  }break;
@@ -1878,6 +1978,7 @@ void loop()
                                     {
                                        curr_statusarray[curr_kanal] |= 0x80;
                                     }
+                                    
                                  }break;
                                     
                                  case 2: // Funktion
@@ -1902,25 +2003,29 @@ void loop()
                               
                            case  1: // Zeile level
                            {
-                              eepromsavestatus |= (1<<SAVE_LEVEL);
+                              
                               switch (curr_cursorspalte)
                               {
                                  case 0: // Levelwert A
                                  {
-                                    Serial.printf("2 Levelwert A curr level: %d\n",curr_levelarray[curr_kanal] );
+                                    Serial.printf("T2 Levelwert A curr level vor: %d\n",curr_levelarray[curr_kanal] );
                                     if ((curr_levelarray[curr_kanal] & 0x70)>>4)
                                     {
                                        curr_levelarray[curr_kanal] -= 0x10;
+                                       eepromsavestatus |= (1<<SAVE_LEVEL);
                                     }
-                                    
+                                    Serial.printf("T2 Levelwert A curr level nach: %d\n",curr_levelarray[curr_kanal] );
                                  }break;
                                  case 1: // Levelwert B
                                  {
+                                    Serial.printf("T2 Levelwert B curr level vor: %d\n",curr_levelarray[curr_kanal] );
                                     if ((curr_levelarray[curr_kanal] & 0x07))
                                     {
                                        curr_levelarray[curr_kanal] -= 0x01;
+                                       eepromsavestatus |= (1<<SAVE_LEVEL);
+                                       
                                     }
-                                    
+                                    Serial.printf("T2 Levelwert B curr level nach: %d\n",curr_levelarray[curr_kanal] );
                                  }break;
                                     
                                  case 2: //
@@ -1935,7 +2040,7 @@ void loop()
                               
                            case  2: // Expo
                            {
-                              eepromsavestatus |= (1<<SAVE_EXPO);
+                              
                               switch (curr_cursorspalte)
                               {
                                  case 0: // expowert A
@@ -1945,6 +2050,7 @@ void loop()
                                     if ((curr_expoarray[curr_kanal] & 0x70)>>4) // noch nicht 0
                                     {
                                        curr_expoarray[curr_kanal] -= 0x10;
+                                       eepromsavestatus |= (1<<SAVE_EXPO);
                                     }
                                     expowert = (curr_expoarray[curr_kanal] & 0x70)>>4;
                                     Serial.printf("T2 Expowert A curr expo nach: %d expowert %d\n",curr_expoarray[curr_kanal],expowert );
@@ -1956,6 +2062,7 @@ void loop()
                                     if ((curr_expoarray[curr_kanal] & 0x07)) // noch nicht 0
                                     {
                                        curr_expoarray[curr_kanal] -= 0x01;
+                                       eepromsavestatus |= (1<<SAVE_EXPO);
                                     }
                                  }break;
                                     
@@ -2914,17 +3021,18 @@ void loop()
                         Serial.printf("display T5 SAVESCREEN eepromsavestatus: %d\n",eepromsavestatus);
                         switch (curr_cursorspalte)
                         {
-                           case 0: // sichern
+                           case 1: // sichern
                            {
                               
-                              Serial.printf("eepromsavestatus: %d\n",eepromsavestatus);
-   
+//                              Serial.printf("***** \teepromsavestatus: %d\n",eepromsavestatus);
+                              saveSettings(curr_model);
+                              
                               eepromsavestatus=0;
                            }break;
                               
-                           case 1: // abbrechen
+                           case 0: // abbrechen
                            {
-                              eepromsavestatus=0;
+                              // eepromsavestatus unverändert lassen
                              // read_Ext_EEPROM_Settings();// zuruecksetzen
                               
                            }break;
@@ -4165,8 +4273,14 @@ void loop()
                                     //lcd_putc('0');
                                     if (curr_model <8)
                                     {
+                                       Serial.printf("***** SETTINGSCREEN T8 \teepromsavestatus: %d\n",eepromsavestatus);
+                                       saveSettings(curr_model);
+                                       if (eepromsavestatus == 0)
+                                       {
                                        curr_model++;
-                                       eepromsavestatus |= (1<<SAVE_STATUS);
+                                       }
+                                       // model aktualisieren
+                                       
                                     }
                                     
                                  }break;
@@ -4245,7 +4359,7 @@ void loop()
                      }
                      else if (manuellcounter)
                      {
-                        
+                        Serial.printf("T8 KANALSCREEN curr_cursorspalte: %d\n",curr_cursorspalte);
                         switch(curr_cursorzeile) // zeile
                         {
                            case 0: // Kanal
@@ -4297,21 +4411,25 @@ void loop()
                               {
                                  case 0: // Levelwert A
                                  {
-                                    Serial.printf("8 Levelwert A curr level: %d\n",curr_levelarray[curr_kanal] );
+                                    Serial.printf("T8 Levelwert A curr level vor: %d\n",curr_levelarray[curr_kanal] );
                                     if (((curr_levelarray[curr_kanal] & 0x70)>>4)<4) // noch weiterer Wert da
                                     {
                                        curr_levelarray[curr_kanal] += 0x10;
                                        eepromsavestatus |= (1<<SAVE_LEVEL);
                                     }
-                                    
+                                    Serial.printf("T8 Levelwert A curr level nach: %d\n",curr_levelarray[curr_kanal] );
                                  }break;
                                     
                                  case 1: // Levelwert B
                                  {
+                                    Serial.printf("T8 Levelwert B curr level vor: %d\n",curr_levelarray[curr_kanal] );
+  
                                     if (((curr_levelarray[curr_kanal] & 0x07))<4) // noch weiterer Wert da
                                     {
                                        curr_levelarray[curr_kanal] += 0x01;
                                        eepromsavestatus |= (1<<SAVE_LEVEL);
+                                       Serial.printf("T8 Levelwert A curr level nach: %d\n",curr_levelarray[curr_kanal] );
+     
                                     }
                                     
                                  }break;
@@ -4326,7 +4444,7 @@ void loop()
                               
                            case  2: // Expo
                            {
-                              eepromsavestatus |= (1<<SAVE_EXPO);
+                              
                               //Serial.printf("T8 Expowert curr level: %d\n",curr_expoarray[curr_kanal] );
                               switch (curr_cursorspalte)
                               {
@@ -4338,7 +4456,7 @@ void loop()
                                     {
                                        //Serial.printf("8 Expowert change\n");
                                        curr_expoarray[curr_kanal] += 0x10;
-                                       eepromsavestatus |= (1<<SAVE_LEVEL);
+                                       eepromsavestatus |= (1<<SAVE_EXPO);
                                     }
                                     expowert = (curr_expoarray[curr_kanal] & 0x70)>>4;
                                     Serial.printf("T8 Expowert A curr expo nach: %d expowert: %d\n",curr_expoarray[curr_kanal] , expowert);
@@ -4349,7 +4467,7 @@ void loop()
                                     if (((curr_expoarray[curr_kanal] & 0x07))<5)
                                     {
                                        curr_expoarray[curr_kanal] += 0x01;
-                                       eepromsavestatus |= (1<<SAVE_LEVEL);
+                                       eepromsavestatus |= (1<<SAVE_EXPO);
                                     }
                                  }break;
                                     
