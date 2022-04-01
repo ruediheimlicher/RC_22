@@ -216,7 +216,8 @@ volatile uint8_t                 curr_trimmkanal=0; // aktueller  Kanal fuerTrim
 volatile uint8_t                 curr_trimmung=0; // aktuelle  Trimmung fuer Trimmkanal
 
 
-volatile uint8_t                 curr_screen=0; // aktueller screen
+volatile uint8_t                 curr_screen = 0; // aktueller screen
+volatile uint8_t                 last_screen=0; // letzter screen
 
 volatile uint8_t                 curr_page=7; // aktuelle page
 volatile uint8_t                 curr_col=0; // aktuelle colonne
@@ -225,6 +226,9 @@ volatile uint8_t                 curr_cursorzeile=0; // aktuelle zeile des curso
 volatile uint8_t                 curr_cursorspalte=0; // aktuelle colonne des cursors
 volatile uint8_t                 last_cursorzeile=0; // letzte zeile des cursors
 volatile uint8_t                 last_cursorspalte=0; // letzte colonne des cursors
+
+
+
 
 volatile uint8_t                 displaystatus=0x00; // Tasks fuer Display
 
@@ -468,8 +472,6 @@ void load_EEPROM_Settings(uint8_t model)
 //         Serial.printf("\tdataindex: %d  eepromdata: %d \n",dataindex, eepromdata);
          kanalsettingarray[model][kanal][dataindex] = eepromdata;
          
-        
-         
          switch (dataindex)
            {
  
@@ -491,12 +493,8 @@ void load_EEPROM_Settings(uint8_t model)
               }break;
 
              } // switch
-         
-         
          //kanalsettingarray[model][kanal][dataindex] = eepromdata;
       }
-      
-   
       pos += KANALSETTINGBREITE;
    }// for kanal
 
@@ -507,12 +505,33 @@ void load_EEPROM_Settings(uint8_t model)
       Serial.printf("kanal: %d\t",kanal);
       for (uint8_t dataindex = 0;dataindex < 4;dataindex++)
       {
-         Serial.printf("%d: %d\t",dataindex,kanalsettingarray[model][kanal][dataindex]);
+         Serial.printf("%d: \t %d\t",dataindex,kanalsettingarray[model][kanal][dataindex]);
       }
       Serial.printf("\n");
       
    }
-    
+   
+   // mixing
+   for (uint8_t mixindex = 0;mixindex < 3;mixindex++)
+   {
+
+      uint8_t mix0 = EEPROM.read(((model)* EEPROM_MODELSETTINGBREITE + MODELSETTINGBREITE + 2 * mixindex)); // 
+      mixingsettingarray[model][mixindex][0] = mix0;
+      curr_mixstatusarray[mixindex] = mix0;
+      
+      uint8_t mix1 = EEPROM.read(((model) * EEPROM_MODELSETTINGBREITE + MODELSETTINGBREITE  + 2 * mixindex + 1));
+      mixingsettingarray[model][mixindex][1] = mix1;
+      curr_mixkanalarray[mixindex] = mix1;
+   }
+
+   Serial.printf("loadEEPROM_Setting kontrolle mixingsettingarray\n");
+   for (uint8_t mixindex = 0;mixindex < 3;mixindex++)
+   {
+      
+      Serial.printf("%d: mix0: %d \t mix1: %d\n",mixindex,mixingsettingarray[model][mixindex][0], mixindex,mixingsettingarray[model][mixindex][1]);
+   }
+   Serial.printf("\n");
+ 
 }
 void update_curr_settings(uint8_t model)
 {
@@ -683,7 +702,7 @@ uint8_t decodeUSBMixingSettings(uint8_t buffer[USB_DATENBREITE])
 
 void restoreSettings(uint8_t model)
 {
-   Serial.printf("restoreSettings\n");
+   Serial.printf("restoreSettings model: %d\n",model);
    for (uint8_t kanal = 0;kanal < 8;kanal++)
    {
       curr_statusarray[kanal] = kanalsettingarray[model][kanal][0];
@@ -697,7 +716,20 @@ void restoreSettings(uint8_t model)
       curr_mixkanalarray[mixindex] = mixingsettingarray[model][mixindex][1];
    }
 
+   Serial.printf("restoreSettings kontrolle kanalsettingarray nach restore model: %d\n", model);
+   for (uint8_t kanal = 0;kanal < 8;kanal++) //
+   {
+      Serial.printf("kanal: %d\t",kanal);
+      for (uint8_t dataindex = 0;dataindex < 4;dataindex++)
+      {
+         Serial.printf("%d: %d\t",dataindex,kanalsettingarray[model][kanal][dataindex]);
+      }
+      Serial.printf("\n");
+      
+   }
    
+   
+
 }
 
 void saveSettings(uint8_t model)
@@ -770,6 +802,13 @@ void saveSettings(uint8_t model)
       EEPROM.update(((model) * EEPROM_MODELSETTINGBREITE + MODELSETTINGBREITE  + 2 * mixindex + 1),mixingsettingarray[model][mixindex][1]);
 
    }
+   Serial.printf("saveSettings kontrolle mixingsettingarray\n");
+   for (uint8_t mixindex = 0;mixindex < 3;mixindex++)
+   {
+      
+      Serial.printf("%d: mix0: %d \t mix1: %d\n",mixindex,mixingsettingarray[model][mixindex][0], mixindex,mixingsettingarray[model][mixindex][1]);
+   }
+   Serial.printf("\n");
 
 }
 
@@ -1315,7 +1354,7 @@ void loop()
          if (curr_screen) // nicht homescreen
          {
             display_clear();
-            curr_screen=0;
+            curr_screen = 0;
             curr_cursorspalte=0;
             curr_cursorzeile=0;
             last_cursorspalte=0;
@@ -1333,7 +1372,7 @@ void loop()
          {
             
             programmstatus &= ~(1<< SETTINGWAIT);
-            curr_screen=0;
+            curr_screen = 0;
             startcounter=0;
             settingstartcounter=0;
             
@@ -1870,6 +1909,7 @@ void loop()
                                         {
                                            
                                            curr_model--;
+                                           restoreSettings(curr_model);
                                         }
                                         // model aktualisieren
                                      }
@@ -3024,7 +3064,7 @@ void loop()
                            case 1: // sichern
                            {
                               
-//                              Serial.printf("***** \teepromsavestatus: %d\n",eepromsavestatus);
+//                            Serial.printf("***** \teepromsavestatus: %d\n",eepromsavestatus);
                               saveSettings(curr_model);
                               
                               eepromsavestatus=0;
@@ -3035,12 +3075,13 @@ void loop()
                               // eepromsavestatus unverändert lassen
                              // read_Ext_EEPROM_Settings();// zuruecksetzen
                               
+                              
                            }break;
                               
                         }// switch curr_cursorspalte
                         
                         display_clear();
-                        curr_screen=0;
+                        curr_screen = 0;
                         curr_cursorspalte=0;
                         curr_cursorzeile=0;
                         last_cursorspalte=0;
@@ -3793,7 +3834,7 @@ void loop()
                         last_cursorzeile=0;
                         blink_cursorpos = 0xFFFF;
                          
-                        // curr_screen=HOMESCREEN;
+                        // curr_screen = HOMESCREEN;
                         sethomescreen();
                         
                         
@@ -3811,7 +3852,7 @@ void loop()
                         blink_cursorpos = 0xFFFF;
                         
                         
-                        // curr_screen=HOMESCREEN;
+                        // curr_screen = HOMESCREEN;
                         sethomescreen();
                         programmstatus &= ~(1<<UPDATESCREEN);
                         
@@ -3833,7 +3874,7 @@ void loop()
                            startcounter=0;
                            
                            
-                           curr_screen=SAVESCREEN;
+                           curr_screen = SAVESCREEN;
                            //setsavescreen();
                            
                            
@@ -3869,8 +3910,8 @@ void loop()
                            ///          
                            if (eepromsavestatus)
                            {
-                              
-                              curr_screen=SAVESCREEN;
+                              //last_screen = SETTINGSCREEN;
+                              curr_screen = SAVESCREEN;
                               setsavescreen();
                            }
                            else
@@ -3878,7 +3919,8 @@ void loop()
                               //Serial.printf("H\n");
                               //
                               //
-                              curr_screen=HOMESCREEN;
+                              
+                              curr_screen = HOMESCREEN;
                               sethomescreen();
                               programmstatus &= ~(1<<UPDATESCREEN);
                            
@@ -3896,7 +3938,7 @@ void loop()
                          
                      }break;
                         
-                     case KANALSCREEN: // Settings
+                     case KANALSCREEN: // Settings T7
                      {
                         if ((blink_cursorpos == 0xFFFF) && manuellcounter)
                         {
@@ -3912,17 +3954,18 @@ void loop()
                               last_cursorzeile=0;
                               if (eepromsavestatus)
                               {
-                                 curr_screen=SAVESCREEN;
+                                 last_screen = SETTINGSCREEN; // letzter screen
+                                 curr_screen = SAVESCREEN;
                                  setsavescreen();
                               }
                               else
                               {
 
-                              curr_screen=SETTINGSCREEN;
+                              curr_screen = SETTINGSCREEN;
                               setsettingscreen();
                               }
 
-                              //curr_screen=SETTINGSCREEN;
+                              //curr_screen = SETTINGSCREEN;
                               //setsettingscreen();
                            }
                            else
@@ -3946,7 +3989,7 @@ void loop()
                         {
                            manuellcounter=0;
                            display_clear();
-                           curr_screen=KANALSCREEN;
+                           curr_screen = KANALSCREEN;
                            curr_cursorspalte=0;
                            curr_cursorzeile=1; // Zeile Level
                            last_cursorspalte=0;
@@ -3971,7 +4014,7 @@ void loop()
                         {
                            manuellcounter=0;
                            display_clear();
-                           curr_screen=KANALSCREEN;
+                           curr_screen = KANALSCREEN;
                            curr_cursorspalte=0;
                            curr_cursorzeile=2; //Zeile Expo
                            last_cursorspalte=0;
@@ -4006,17 +4049,17 @@ void loop()
                               last_cursorzeile=0;
                               if (eepromsavestatus)
                               {
-                                 curr_screen=SAVESCREEN;
+                                 curr_screen = SAVESCREEN;
                                  setsavescreen();
                               }
                               else
                               {
 
-                              curr_screen=SETTINGSCREEN;
+                              curr_screen = SETTINGSCREEN;
                               setsettingscreen();
                               }
 
-                              //curr_screen=SETTINGSCREEN;
+                              //curr_screen = SETTINGSCREEN;
                               //setsettingscreen();
                            }
                            else
@@ -4050,13 +4093,13 @@ void loop()
                               last_cursorzeile=0;
                               if (eepromsavestatus)
                               {
-                                 curr_screen=SAVESCREEN;
+                                 curr_screen = SAVESCREEN;
                                  setsavescreen();
                               }
                               else
                               {
 
-                              curr_screen=SETTINGSCREEN;
+                              curr_screen = SETTINGSCREEN;
                               setsettingscreen();
                               }
 
@@ -4094,13 +4137,13 @@ void loop()
                               last_cursorzeile=0;
                               if (eepromsavestatus)
                               {
-                                 curr_screen=SAVESCREEN;
+                                 curr_screen = SAVESCREEN;
                                  setsavescreen();
                               }
                               else
                               {
 
-                              curr_screen=SETTINGSCREEN;
+                              curr_screen = SETTINGSCREEN;
                               setsettingscreen();
                               }
 
@@ -4273,13 +4316,16 @@ void loop()
                                     //lcd_putc('0');
                                     if (curr_model <8)
                                     {
-                                       Serial.printf("***** SETTINGSCREEN T8 \teepromsavestatus: %d\n",eepromsavestatus);
+                                       Serial.printf("***** SETTINGSCREEN T8 \tcurr_model vor: %d\n",curr_model);
                                        saveSettings(curr_model);
                                        if (eepromsavestatus == 0)
                                        {
-                                       curr_model++;
+                                          curr_model++;
+                                          // model aktualisieren
+                                          restoreSettings(curr_model);
+                                          Serial.printf("***** SETTINGSCREEN T8 \tcurr_model nach: %d\n",curr_model);
                                        }
-                                       // model aktualisieren
+                                       
                                        
                                     }
                                     
