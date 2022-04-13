@@ -10,12 +10,20 @@
 #define settings_h
 
 #define LOOPLED 13
+
+#define BLINK_PIN 24
+
+
 #define TIMER0_STARTWERT   0x40
 
 // Stepper A
 
+#define BEEP_PIN 25
 
+#define IMPULS_PIN  9
 
+#define AKKU_PIN        23
+#define POWER_OFF_PIN   34
 
 
 #define TIMER_ON    1 // Bit fuer timerfunktion start
@@ -59,22 +67,22 @@
 
 
 // Tastatur
-#define ANALOGTASTATUR     22
 
-#define TASTATURPIN            33
-#define TRIMMTASTATURPIN      3
+#define TASTATUR_PIN           35
+#define TRIMMTASTATUR_PIN      34
 
-#define MANUELLTIMEOUT   32 // Loopled-counts bis Manuell zurueckgesetzt wird. 50: ca. 30s
 
-#define ADCTIMEOUT   1
+#define MANUELLTIMEOUT        32 // Loopled-counts bis Manuell zurueckgesetzt wird. 50: ca. 30s
+
+#define ADCTIMEOUT            1
 
 //#define MITTE_TASK         0x01 // Mitte lesen
 //#define KANAL_TASK         0x02 // Level und Expo lesen
 //#define MIX_TASK           0x03 // Mix lesen
 
-#define LOOPDELAY 5
+#define LOOPDELAY          5
 
-#define LEDON           3
+#define LEDON              2   // Bit for Led-Background3
 
 
 // USB Konstanten
@@ -110,13 +118,16 @@
 #define SAVE_AUSGANG    6
 
 
-#define OSZI_PULS_A        25
-#define OSZI_PULS_B        26
-#define OSZI_PULS_C        27
-#define OSZI_PULS_D        28
-#define OSZI_PULS_E        29
+#define LCD_CLK         30
+#define LCD_DS          31
+#define LCD_DS          32
 
-#define SPI_EE_CS_PIN                         10
+
+#define OSZI_PULS_A        26
+#define OSZI_PULS_B        27
+#define OSZI_PULS_C        28
+#define OSZI_PULS_D        29
+
 
 #define EEPROM_WRITE_BYTE_TASK     1
 #define EEPROM_WRITE_PAGE_TASK     2
@@ -129,15 +140,14 @@
 
 #define THREAD_COUNT_BIT   0
 
-#define TIMERINTERVALL 128
 
-#define RUN 0
+#define RUN          0
 #define PAUSE        1
-#define PAKET   2
-#define IMPULS    3
-#define ADC_OK 4
-#define USB_OK 5
-#define ENDEPAKET  7
+#define PAKET        2
+#define IMPULS       3
+#define ADC_OK       4
+#define USB_OK       5
+#define ENDEPAKET    7
 
 // USB
 #define DATAOFFSET   8
@@ -147,19 +157,19 @@
 #define RAMPFAKTOR   2 // Verlaengerung der delayzeit
 #define RAMPZEIT     800 // Mindestdauer fuer Ramp
 
-#define RAMPSTARTBIT 1
-#define RAMPENDBIT 2
-#define RAMPEND0BIT 3 // Beginn der Endrampe
-#define RAMPOKBIT    7
-#define RAMPSCHRITT  10
+#define RAMPSTARTBIT    1
+#define RAMPENDBIT      2
+#define RAMPEND0BIT     3 // Beginn der Endrampe
+#define RAMPOKBIT       7
+#define RAMPSCHRITT     10
 
 // new
-#define STARTIMPULSDAUER   100
-#define ENDIMPULSDAUER     20
+#define STARTIMPULSDAUER         100
+#define ENDIMPULSDAUER           20
 #define TASTENENDIMPULSDAUER     20
 
 #define RAMPSCHRITT        4
-# define RAMPDELAY 80 // delay fuerr Reduktion Impulsdauer
+# define RAMPDELAY         80 // delay fuerr Reduktion Impulsdauer
 // revision
 #define TASTE1     67
 #define TASTE2     109
@@ -200,8 +210,6 @@
 #define    WERT8   672   //    D    rechts unten     Taste   9
 // revision end
 
-#define DEVICE_MILL  1
-#define DEVICE_JOY  2
 
 #define VORZEICHEN_X   0
 #define VORZEICHEN_Y   1

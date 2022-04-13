@@ -32,6 +32,8 @@
 #include <EEPROM.h>
 // Display
 
+//#include <SdFat.h>
+//#include <SD.h>
 
 extern const char *FunktionTable[];
 
@@ -74,7 +76,7 @@ uint8_t sekundencounter = 0;
 elapsedMicros sinceusb;
 
 
-
+elapsedMicros sincelastbeepA;
 
 elapsedMillis sincelastseccond;
 elapsedMillis sinceimpulsstart;
@@ -102,7 +104,7 @@ uint8_t impulscounter = 0;
 IntervalTimer microTimer; 
 uint16_t displaycounter = 0;
 
-#define IMPULSPIN  1
+
 
 //IntervalTimer              delayTimer;
 
@@ -282,6 +284,13 @@ uint8_t mixingsettingarray[ANZAHLMODELLE][4][2] = {};
 uint8_t readdata=0xaa;
 
 
+//
+//SdFatSdioEX sd;
+
+// Log file.
+//SdFile myFile;
+
+
 // USB
 volatile uint8_t  usbtask = 0;
 
@@ -344,36 +353,8 @@ void OSZI_D_HI(void)
       digitalWriteFast(OSZI_PULS_D,HIGH);
 }
 
-void OSZI_E_LO(void)
-{
-   if (TEST)
-      digitalWriteFast(OSZI_PULS_E,LOW);
-}
 
 
-void OSZI_E_HI(void)
-{
-   if (TEST)
-      digitalWriteFast(OSZI_PULS_E,HIGH);
-}
-
-void OSZI_E_TOGG(void)
-{
-   if (TEST)
-      digitalWrite(OSZI_PULS_E, !digitalRead(OSZI_PULS_E));
-}
-
-
-void EE_CS_HI(void)
-{
-   digitalWriteFast(SPI_EE_CS_PIN,HIGH);
-}
-
-
-void EE_CS_LO(void)
-{
-      digitalWriteFast(SPI_EE_CS_PIN,LOW);
-}
 
 // MARK: Proto
 //uint16_t eeprompartschreiben(void); // 23 ms
@@ -388,7 +369,7 @@ void write_eeprom_status(void);
 
 void kanalimpulsfunktion(void) // kurze HI-Impulse beenden
 {
-   digitalWriteFast(IMPULSPIN,LOW);
+   digitalWriteFast(IMPULS_PIN,LOW);
    kanalimpulsTimer.end();
    servoindex++;   
    if (servoindex <=7)
@@ -410,7 +391,7 @@ void servoimpulsfunktion(void) //
       
       // Version A
       //servoimpulsTimer.update(impulstimearray[servoindex]); // zu spaet: timer ist schon in neuem Intervall
-      digitalWriteFast(IMPULSPIN,HIGH); // neuer impuls
+      digitalWriteFast(IMPULS_PIN,HIGH); // neuer impuls
       OSZI_B_HI();
       kanalimpulsTimer.begin(kanalimpulsfunktion,IMPULSBREITE); // neuer Kanalimpuls
       OSZI_D_LO();
@@ -423,7 +404,7 @@ void servoimpulsfunktion(void) //
       servoimpulsTimer.end();
       servostatus |= (1<<PAUSE);
       servostatus |= (1<<ADC_OK); // ADCFenster starten
-      //digitalWriteFast(IMPULSPIN,LOW);
+      //digitalWriteFast(IMPULS_PIN,LOW);
       servostatus &= ~(1<<IMPULS);
    }
    //kanalimpulsTimer.begin(kanalimpulsfunktion,IMPULSBREITE); // neuer Kanalimpuls
@@ -441,7 +422,7 @@ void servopaketfunktion(void) // start Abschnitt
    {
       servoimpulsTimer.begin(servoimpulsfunktion,impulstimearray[servoindex]);
       kanalimpulsTimer.begin(kanalimpulsfunktion, IMPULSBREITE); // neuer Kanalimpuls
-      digitalWriteFast(IMPULSPIN,HIGH);
+      digitalWriteFast(IMPULS_PIN,HIGH);
       OSZI_B_LO();
       OSZI_D_LO();
       //paketcounter++;
@@ -955,7 +936,10 @@ void setup()
  // while (!Serial) {
  //   yield();
  // }
-  // pinMode(LOOPLED, OUTPUT);
+  //
+   
+   pinMode(BEEP_PIN, OUTPUT);
+   pinMode(BLINK_PIN, OUTPUT);
    pinMode(LOOPLED, OUTPUT);
 //   dog_7565R DOG;
    
@@ -972,6 +956,12 @@ void setup()
    adc->adc0->setConversionSpeed(ADC_CONVERSION_SPEED::MED_SPEED);
    adc->adc0->setSamplingSpeed(ADC_SAMPLING_SPEED::MED_SPEED);
    adc->adc0->setReference(ADC_REFERENCE::REF_3V3);
+
+   adc->adc1->setAveraging(4); // set number of averages 
+   adc->adc1->setResolution(12); // set bits of resolution
+   adc->adc1->setConversionSpeed(ADC_CONVERSION_SPEED::MED_SPEED);
+   adc->adc1->setSamplingSpeed(ADC_SAMPLING_SPEED::MED_SPEED);
+   adc->adc1->setReference(ADC_REFERENCE::REF_3V3);
 
    //volatile float quot = (ppmhi - ppmlo)/(pothi - potlo);
    //volatile float quot = (PPMHI - PPMLO)/(POTHI - POTLO);
@@ -1022,8 +1012,8 @@ void setup()
    
   
    
-   pinMode(IMPULSPIN, OUTPUT);
-   digitalWriteFast(IMPULSPIN,LOW);
+   pinMode(IMPULS_PIN, OUTPUT);
+   digitalWriteFast(IMPULS_PIN,LOW);
    
    // Servopakete starten
    
@@ -1047,8 +1037,6 @@ void setup()
       pinMode(OSZI_PULS_D, OUTPUT);
       digitalWriteFast(OSZI_PULS_D, HIGH); 
 
-      pinMode(OSZI_PULS_E, OUTPUT);
-      digitalWriteFast(OSZI_PULS_E, HIGH); 
 
    }
    
@@ -1116,11 +1104,14 @@ void setup()
    }
    // Tastatur
    
-   pinMode(TASTATURPIN, INPUT);
+   pinMode(TASTATUR_PIN, INPUT);
    //Serial.printf("W1: %d W2: %d W3: %d W4: %d W5: %d W6: %dW7: %d W8: %d W9: %d \n",WERT1, WERT2, WERT3, WERT4, WERT5, WERT6, WERT7, WERT8, WERT9);
 //   servopaketTimer.begin(servopaketfunktion, 20000);
-   pinMode(24, OUTPUT);
-   digitalWriteFast(24, 0);
+   
+   pinMode(BEEP_PIN, OUTPUT);
+   
+
+  // SD.begin(BUILTIN_SDCARD);
 }
 
 // Add loop code
@@ -1160,15 +1151,20 @@ void loop()
          Serial.printf("i: %d curr_levelarray: %d curr_funktionarray %d: \n",i,curr_levelarray[i],curr_funktionarray[i]);
       }
        */
-      digitalWriteFast(24, 1);
    }
    loopcounter++;
 
+   if (sincelastbeepA > 10)
+   {
+      sincelastbeepA = 0;
+      
+     //digitalWriteFast(BEEP_PIN,!digitalRead(BEEP_PIN));
+   }
    if (sincelastpaket > 20)
    {
       sincelastpaket = 0;
-      OSZI_E_TOGG();
       servopaketfunktion();
+      
    }
    
    
@@ -1176,6 +1172,10 @@ void loop()
     // MARK:  -  sinc > 500
    if (zeitintervall > 500) 
    {   
+      if (eepromsavestatus)
+      {
+         tone(BEEP_PIN, 400, 300);
+      }
       sendbuffer[0] = 0xA0;
       uint8_t senderfolg = RawHID.send(sendbuffer, 50);
       sekundencounter++;
@@ -1427,13 +1427,16 @@ void loop()
                {
                   pot0 = ppmint;
                }
-               if (i < 4)
+               if (i < 2)
                {
-               //Serial.printf("pot %d pot1 %d\t",i, ppmint);
+               //Serial.printf("pot %d ppmint %d\t",i, ppmint);
                sendbuffer[ADCOFFSET + 2*i] = (ppmint & 0x00FF); // LO
                sendbuffer[ADCOFFSET + 2*i + 1] = (ppmint & 0xFF00)>>8; // Hi
                }
-               
+               if (i == 1)
+               {
+                  //Serial.printf("\n");
+               }
                //Serial.printf("pot0 %d pot1 %d\n",pot0, pot1);
                uint16_t expo  = 0;  
                uint16_t ppmabs  = 0;  
@@ -1586,17 +1589,18 @@ void loop()
        servostatus &= ~(1<<ADC_OK);
       
       // MARK - Tastatur ADC
-      Tastenwert=(adc->adc0->analogRead(TASTATURPIN))>>2;
+      Tastenwert=(adc->adc1->analogRead(TASTATUR_PIN))>>2;
       if (curr_screen )
       {
          //Serial.printf("C");
       }
+ //     Serial.printf("*AA* Tastenwert: %d\n",Tastenwert);
       //Tastenwert = 0;
       if (Tastenwert>10)
       {
          if (!(tastaturstatus & (1<<TASTEOK)))
          {
-            //Serial.printf("*AA*");
+            //Serial.printf("*AA* Tastenwert: %d\n",Tastenwert);
             //Tastenindex = Tastenwahl(Tastenwert); // taste pressed
             Tastenwertdiff = Tastenwert - lastTastenwert;
             if (Tastenwert > lastTastenwert)
@@ -1621,7 +1625,7 @@ void loop()
                   {
                      
                      Tastenindex = Tastenwahl(Tastenwert); // taste pressed
-                     //Serial.printf("Tastenwert: %d Tastenindex: %d\n",Tastenwert,Tastenindex);
+                     Serial.printf("Tastenwert: %d Tastenindex: %d\n",Tastenwert,Tastenindex);
                      tastaturstatus |= (1<<TASTEOK);
                      tastaturstatus |= (1<<AKTIONOK); // nur eine Aktion zulassen bis zum naechsten Tastendruck
                      programmstatus |= (1<< LEDON);
@@ -1648,7 +1652,7 @@ void loop()
          tastaturstatus &= ~(1<<TASTEOK);
          tastaturcounter = 0;
          Tastenindex = 0;
-//           Trimmtastenwert=adc_read(TRIMMTASTATURPIN)>>2;
+//           Trimmtastenwert=adc_read(TRIMMTASTATUR_PIN)>>2;
       }
       
       //Serial.printf("End\n");
@@ -1693,7 +1697,7 @@ void loop()
    
    if (tastaturstatus & (1<<TASTEOK))
    {
-      //Serial.printf("U Tastenindex: %d\n",Tastenindex);
+      Serial.printf("U Tastenindex: %d\n",Tastenindex);
       programmstatus |= (1<<UPDATESCREEN);
       //tastaturstatus &= ~(1<<TASTEOK);
       //Tastenindex = 0;

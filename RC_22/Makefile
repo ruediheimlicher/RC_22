@@ -43,7 +43,7 @@
 #   [W] WS2812Serial Wire [X] XBee XPT2046_Touchscreen 
 #   [i] i2c_t3 [k] ks0108 [s] ssd1351 [x] x10 
 #
-APP_LIBS_LIST = ADC SPI EEPROM # SdFat 
+APP_LIBS_LIST = ADC SPI EEPROM  #SD #SdFat 
 
 # List user's libraries here
 # !!! Help: http://bit.ly/2AEscDx
@@ -58,7 +58,7 @@ USER_LIBS_LIST = 0
 # !!! Help: http://bit.ly/2juEP91
 # default = empty = all
 #
-LOCAL_LIBS_LIST =
+LOCAL_LIBS_LIST = 
 
 # List core, application and user's libraries to be excluded
 # !!! Help: http://bit.ly/2AijUOI
