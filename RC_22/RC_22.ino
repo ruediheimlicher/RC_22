@@ -51,8 +51,8 @@ uint8_t loopLED;
 int8_t r;
 
 // USB
-volatile uint8_t inbuffer[USB_DATENBREITE]={};
-volatile uint8_t outbuffer[USB_DATENBREITE]={};
+volatile uint8_t           inbuffer[USB_DATENBREITE]={};
+volatile uint8_t           outbuffer[USB_DATENBREITE]={};
 volatile uint16_t          usb_recv_counter=0;
 volatile uint16_t          cnc_recv_counter=0;
 // end USB
@@ -62,19 +62,16 @@ volatile uint8_t           timerstatus=0;
 volatile uint8_t           code=0;
 volatile uint8_t           servostatus=0;
 
-
-
-
 volatile uint8_t           tastaturstatus=0;
-#define TASTEOK   1
-#define AKTIONOK 2
-#define UPDATEOK 3
-elapsedMillis zeitintervall;
+
+#define TASTEOK            1
+#define AKTIONOK           2
+#define UPDATEOK           3
+elapsedMillis              zeitintervall;
 uint8_t sekundencounter = 0;
 //elapsedMillis sincelcd;
 
 elapsedMicros sinceusb;
-
 
 elapsedMicros sincelastbeepA;
 
@@ -113,10 +110,10 @@ volatile uint8_t           servoindex = 0;
 
 // Utilities
 
-volatile uint16_t impulstimearray[NUM_SERVOS] = {};
+volatile uint16_t          impulstimearray[NUM_SERVOS] = {};
 
-volatile uint8_t adcpinarray[NUM_SERVOS] = {};
-volatile uint16_t servomittearray[NUM_SERVOS] = {}; // Werte fuer Mitte
+volatile uint8_t           adcpinarray[NUM_SERVOS] = {};
+volatile uint16_t          servomittearray[NUM_SERVOS] = {}; // Werte fuer Mitte
 
 // Prototypes
 ADC *adc = new ADC(); // adc object
@@ -897,6 +894,18 @@ void displayinit()
    
 }
 
+void akkupresent(void)
+{
+   if (digitalRead(AKKU_OFF_PIN))
+   {
+      Serial.printf("Akku ist da\n");
+   }
+   else
+   {
+      Serial.printf("Akku ist nicht da\n");
+   }
+}
+
 uint8_t Tastenwahl(uint16_t Tastaturwert)
 {
   
@@ -1018,7 +1027,14 @@ void setup()
    pinMode(IMPULS_ENABLE_PIN, OUTPUT); // Output deaktivieren bis nach setup: troubles beim Hochladen
    digitalWriteFast(IMPULS_ENABLE_PIN,LOW);
    
-    _delay_us(100);
+   
+   //AKKU_OFF_PIN
+   pinMode(AKKU_OFF_PIN, INPUT); 
+   
+   attachInterrupt(digitalPinToInterrupt(AKKU_OFF_PIN), akkupresent, CHANGE);
+    
+   
+   _delay_us(100);
   
    
    if (TEST)
@@ -1107,6 +1123,8 @@ void setup()
    //Serial.printf("W1: %d W2: %d W3: %d W4: %d W5: %d W6: %dW7: %d W8: %d W9: %d \n",WERT1, WERT2, WERT3, WERT4, WERT5, WERT6, WERT7, WERT8, WERT9);
 //   servopaketTimer.begin(servopaketfunktion, 20000);
    
+   pinMode(AKKU_PIN, INPUT); // Akkuspannung messen
+   
    digitalWriteFast(IMPULS_ENABLE_PIN,HIGH); // Impule aktivieren
 
 }
@@ -1155,7 +1173,7 @@ void loop()
    {
       sincelastbeepA = 0;
       
-     digitalWriteFast(BEEP_PIN,!digitalRead(BEEP_PIN));
+     //digitalWriteFast(BEEP_PIN,!digitalRead(BEEP_PIN));
    }
    
    if (sincelastpaket > 20)
@@ -1167,9 +1185,9 @@ void loop()
     // MARK:  -  sinc > 500
    if (zeitintervall > 500) 
    {   
-      if (eepromsavestatus)
+      if ((eepromsavestatus) || (masterstatus & (1<<AKKU_LOW_BIT)))
       {
-         tone(BEEP_PIN, 400, 300);
+         tone(BEEP_PIN, 600, 100);
       }
       sendbuffer[0] = 0xA0;
       uint8_t senderfolg = RawHID.send(sendbuffer, 50);
@@ -1186,30 +1204,34 @@ void loop()
 
          if (curr_screen )
          {
+            
             //update_sendezeit();
             //display_setcursorblink(sendesekunde);
          }
-         //Serial.printf("update Kanalscreen CC\n");
-         //Serial.printf("motorsekunde: %d programmstatus: %d manuellcounter: %d\n",motorsekunde, programmstatus, manuellcounter);
-         //Serial.printf("paketcounter \t %d  \t  startcounter: \t  %d  \t loopcounter: \t  %d  \t adccounter:  \t %d\n",paketcounter,startcounter, loopcounter , adccounter);
-        /*
-         if (sendesekunde%15 == 0)
+          
+         uint16_t akkuwert = adc->adc0->analogRead(AKKU_PIN);
+         float batteriefloat = akkuwert / 300.0;
+         
+         batteriespannung =  akkuwert / 3.0; // Wert * 100
+         if ((batteriespannung < 650) && digitalReadFast(AKKU_OFF_PIN))
          {
-            
-            if (curr_screen == 0) // home
-            {
-               servostatus &=  ~(1<<RUN); 
-               refresh_screen();
-               servostatus |=  (1<<RUN); 
-            }
-
+            masterstatus |= (1<<AKKU_LOW_BIT);
          }
-*/
+         else
+         {
+            masterstatus &= ~(1<<AKKU_LOW_BIT);
+         }
+         
+         //Serial.printf("akkuwert: \t%d \tbatteriefloat: \t%2.2f \tbatteriespannung: \t%d\t masterstatus: %d\n",akkuwert, batteriefloat,batteriespannung, masterstatus);
+          
+        
+         
          if (sendesekunde == 60)
          {
             sendeminute++;
             sendesekunde = 0;
             
+                           
             if (curr_screen == 0)
             {
                Serial.printf("refresh_screen sendeminute: %d\n",sendeminute);
@@ -1662,6 +1684,7 @@ void loop()
          if (curr_screen == 0)
          {
             update_time(updatecounter & 0x0f);
+            //Serial.printf("update_time code: %d \n",updatecounter & 0x0f);
          }
          
          

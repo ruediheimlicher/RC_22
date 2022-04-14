@@ -1147,9 +1147,11 @@ void update_time(uint8_t code)
       case 4: // // Akkubalken aktualisieren
       {
          // Akkubalken anzeigen
-         char_height_mul = 1;
-         char_width_mul = 1;
+       //  char_height_mul = 1;
+       //  char_width_mul = 1;
+         
          display_akkuanzeige(batteriespannung);
+         //display_akkuanzeige(700);
 
       }
          
@@ -1173,7 +1175,7 @@ void update_akku(void)
 
 void update_batteriespannung(void)
 {
-   // Batteriespannung aktualisieren
+   // Batteriespannung aktualisieren, Wert * 100
    char_y= (posregister[3][1] & 0xFF00)>> 10;
    char_x = posregister[3][1] & 0x00FF;
    char_height_mul = 1;
@@ -3398,12 +3400,26 @@ void display_trimmanzeige_vertikal (uint8_t char_x0, uint8_t char_y0, uint8_t de
 //##############################################################################################
 void display_akkuanzeige (uint16_t spannung)
 {
-   uint16_t balkenhoehe =(spannung-MINSPANNUNG)*64/(MAXSPANNUNG-MINSPANNUNG);
+   uint16_t balkenhoehe = 0;
+   uint8_t faktor = 58;
+   
+   if (spannung < MINSPANNUNG)
+   {
+      balkenhoehe = 1;
+   }
+   else
+   {
+      balkenhoehe =(spannung-MINSPANNUNG)*faktor/(MAXSPANNUNG-MINSPANNUNG);
+   }
+   //balkenhoehe = 20;
+   //Serial.printf(" \t\t\tdisplay_akkuanzeige balkenhoehe: %d\n",balkenhoehe);
    uint8_t col=0, page=0;
-   uint8_t full =balkenhoehe/8; // page ist voll
-   uint8_t part =balkenhoehe%8; // rest
+   uint8_t full = balkenhoehe/8; // page ist voll
+   uint8_t part = balkenhoehe%8; // rest
    uint8_t balkenbreite = 12;
-   uint8_t grenze = 4;
+   uint8_t grenze = 6;
+   
+   //Serial.printf(" display_akkuanzeige spannung: %d balkenhoehe: %d full: %d part: %d grenze: %d\n",spannung,balkenhoehe,full, part, grenze);
    //part=4;
    //full = 2;
    uint8_t char_x0 = 112+OFFSET_6_UHR;
@@ -3421,7 +3437,7 @@ void display_akkuanzeige (uint16_t spannung)
       {
          display_go_to(char_x0+col,page);
          
-         if (page < (7-full)) // sicher
+         if (page < (7-full)) // sicher leer
          {
             if (page == grenze) // Strich zeichnen
             {
@@ -3432,29 +3448,33 @@ void display_akkuanzeige (uint16_t spannung)
                display_write_byte(DATEN,00);
             }
          }
-         else if (page == (7-full)) // grenzwertig
+         else if (page == (7-full)) // balkenhoehe ist in page
          {
-            if ((full<grenze-1) && (sendesekunde%2)) // Blinken
+            /*
+            if ((full< (grenze)) && (sendesekunde%2)) // Blinken
             {
                display_write_byte(DATEN,0x00);
             }
             else
+             */
             {
+               
                if (page == grenze) // Strich zeichnen wenn unter Grenze, sonst luecke zeichnen
                {
                   //display_write_byte(DATEN,(balken[part] | 0x08));
                   display_write_byte(DATEN,(balken[part] ^ 0x80)); // war 0x80 fuer duenneren Strich
                }
-               else if (page > grenze) // kein
-               {
-                  display_write_byte(DATEN,(balken[part] ));
-               }
-               else
-               {
-                  display_write_byte(DATEN,(balken[part] ));
-               }
+               else 
+                  
+                  if (page > grenze) // Strich weiss
+                  {
+                     display_write_byte(DATEN,(balken[part] ));
+                  }
+                  else
+                  {
+                     display_write_byte(DATEN,(balken[part] ));
+                  }
             }
-            
          }
          else // wird unsicher
          {
@@ -3464,11 +3484,13 @@ void display_akkuanzeige (uint16_t spannung)
             }
             else
             {
-               if ((full<grenze-1) && (sendesekunde%2)) // Blinken
+               /*
+               if ((full < grenze-1) && (sendesekunde%2)) // Blinken
                {
                   display_write_byte(DATEN,0x00);
                }
                else
+                */
                {
                   display_write_byte(DATEN,0xFF); // voller Balken
                }

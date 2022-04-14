@@ -24,7 +24,7 @@
 #define IMPULS_ENABLE_PIN  9
 
 #define AKKU_PIN        23
-#define POWER_OFF_PIN   34
+#define AKKU_OFF_PIN   34
 
 
 #define TIMER_ON    1 // Bit fuer timerfunktion start
@@ -49,8 +49,8 @@
 
 
 // Bits von masterstatus
-#define  SUB_TASK_BIT             4 // Sub hat Aufgaben
-#define  SUB_READ_EEPROM_BIT      5 // Sub soll EEPROM lesen
+#define  USBPRESENT_BIT             4 // USB eingesteckt
+#define  AKKU_LOW_BIT      5 // Sub soll EEPROM lesen
 #define  DOGM_BIT                6 // Master soll EE lesen nach Aenderungen im DOGM
 #define  HALT_BIT                7 //Bit 7
 

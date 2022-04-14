@@ -49,8 +49,8 @@
 
 
 
-#define MAXSPANNUNG  756
-#define MINSPANNUNG  500
+#define MAXSPANNUNG  820
+#define MINSPANNUNG  620
 
 #define HOMESCREEN      0
 #define SETTINGSCREEN   1
