@@ -1010,17 +1010,15 @@ void setup()
    adcpinarray[3] = pot3_PIN;
    adcpinarray[NUM_SERVOS-1] = 0xEF;// letzten Puls kennzeichnen
    
-  
-   
-   pinMode(IMPULS_PIN, OUTPUT);
+   //AKKU_PIN
+   pinMode(AKKU_PIN, INPUT);
+
+   pinMode(IMPULS_PIN, OUTPUT); 
    digitalWriteFast(IMPULS_PIN,LOW);
+   pinMode(IMPULS_ENABLE_PIN, OUTPUT); // Output deaktivieren bis nach setup: troubles beim Hochladen
+   digitalWriteFast(IMPULS_ENABLE_PIN,LOW);
    
-   // Servopakete starten
-   
-  // servoimpulsTimer.priority(3);
-  // kanalimpulsTimer.priority(2);
-  // servopaketTimer.priority(1);
-   _delay_us(100);
+    _delay_us(100);
   
    
    if (TEST)
@@ -1068,6 +1066,7 @@ void setup()
    
    pinMode(DOG_PWM, OUTPUT);
    digitalWriteFast(DOG_PWM, 1);
+   
    _delay_ms(50);
    display_soft_init();
    _delay_ms(50);
@@ -1108,10 +1107,8 @@ void setup()
    //Serial.printf("W1: %d W2: %d W3: %d W4: %d W5: %d W6: %dW7: %d W8: %d W9: %d \n",WERT1, WERT2, WERT3, WERT4, WERT5, WERT6, WERT7, WERT8, WERT9);
 //   servopaketTimer.begin(servopaketfunktion, 20000);
    
-   pinMode(BEEP_PIN, OUTPUT);
-   
+   digitalWriteFast(IMPULS_ENABLE_PIN,HIGH); // Impule aktivieren
 
-  // SD.begin(BUILTIN_SDCARD);
 }
 
 // Add loop code
@@ -1158,16 +1155,14 @@ void loop()
    {
       sincelastbeepA = 0;
       
-     //digitalWriteFast(BEEP_PIN,!digitalRead(BEEP_PIN));
+     digitalWriteFast(BEEP_PIN,!digitalRead(BEEP_PIN));
    }
+   
    if (sincelastpaket > 20)
    {
       sincelastpaket = 0;
       servopaketfunktion();
-      
    }
-   
-   
    
     // MARK:  -  sinc > 500
    if (zeitintervall > 500) 
@@ -1309,11 +1304,12 @@ void loop()
       if (digitalRead(LOOPLED) == 1)
       {
          digitalWriteFast(LOOPLED, 0);
-         
+         digitalWriteFast(BLINK_PIN, 0);
       }
       else
       {
          digitalWriteFast(LOOPLED, 1);
+         digitalWriteFast(BLINK_PIN, 1);
          
         // Serial.printf("display_data %d\n",testdata);
          /*
@@ -1427,7 +1423,7 @@ void loop()
                {
                   pot0 = ppmint;
                }
-               if (i < 2)
+               if (i < 4)
                {
                //Serial.printf("pot %d ppmint %d\t",i, ppmint);
                sendbuffer[ADCOFFSET + 2*i] = (ppmint & 0x00FF); // LO

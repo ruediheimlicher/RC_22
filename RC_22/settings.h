@@ -20,7 +20,8 @@
 
 #define BEEP_PIN 25
 
-#define IMPULS_PIN  9
+#define IMPULS_PIN         8
+#define IMPULS_ENABLE_PIN  9
 
 #define AKKU_PIN        23
 #define POWER_OFF_PIN   34
@@ -37,7 +38,6 @@
 
 
 // neu 3.5:
-#define CS1_PIN            24 // SPI 2
 
 // bits von programmstatus
 
