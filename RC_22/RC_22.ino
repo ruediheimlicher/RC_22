@@ -1365,7 +1365,7 @@ void loop()
       {
          
          
-         programmstatus &= ~(1<< LEDON);
+//         programmstatus &= ~(1<< LEDON);
          display_set_LED(0);
          manuellcounter=1;
          
@@ -1646,7 +1646,7 @@ void loop()
                      Serial.printf("Tastenwert: %d Tastenindex: %d\n",Tastenwert,Tastenindex);
                      tastaturstatus |= (1<<TASTEOK);
                      tastaturstatus |= (1<<AKTIONOK); // nur eine Aktion zulassen bis zum naechsten Tastendruck
-                     programmstatus |= (1<< LEDON);
+ //                   programmstatus |= (1<< LEDON);
                      
                      display_set_LED(1);
                      
@@ -1716,7 +1716,7 @@ void loop()
    
    if (tastaturstatus & (1<<TASTEOK))
    {
-      Serial.printf("U Tastenindex: %d\n",Tastenindex);
+      //Serial.printf("U Tastenindex: %d\n",Tastenindex);
       programmstatus |= (1<<UPDATESCREEN);
       //tastaturstatus &= ~(1<<TASTEOK);
       //Tastenindex = 0;
@@ -2509,14 +2509,17 @@ void loop()
          case 3: //
          {
 #pragma mark Taste 3
-
+            Serial.printf("H3 1\n");
             if (manuellcounter)
             {
+               Serial.printf("H3 2 \n");
                if (tastaturstatus & (1<<AKTIONOK))
                {
+                  Serial.printf("H3 2 programmstatus vor: %d\n",programmstatus);
                   programmstatus ^= (1<<STOP_ON);
                   tastaturstatus &=  ~(1<<AKTIONOK);
                   tastaturstatus |= (1<<UPDATEOK);
+                  Serial.printf("H3 2 programmstatus nach: %d\n",programmstatus);
 
                }
 
@@ -4954,8 +4957,11 @@ void loop()
                   tastaturstatus &=  ~(1<<AKTIONOK);
                   tastaturstatus |= (1<<UPDATEOK);
 
-                  
+                  Serial.printf("H9 2 programmstatus vor: %d\n",programmstatus);
+
                   programmstatus &= ~(1<<STOP_ON);
+                  Serial.printf("H9 2 programmstatus nach: %d\n",programmstatus);
+
                   stopsekunde=0;
                   stopminute=0;
                   //update_time();
