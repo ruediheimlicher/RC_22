@@ -389,7 +389,7 @@ void servoimpulsfunktion(void) //
       // Version A
       //servoimpulsTimer.update(impulstimearray[servoindex]); // zu spaet: timer ist schon in neuem Intervall
       digitalWriteFast(IMPULS_PIN,HIGH); // neuer impuls
-      OSZI_B_HI();
+      //OSZI_B_HI();
       kanalimpulsTimer.begin(kanalimpulsfunktion,IMPULSBREITE); // neuer Kanalimpuls
       OSZI_D_LO();
       servostatus |= (1<<IMPULS);
@@ -420,7 +420,7 @@ void servopaketfunktion(void) // start Abschnitt
       servoimpulsTimer.begin(servoimpulsfunktion,impulstimearray[servoindex]);
       kanalimpulsTimer.begin(kanalimpulsfunktion, IMPULSBREITE); // neuer Kanalimpuls
       digitalWriteFast(IMPULS_PIN,HIGH);
-      OSZI_B_LO();
+      //OSZI_B_LO();
       OSZI_D_LO();
       //paketcounter++;
    }
@@ -1204,7 +1204,6 @@ void loop()
 
          if (curr_screen )
          {
-            
             //update_sendezeit();
             //display_setcursorblink(sendesekunde);
          }
@@ -1643,7 +1642,7 @@ void loop()
                   {
                      
                      Tastenindex = Tastenwahl(Tastenwert); // taste pressed
-                     Serial.printf("Tastenwert: %d Tastenindex: %d\n",Tastenwert,Tastenindex);
+                     //Serial.printf("Tastenwert: %d Tastenindex: %d\n",Tastenwert,Tastenindex);
                      tastaturstatus |= (1<<TASTEOK);
                      tastaturstatus |= (1<<AKTIONOK); // nur eine Aktion zulassen bis zum naechsten Tastendruck
  //                   programmstatus |= (1<< LEDON);
@@ -2509,17 +2508,17 @@ void loop()
          case 3: //
          {
 #pragma mark Taste 3
-            Serial.printf("H3 1\n");
+            //Serial.printf("H3 1\n");
             if (manuellcounter)
             {
-               Serial.printf("H3 2 \n");
+               //Serial.printf("H3 2 \n");
                if (tastaturstatus & (1<<AKTIONOK))
                {
-                  Serial.printf("H3 2 programmstatus vor: %d\n",programmstatus);
+                  //Serial.printf("H3 2 programmstatus vor: %d\n",programmstatus);
                   programmstatus ^= (1<<STOP_ON);
                   tastaturstatus &=  ~(1<<AKTIONOK);
                   tastaturstatus |= (1<<UPDATEOK);
-                  Serial.printf("H3 2 programmstatus nach: %d\n",programmstatus);
+                  //Serial.printf("H3 2 programmstatus nach: %d\n",programmstatus);
 
                }
 
@@ -4957,10 +4956,10 @@ void loop()
                   tastaturstatus &=  ~(1<<AKTIONOK);
                   tastaturstatus |= (1<<UPDATEOK);
 
-                  Serial.printf("H9 2 programmstatus vor: %d\n",programmstatus);
+                 // Serial.printf("H9 2 programmstatus vor: %d\n",programmstatus);
 
                   programmstatus &= ~(1<<STOP_ON);
-                  Serial.printf("H9 2 programmstatus nach: %d\n",programmstatus);
+                //  Serial.printf("H9 2 programmstatus nach: %d\n",programmstatus);
 
                   stopsekunde=0;
                   stopminute=0;

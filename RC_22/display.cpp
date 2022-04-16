@@ -3433,71 +3433,82 @@ void display_akkuanzeige (uint16_t spannung)
       display_write_byte(DATEN,0xAA);
        */
       col=0;
-      while(col++ < balkenbreite)
+      while(col < balkenbreite)
       {
          display_go_to(char_x0+col,page);
          
-         if (page < (7-full)) // sicher leer
+         if ((col == 0) || (col == balkenbreite - 1))
          {
-            if (page == grenze) // Strich zeichnen
-            {
-               display_write_byte(DATEN,0x80);
-            }
-            else // leer lassen
-            {
-               display_write_byte(DATEN,00);
-            }
+            display_write_byte(DATEN,balken[7]);
          }
-         else if (page == (7-full)) // balkenhoehe ist in page
+         else
          {
-            /*
-            if ((full< (grenze)) && (sendesekunde%2)) // Blinken
+            if (page == 1)
             {
-               display_write_byte(DATEN,0x00);
+               display_write_byte(DATEN,0x01);
             }
-            else
-             */
+            if (page < (7-full)) // sicher leer
             {
-               
-               if (page == grenze) // Strich zeichnen wenn unter Grenze, sonst luecke zeichnen
+               if (page == grenze) // Strich zeichnen
                {
-                  //display_write_byte(DATEN,(balken[part] | 0x08));
-                  display_write_byte(DATEN,(balken[part] ^ 0x80)); // war 0x80 fuer duenneren Strich
+                  display_write_byte(DATEN,0x80);
                }
-               else 
-                  
-                  if (page > grenze) // Strich weiss
-                  {
-                     display_write_byte(DATEN,(balken[part] ));
-                  }
-                  else
-                  {
-                     display_write_byte(DATEN,(balken[part] ));
-                  }
+               else // leer lassen
+               {
+                  display_write_byte(DATEN,00);
+               }
             }
-         }
-         else // wird unsicher
-         {
-            if (page == grenze) // grenzwertig
-            {
-               display_write_byte(DATEN,0x7F); // Strich zeichnen
-            }
-            else
+            else if (page == (7-full)) // balkenhoehe ist in page
             {
                /*
-               if ((full < grenze-1) && (sendesekunde%2)) // Blinken
-               {
-                  display_write_byte(DATEN,0x00);
-               }
-               else
+                if ((full< (grenze)) && (sendesekunde%2)) // Blinken
+                {
+                display_write_byte(DATEN,0x00);
+                }
+                else
                 */
                {
-                  display_write_byte(DATEN,0xFF); // voller Balken
+                  
+                  if (page == grenze) // Strich zeichnen wenn unter Grenze, sonst luecke zeichnen
+                  {
+                     //display_write_byte(DATEN,(balken[part] | 0x08));
+                     display_write_byte(DATEN,(balken[part] ^ 0x80)); // war 0x80 fuer duenneren Strich
+                  }
+                  else 
+                     
+                     if (page > grenze) // Strich weiss
+                     {
+                        display_write_byte(DATEN,(balken[part] ));
+                     }
+                     else
+                     {
+                        display_write_byte(DATEN,(balken[part] ));
+                     }
                }
-            } // else if (page == grenze)
-            
-         } // else if(page == (7-full))
-         
+            }
+            else // wird unsicher
+            {
+               if (page == grenze) // grenzwertig
+               {
+                  display_write_byte(DATEN,0x7F); // Strich zeichnen
+               }
+               else
+               {
+                  /*
+                   if ((full < grenze-1) && (sendesekunde%2)) // Blinken
+                   {
+                   display_write_byte(DATEN,0x00);
+                   }
+                   else
+                   */
+                  {
+                     display_write_byte(DATEN,0xFF); // voller Balken
+                  }
+               } // else if (page == grenze)
+               
+            } // else if(page == (7-full))
+         }
+         col++;
       } // while col
       
 
