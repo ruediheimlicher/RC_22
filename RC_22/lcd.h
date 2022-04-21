@@ -52,9 +52,10 @@
 
 
 //   defines fuer Teensy3.2:
-#define LCD_RSDS_PIN            0
-#define LCD_ENABLE_PIN          1
-#define LCD_CLOCK_PIN           2
+
+#define LCD_RSDS_PIN            32
+#define LCD_ENABLE_PIN          31
+#define LCD_CLOCK_PIN           30
 
 #define HIGH   1
 #define LOW 0
@@ -133,6 +134,6 @@ void lcd_put_zeit(uint8_t minuten, uint8_t stunden);
 void lcd_put_wochentag(uint8_t wd);
 void lcd_put_temperatur(uint16_t temperatur);
 void lcd_put_tempAbMinus20(uint16_t temperatur);
-
+void lcd_put_spannung(uint16_t spannung);
 
 #endif /* lcd_h */

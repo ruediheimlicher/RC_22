@@ -69,7 +69,7 @@
 // Tastatur
 
 #define TASTATUR_PIN           35
-#define TRIMMTASTATUR_PIN      34
+#define TRIMMTASTATUR_PIN      36
 
 
 #define MANUELLTIMEOUT        32 // Loopled-counts bis Manuell zurueckgesetzt wird. 50: ca. 30s
@@ -209,6 +209,27 @@
 #define    WERT7   557   //    C    rechts oben     Taste   3
 #define    WERT8   672   //    D    rechts unten     Taste   9
 // revision end
+
+
+//Trimmtastatur Teensy 3.5
+/*
+0   975   1012
+1   937   956
+2   857   897
+3   760   808
+4   475   617
+5   330   402
+6   158   244
+7   93   125
+ */
+#define    TRIMMWERT0   125  //    1   oben      Taste   2
+#define    TRIMMWERT1   244   //    2   links      Taste   4
+#define    TRIMMWERT2   402   //    3   unten      Taste   8
+#define    TRIMMWERT3   617   //    4   rechts      Taste   6
+#define    TRIMMWERT4   808   //    5   Mitte      Taste   5
+#define    TRIMMWERT5   897   //    B    links unten     Taste   7
+#define    TRIMMWERT6   956  //    C    rechts oben     Taste   3
+#define    TRIMMWERT7   1012   //    D    rechts unten     Taste   9
 
 
 #define VORZEICHEN_X   0

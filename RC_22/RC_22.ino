@@ -162,6 +162,8 @@ volatile float expoquot = (ppmhi - ppmlo)/2/0x200; // umrechnen der max expo (51
 
 volatile float quotarray[NUM_SERVOS] = {}; // Umrechnungsfaktor pro Pot
 
+uint16_t tipptastenstufe = (POTHI - POTLO)/8;
+
 // display
 
 volatile uint8_t                 startcounter=0; // timeout-counter beim Start von Settings, schneller als manuellcounter. Ermoeglicht Dreifachklick auf Taste 5
@@ -239,11 +241,18 @@ volatile uint16_t                manuellcounter=0;
 // Tastatur
 volatile uint8_t                 Tastenindex=0;
 volatile uint16_t                Tastenwert=0;
-volatile uint16_t                Trimmtastenwert=0;
 volatile uint8_t                 adcswitch=0;
 volatile uint16_t                lastTastenwert=0;
 volatile int16_t                 Tastenwertdiff=0;
 volatile uint16_t                tastaturcounter=0;
+
+uint8_t trimmtastaturstatus = 0;
+volatile uint16_t                Trimmtastenwert=0;
+volatile uint8_t                 Trimmtastenindex=0;
+volatile uint16_t                lastTrimmtastenwert=0;
+volatile int16_t                 Trimmtastenwertdiff=0;
+volatile uint16_t                trimmtastaturcounter=0;
+
 
 uint16_t                paketcounter=0;
 uint16_t                loopcounter=0;
@@ -425,6 +434,7 @@ void servopaketfunktion(void) // start Abschnitt
       //paketcounter++;
    }
    paketcounter++;
+   OSZI_C_HI();
 }
 
 
@@ -908,10 +918,7 @@ void akkupresent(void)
 
 uint8_t Tastenwahl(uint16_t Tastaturwert)
 {
-  
-   
-   
-   // Tastatur2 // Reihenfolge anders
+     // Tastatur2 // Reihenfolge anders
    //   
 
    if (Tastaturwert < WERT1) // 76
@@ -936,6 +943,30 @@ uint8_t Tastenwahl(uint16_t Tastaturwert)
    return 0xFF;
 }
 
+uint8_t Trimmtastenwahl(uint16_t Tastaturwert)
+{
+     // Tastatur2 // Reihenfolge anders
+   //   
+
+   if (Tastaturwert < TRIMMWERT0) // 76
+      return 7;
+   if (Tastaturwert < TRIMMWERT1) // 124
+      return 6;
+   if (Tastaturwert < TRIMMWERT2) // 200
+      return 5;
+   if (Tastaturwert < TRIMMWERT3) // 276
+      return 4;
+   if (Tastaturwert < TRIMMWERT4) // 354
+      return 3;
+   if (Tastaturwert < TRIMMWERT5) // 442
+      return 2;
+   if (Tastaturwert < TRIMMWERT6) // 557
+      return 1;
+   if (Tastaturwert < TRIMMWERT7) // 672
+      return 0;
+   
+   return 0xFF;
+}
 
 // Add setup code
 void setup()
@@ -992,7 +1023,7 @@ void setup()
       servomittearray[i] = 1500;
       
    }
-
+   impulstimearray[7] = POTLO;
    // init Pins
    
    // Servo 0
@@ -1061,8 +1092,12 @@ void setup()
    //digitalWriteFast(SPI_EE_CS_PIN, HIGH); 
    
    /* initialize the LCD */
-  lcd_initialize(LCD_FUNCTION_8x2, LCD_CMD_ENTRY_INC, LCD_CMD_ON);
+   pinMode(LCD_RSDS_PIN, OUTPUT);
+   pinMode(LCD_ENABLE_PIN, OUTPUT);
+   pinMode(LCD_CLOCK_PIN, OUTPUT);
 
+  lcd_initialize(LCD_FUNCTION_8x2, LCD_CMD_ENTRY_INC, LCD_CMD_ON);
+   _delay_ms(200);
     
    // Display
    pinMode(DOG_CS, OUTPUT);
@@ -1104,7 +1139,7 @@ void setup()
    curr_expoarray[2] = 0x11;
    curr_expoarray[3] = 0x00;
    */
-   
+
    
    //curr_levelarray[0] = 1;
    sethomescreen();
@@ -1120,12 +1155,17 @@ void setup()
    // Tastatur
    
    pinMode(TASTATUR_PIN, INPUT);
+   pinMode(TRIMMTASTATUR_PIN, INPUT);
+   
    //Serial.printf("W1: %d W2: %d W3: %d W4: %d W5: %d W6: %dW7: %d W8: %d W9: %d \n",WERT1, WERT2, WERT3, WERT4, WERT5, WERT6, WERT7, WERT8, WERT9);
 //   servopaketTimer.begin(servopaketfunktion, 20000);
    
    pinMode(AKKU_PIN, INPUT); // Akkuspannung messen
    
    digitalWriteFast(IMPULS_ENABLE_PIN,HIGH); // Impule aktivieren
+   
+   //lcd_gotoxy(0,0);
+   //lcd_puts("RC");
 
 }
 
@@ -1180,6 +1220,7 @@ void loop()
    {
       sincelastpaket = 0;
       servopaketfunktion();
+      OSZI_C_LO();
    }
    
     // MARK:  -  sinc > 500
@@ -1194,7 +1235,9 @@ void loop()
       sekundencounter++;
       if (sekundencounter%2)
       {
-          
+         //lcd_puts("RC");
+ //        lcd_gotoxy(14,0);
+ //        lcd_put_spannung(batteriespannung);
          sendesekunde++;
          
          if (manuellcounter && (blink_cursorpos < 0xFFFF))
@@ -1417,7 +1460,7 @@ void loop()
       adccounter++;
       //manuellcounter++;
       //Serial.printf("+A+");
-      OSZI_C_LO();
+      //OSZI_C_LO();
       displaycounter++;
       for (uint8_t i=0;i<NUM_SERVOS;i++)
       {
@@ -1428,7 +1471,7 @@ void loop()
             if (adcpinarray[i] == 0xEF) // last
             {
                //Serial.printf("A: i: %d\n",i);
-               impulstimearray[i] = 1000; // 
+               //impulstimearray[i] = 1000; // 
             }
             else 
             {
@@ -1506,6 +1549,9 @@ void loop()
          
          //Serial.printf("C\n");
       } // for i
+      
+    //  impulstimearray[7] = POTLO; // keine taste
+      
       if (displaycounter == 50)
       {
          
@@ -1605,9 +1651,85 @@ void loop()
       }//for i
        servostatus &= ~(1<<ADC_OK);
       
-      // MARK - Tastatur ADC
+      // MARK: - Tastatur lesen
+      
+      
       Tastenwert=(adc->adc1->analogRead(TASTATUR_PIN))>>2;
-      if (curr_screen )
+      Trimmtastenwert = (adc->adc1->analogRead(TRIMMTASTATUR_PIN))>>2;
+      
+      
+      // MARK: - TrimmTastatur ADC
+      if (Trimmtastenwert>10)
+         {
+            if (!(trimmtastaturstatus & (1<<TASTEOK)))
+            {
+               //Serial.printf("*AA* Trimmtastenwert: %d\n",Trimmtastenwert);
+               //Tastenindex = Trimmtastenwahl(Trimmtastenwert); // taste pressed
+               Trimmtastenwertdiff = Trimmtastenwert - lastTrimmtastenwert;
+               if (Trimmtastenwert > lastTrimmtastenwert)
+               {
+                  Trimmtastenwertdiff = Trimmtastenwert - lastTrimmtastenwert;
+               }
+               else 
+               {
+                  Trimmtastenwertdiff = lastTrimmtastenwert - Trimmtastenwert;
+               }
+               //Serial.printf("Trimmtastenwert: \t%d\tdiff \t%d\n",Trimmtastenwert,Trimmtastenwertdiff);
+
+               lastTrimmtastenwert = Trimmtastenwert;
+               //Serial.printf("*BB*");
+               if (Trimmtastenwertdiff < 2)
+               {
+                  //Serial.printf("*C*");
+                  if (trimmtastaturcounter < ADCTIMEOUT)
+                  {
+                     //Serial.printf("D");
+                     trimmtastaturcounter++;
+                     
+                     if (trimmtastaturcounter == ADCTIMEOUT) // Messung ist OK
+                     {
+                        
+                        Trimmtastenindex = Trimmtastenwahl(Trimmtastenwert); // taste pressed
+                        //Serial.printf("Trimmtastenwert: %d Trimmtastenindex: %d diff: %d\n",Trimmtastenwert,Trimmtastenindex ,Trimmtastenwertdiff);
+                        trimmtastaturstatus |= (1<<TASTEOK);
+                        trimmtastaturstatus |= (1<<AKTIONOK); // nur eine Aktion zulassen bis zum naechsten Tastendruck
+                        
+                        impulstimearray[7] = Trimmtastenindex * tipptastenstufe / expoquot;
+                       // display_set_LED(1);
+                        
+                     }
+                     else
+                     {
+                        //impulstimearray[7] = tipptastenstufe / expoquot;
+                     }
+                     
+                  }
+                
+               } // if Tastenwertdiff 
+                
+               else
+               {
+                  //Serial.printf("F");
+                  trimmtastaturcounter = 0;
+               }
+               //Serial.printf("TASTEOK end\n");
+            }   // TASTEOK 
+            //Serial.printf("Trimmtastenwert end\n");
+         }
+         else
+         {
+            //Serial.printf("H");
+            trimmtastaturstatus &= ~(1<<TASTEOK);
+            trimmtastaturcounter = 0;
+            Trimmtastenindex = 0;
+            impulstimearray[7] = tipptastenstufe / expoquot;
+            
+         }
+     
+      
+// MARK: - Tastatur ADC
+     
+       if (curr_screen )
       {
          //Serial.printf("C");
       }
@@ -1628,9 +1750,11 @@ void loop()
             {
                Tastenwertdiff = lastTastenwert - Tastenwert;
             }
+            //Serial.printf("Tastenwert: \t%d\tdiff \t%d\n",Tastenwert,Tastenwertdiff);
+
             lastTastenwert = Tastenwert;
             //Serial.printf("*BB*");
-            if (Tastenwertdiff < 6)
+            if (Tastenwertdiff < 2)
             {
                //Serial.printf("*C*");
                if (tastaturcounter < ADCTIMEOUT)
@@ -1642,7 +1766,7 @@ void loop()
                   {
                      
                      Tastenindex = Tastenwahl(Tastenwert); // taste pressed
-                     //Serial.printf("Tastenwert: %d Tastenindex: %d\n",Tastenwert,Tastenindex);
+                     Serial.printf("Tastenwert: %d Tastenindex: %d diff: %d\n",Tastenwert,Tastenindex,Tastenwertdiff);
                      tastaturstatus |= (1<<TASTEOK);
                      tastaturstatus |= (1<<AKTIONOK); // nur eine Aktion zulassen bis zum naechsten Tastendruck
  //                   programmstatus |= (1<< LEDON);
@@ -1669,12 +1793,11 @@ void loop()
          tastaturstatus &= ~(1<<TASTEOK);
          tastaturcounter = 0;
          Tastenindex = 0;
-//           Trimmtastenwert=adc_read(TRIMMTASTATUR_PIN)>>2;
       }
       
       //Serial.printf("End\n");
       // end Tastatur
-      OSZI_C_HI();
+      //OSZI_C_HI();
       
      // zeit fuer display-updates
       // 1. variable Daten auf homescreen updaten
@@ -3850,7 +3973,7 @@ void loop()
                   {
                      case HOMESCREEN:
                      {
-                        
+                        Serial.printf("*** T7 clear ***\n");
                         display_clear();
                         
                         curr_cursorspalte=0;
@@ -4221,6 +4344,7 @@ void loop()
                      motorsekunde=0;
                      motorminute=0;
                      servostatus &=  ~(1<<RUN); 
+                     display_clear();
                      refresh_screen();
                      servostatus |=  (1<<RUN); 
                   }
@@ -5005,7 +5129,9 @@ void loop()
       tastaturstatus &= ~(1<<TASTEOK);
       //Serial.printf("update Kanalscreen AA\n");
    } // if Tastaturok
-       
+    
+     
+      
    // 
    if (servostatus & (1<<USB_OK))
    {

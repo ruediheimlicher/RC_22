@@ -4012,7 +4012,7 @@ void display_go_to (unsigned char x, unsigned char y)
 void display_clear()
 {
 	unsigned char page, col;
-	
+   display_inverse(0);
 	for(page=0;page<8;page++)
 	{
 		display_go_to(0+OFFSET_6_UHR,page);
