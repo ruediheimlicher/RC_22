@@ -162,7 +162,7 @@ volatile float expoquot = (ppmhi - ppmlo)/2/0x200; // umrechnen der max expo (51
 
 volatile float quotarray[NUM_SERVOS] = {}; // Umrechnungsfaktor pro Pot
 
-uint16_t tipptastenstufe = (POTHI - POTLO)/10;
+uint16_t tipptastenstufe = (POTHI - POTLO)/12;
 
 // display
 
@@ -424,6 +424,7 @@ void servopaketfunktion(void) // start Abschnitt
    servostatus |= (1<<PAKET);// neues Paket starten
    servostatus |= (1<<IMPULS);
    servoindex = 0; // Index des aktuellen impulses
+   OSZI_C_HI();
    if (servostatus & (1<<RUN))
    {
       servoimpulsTimer.begin(servoimpulsfunktion,impulstimearray[servoindex]);
@@ -434,7 +435,7 @@ void servopaketfunktion(void) // start Abschnitt
       //paketcounter++;
    }
    paketcounter++;
-   OSZI_C_HI();
+   
 }
 
 
@@ -1695,6 +1696,7 @@ void loop()
                         trimmtastaturstatus |= (1<<AKTIONOK); // nur eine Aktion zulassen bis zum naechsten Tastendruck
                         
                         impulstimearray[7] = (POTLO + (Trimmtastenindex + 1) * tipptastenstufe) / expoquot;
+                        Serial.printf("Trimmtastenindex: %d impuls: %d\n",Trimmtastenindex ,impulstimearray[7]);
                        // display_set_LED(1);
                         
                      }
@@ -1722,7 +1724,7 @@ void loop()
             trimmtastaturstatus &= ~(1<<TASTEOK);
             trimmtastaturcounter = 0;
             Trimmtastenindex = 0;
-            impulstimearray[7] = (POTLO )  / expoquot;
+           impulstimearray[7] = (POTLO )  / expoquot;
             
          }
      
