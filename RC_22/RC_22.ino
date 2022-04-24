@@ -162,7 +162,7 @@ volatile float expoquot = (ppmhi - ppmlo)/2/0x200; // umrechnen der max expo (51
 
 volatile float quotarray[NUM_SERVOS] = {}; // Umrechnungsfaktor pro Pot
 
-uint16_t tipptastenstufe = (POTHI - POTLO)/12;
+uint16_t tipptastenstufe = (POTHI - POTLO)/13;
 
 // display
 
