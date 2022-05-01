@@ -115,14 +115,16 @@ volatile uint16_t          impulstimearray[NUM_SERVOS] = {};
 volatile uint8_t           adcpinarray[NUM_SERVOS] = {};
 volatile uint16_t          servomittearray[NUM_SERVOS] = {}; // Werte fuer Mitte
 
+volatile uint16_t          potwertarray[NUM_SERVOS] = {}; // Werte fuer Mitte
+
 // Prototypes
 ADC *adc = new ADC(); // adc object
 
-#define POT0LO 848
-#define POT0HI 3600
+#define POT0LO 920
+#define POT0HI 3230
 
-#define POT1LO 660
-#define POT1HI 3450
+#define POT1LO 830
+#define POT1HI 3280
 
 
 #define POTLO   1300
@@ -1034,7 +1036,7 @@ void setup()
    adcpinarray[0] = pot0_PIN;
    
    quotarray[0] = float((ppmhi - ppmlo))/float((potgrenzearray[0][1] - potgrenzearray[0][0]));
-   Serial.printf("potgrenzearray[0][0]: %d potgrenzearray[0][1]: %d  quotarray[0]: %.3f\n",potgrenzearray[0][0],potgrenzearray[0][1],quotarray[0]);
+   Serial.printf("potgrenzearray[0][0]: %d potgrenzearray[0][1]: %d  quotarray[0]: %.3f quot: %.3f\n",potgrenzearray[0][0],potgrenzearray[0][1],quotarray[0],quot);
    // Servo 1
    potgrenzearray[1][0] = POT1LO;
    potgrenzearray[1][1] = POT1HI;
@@ -1044,11 +1046,15 @@ void setup()
 
    // Servo 2 
    pinMode(pot2_PIN, INPUT);
+   
    adcpinarray[2] = pot2_PIN;
+   adcpinarray[2] = 0xFF;
    
    // Servo 3
    pinMode(pot3_PIN, INPUT);
    adcpinarray[3] = pot3_PIN;
+   adcpinarray[3] = 0xFF;
+   
    adcpinarray[NUM_SERVOS-1] = 0xEF;// letzten Puls kennzeichnen
    
    //AKKU_PIN
@@ -1179,7 +1185,7 @@ void loop()
       Serial.printf("run start\n");
       servostatus |= (1<<RUN);
       // Mitte lesen
-      //Serial.printf("Mitte lesen quot: %.4f expoquot:  %.4f\n",quot, expoquot);
+      Serial.printf("Mitte lesen quot: %.4f expoquot:  %.4f\n",quot, expoquot);
       for (uint8_t i=0;i<NUM_SERVOS;i++)
       {
          if (adcpinarray[i] < 0xFF) // PIN belegt
@@ -1189,10 +1195,13 @@ void loop()
             
             float potmitte = (potgrenzearray[i][1] + potgrenzearray[i][0])/2;
             
-            float ppmfloat = PPMLO + quot *(float(potwert)-POTLO);
+            float ppmfloat = PPMLO + quotarray[i] *(float(potwert)-POTLO);
+         
+         //   float ppmfloat = quot *(PPMLO + float(potwert)-POTLO);
+     
             uint16_t ppmint = uint16_t(ppmfloat);
-            //Serial.printf("i: %d potwert: %d ppmint: %d potmitte: %.4f\n",i,potwert,ppmint,potmitte);
-            //Serial.printf("i: %d potgrenzearray[i][0]: %d potgrenzearray[i][1]: %d quotarray[]: %.3f\n",i,potgrenzearray[i][0],potgrenzearray[i][1],quotarray[i]);
+            Serial.printf("i: %d potwert: %d ppmint: %d potmitte: %.4f\n",i,potwert,ppmint,potmitte);
+            Serial.printf("i: %d potgrenzearray[i][0]: %d potgrenzearray[i][1]: %d quotarray[]: %.3f\n",i,potgrenzearray[i][0],potgrenzearray[i][1],quotarray[i]);
 
             servomittearray[i] = ppmint;
 
@@ -1266,7 +1275,7 @@ void loop()
          }
          
          //Serial.printf("akkuwert: \t%d \tbatteriefloat: \t%2.2f \tbatteriespannung: \t%d\t masterstatus: %d\n",akkuwert, batteriefloat,batteriespannung, masterstatus);
-          
+        //    Serial.printf("quot0: %2.3f\tpot0: %d\tquot1: %2.3f\tpot1: %d \n",quotarray[0],potwertarray[0],quotarray[1],potwertarray[1]);
         
          
          if (sendesekunde == 60)
@@ -1479,15 +1488,21 @@ void loop()
                
                //Serial.printf("+B+");
                uint16_t potwert = adc->adc0->analogRead(adcpinarray[i]);
+               potwertarray[i] = potwert;
                //uint16_t potwert = adc->adc0->analogRead(14);
                //float ppmfloat = PPMLO + quot *(float(potwert) - POTLO);
 
-               float ppmfloat = PPMLO + quotarray[i] *(float(potwert) - potgrenzearray[i][0]);
+               float ppmfloat = PPMLO + quotarray[i] *(float(potwert - potgrenzearray[i][0]));
+
+               // float ppmfloat = potgrenzearray[i][0] + quotarray[i] *(float(potwert - potgrenzearray[i][0]));
+
+               
                uint16_t ppmint = uint16_t(ppmfloat);
                if (i == 0)
                {
-                  pot0 = ppmint;
+                  pot0 = ppmint; // anzeige
                }
+               
                if (i < 4)
                {
                //Serial.printf("pot %d ppmint %d\t",i, ppmint);
@@ -1505,6 +1520,7 @@ void loop()
                
                if (i < 2)
                {
+                  uint16_t mitteint  =  servomittearray[i];
                   float mittefloat = float( servomittearray[i]);
                   
                   float ppmapsfloat = (abs(ppmfloat - mittefloat))/expoquot;
@@ -1531,7 +1547,7 @@ void loop()
                   if (displaycounter == 14)
                   {
                      //Serial.printf("displaycounter: %d\n", displaycounter);
-                     //Serial.printf("servo %d potwert: %d  ppmint: %d ppmabs: %d expo: %d expoint: %d quot: %.3f quotarray[i]: %.2f\n",i,potwert,ppmint,ppmabs, expo, expoint, quot, quotarray[i]);
+                     Serial.printf("servo %d potwert: %d  ppmint: %d mitteint: %d ppmabs: %d expo: %d expoint: %d quot: %.3f quotarray[i]: %.2f\n",i,potwert,ppmint,mitteint, ppmabs, expo, expoint, quot, quotarray[i]);
                   }
                   {
                     // if (i<2)
@@ -1595,13 +1611,16 @@ void loop()
                   uint16_t kanalwerta = impulstimearray[kanala];// Wert fuer ersten Kanal
                   uint16_t kanalwertb = impulstimearray[kanalb];// Wert fuer zweiten Kanal
 
-                  uint16_t mixkanalwerta = impulstimearray[kanala];// Wert fuer ersten Kanal
-                  uint16_t mixkanalwertb = impulstimearray[kanalb];// Wert fuer zweiten Kanal
+                  uint16_t mixkanalwerta = impulstimearray[kanala];// Ausgangswert fuer ersten Kanal
+                  uint16_t mixkanalwertb = impulstimearray[kanalb];// Ausgangswert fuer zweiten Kanal
                   
                   uint16_t mittea = servomittearray[kanala];
                   uint16_t mitteb = servomittearray[kanalb];
                   
-                  //Serial.printf("mixindex: %d kanalwerta: %d kanalwertb: %d mittea: %d mitteb: %d\n",mixindex,kanalwerta,kanalwertb, mittea, mitteb); 
+                  if ((displaycounter == 20) )
+                     {
+                  Serial.printf("mixindex: %d mix0: %d mix1: %d kanalwerta: %d kanalwertb: %d mittea: %d mitteb: %d\n",mixindex,mix0, mix1, kanalwerta,kanalwertb, mittea, mitteb); 
+                     }
                   uint16_t diffa = 0;
                   if(kanalwerta > mittea)
                   {
