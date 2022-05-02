@@ -994,7 +994,7 @@ void setup()
 
    //displayinit();
    
-   adc->adc0->setAveraging(4); // set number of averages 
+   adc->adc0->setAveraging(8); // set number of averages 
    adc->adc0->setResolution(12); // set bits of resolution
    adc->adc0->setConversionSpeed(ADC_CONVERSION_SPEED::MED_SPEED);
    adc->adc0->setSamplingSpeed(ADC_SAMPLING_SPEED::MED_SPEED);
@@ -1190,18 +1190,47 @@ void loop()
       {
          if (adcpinarray[i] < 0xFF) // PIN belegt
          {
+            
+            
             //Pot 0
             uint16_t potwert = adc->adc0->analogRead(adcpinarray[i]);
             
-            float potmitte = (potgrenzearray[i][1] + potgrenzearray[i][0])/2;
+            // potgrenzen vor:
+            Serial.printf("i: potgrenzen vor: %d potgrenzearray[i][0]: %d potgrenzearray[i][1]: %d quotarray[]: %.3f\n",i,potgrenzearray[i][0],potgrenzearray[i][1],quotarray[i]);
             
-            float ppmfloat = PPMLO + quotarray[i] *(float(potwert)-POTLO);
+            // Abstand von Mittestellung zu oberer Grenze des Pot
+            uint16_t deltahi = potgrenzearray[i][1] - potwert; 
+            
+            // Abstand von Mittestellung zu oberer Grenze des Pot
+            uint16_t deltalo = potwert - potgrenzearray[i][0];
+            
+            // kleinere Abweichung bestimmen
+            uint16_t delta = 0;
+            if (deltahi > deltalo)
+            {
+               delta = deltalo;
+            }
+            else 
+            {
+               delta = deltahi;
+            }
+            // potgrenzen anpassen
+            potgrenzearray[i][0] = potwert - delta; // untere Grenze
+            potgrenzearray[i][1] = potwert + delta; // obere Grenze
+            
+            // quotwert neu berechnen
+     //       quotarray[i] = (PPMHI - PPMLO)/(potgrenzearray[i][1] - potgrenzearray[i][0]);
+            
+         //   float potmitte = (potgrenzearray[i][1] + potgrenzearray[i][0])/2;
+            
+           // float ppmfloat = PPMLO + quotarray[i] *(float(potwert)-POTLO);
+            
+            float ppmfloat = PPMLO + quotarray[i] *(float(potwert)-potgrenzearray[i][0]);
          
-         //   float ppmfloat = quot *(PPMLO + float(potwert)-POTLO);
      
             uint16_t ppmint = uint16_t(ppmfloat);
-            Serial.printf("i: %d potwert: %d ppmint: %d potmitte: %.4f\n",i,potwert,ppmint,potmitte);
-            Serial.printf("i: %d potgrenzearray[i][0]: %d potgrenzearray[i][1]: %d quotarray[]: %.3f\n",i,potgrenzearray[i][0],potgrenzearray[i][1],quotarray[i]);
+            Serial.printf("i: %d potwert: %d ppmint: %d  potgrenzearray[i][0]: %d potgrenzearray[i][1]: %d quotarray[i]: %.3f\n",i,potwert,ppmint,potgrenzearray[i][0],potgrenzearray[i][1],quotarray[i]);
+            //Serial.printf("i: %d potgrenzearray[i][0]: %d potgrenzearray[i][1]: %d quotarray[]: %.3f\n",i,potgrenzearray[i][0],potgrenzearray[i][1],quotarray[i]);
 
             servomittearray[i] = ppmint;
 
@@ -1273,6 +1302,25 @@ void loop()
          {
             masterstatus &= ~(1<<AKKU_LOW_BIT);
          }
+
+         uint8_t levelwert0 = kanalsettingarray[0][0][1]; // levelarray
+         uint8_t levelwert1 = kanalsettingarray[0][1][1];
+  //       Serial.printf("curr_levelarray 0: %d, 1: %d\t",curr_levelarray[0], curr_levelarray[1]);
+         uint8_t expowert0 = kanalsettingarray[0][0][2]; // expoarray
+         uint8_t expowert1 = kanalsettingarray[0][1][2];
+   //      Serial.printf("curr_expoarray 0: %d, 1: %d\n",curr_expoarray[0], curr_expoarray[1]);
+         
+         // kanalsettingarray[model][kanal][1] = curr_levelarray[kanal];
+         uint8_t savelevelarray0 = kanalsettingarray[0][0][1];
+         uint8_t savelevelarray1 = kanalsettingarray[0][1][1];
+ //        Serial.printf("savelevelarray 0: %d, 1: %d\t",savelevelarray0, savelevelarray1);
+
+         //kanalsettingarray[model][kanal][2] = curr_expoarray[kanal];
+         uint8_t saveexpowertarray0 = kanalsettingarray[0][0][2];
+         uint8_t saveexpowertarray1 = kanalsettingarray[0][1][2];
+  //       Serial.printf("saveexpowertarray0 0: %d, 1: %d\n",saveexpowertarray0, saveexpowertarray1);
+       
+         
          
          //Serial.printf("akkuwert: \t%d \tbatteriefloat: \t%2.2f \tbatteriespannung: \t%d\t masterstatus: %d\n",akkuwert, batteriefloat,batteriespannung, masterstatus);
         //    Serial.printf("quot0: %2.3f\tpot0: %d\tquot1: %2.3f\tpot1: %d \n",quotarray[0],potwertarray[0],quotarray[1],potwertarray[1]);
@@ -1471,6 +1519,7 @@ void loop()
       //manuellcounter++;
       //Serial.printf("+A+");
       //OSZI_C_LO();
+      uint8_t model = 0;
       displaycounter++;
       for (uint8_t i=0;i<NUM_SERVOS;i++)
       {
@@ -1494,31 +1543,92 @@ void loop()
 
                float ppmfloat = PPMLO + quotarray[i] *(float(potwert - potgrenzearray[i][0]));
 
-               // float ppmfloat = potgrenzearray[i][0] + quotarray[i] *(float(potwert - potgrenzearray[i][0]));
-
                
+               uint8_t levelwert = kanalsettingarray[model][i][1]; // element 1, levelarray
+               uint8_t levelwerta = levelwert & 0x07;
+               uint8_t levelwertb = (levelwert & 0x70)>>4;
+ 
+               
+               
+ 
                uint16_t ppmint = uint16_t(ppmfloat);
+               uint16_t ppmintvor = uint16_t(ppmfloat);
+               
+               if ((displaycounter == 14) && (i==0))
+               {
+   //               Serial.printf("servo \t%d\t levelwert: %d \tlevelwerta: %d levelwertb: %d \t ppmint: %d\n",i,levelwert, levelwerta,levelwertb,ppmint);
+               }
+               
+               
+               
+               
+               
+               // levelwert   faktor
+               //    0             8/8
+               //    1             7/8
+               //    2             6/8
+               //    3             5/8
+               //    4             4/8
+               
+               uint16_t diffa = 0;
+               uint16_t diffb = 0;
+               if (ppmint < servomittearray[i]) // Seite A
+               {
+                  diffa = servomittearray[i] - ppmint; 
+               
+                  // diff umrechnen
+                  diffa *= (8-levelwerta);
+                  diffa /= 8;
+                  ppmint = servomittearray[i] - diffa;
+                   
+               }
+               else // Seite B
+               {
+                  diffb = ppmint - servomittearray[i];
+                  // diff umrechnen
+                  diffb *= (8-levelwertb);
+                  diffb /= 8;
+                  ppmint = servomittearray[i] + diffb;
+                 
+               }
+
+               if ((displaycounter == 14) && (i==0))
+               {
+                  Serial.printf("servo \t%d\t diffa: \t%d \tdiffb:\t %d \tppmintvor: \t%d \tppmint mod:\t %d\n",i,diffa, diffb,ppmintvor,ppmint);
+               }
+ 
+               
+               
                if (i == 0)
                {
                   pot0 = ppmint; // anzeige
                }
                
-               if (i < 4)
-               {
-               //Serial.printf("pot %d ppmint %d\t",i, ppmint);
-               sendbuffer[ADCOFFSET + 2*i] = (ppmint & 0x00FF); // LO
-               sendbuffer[ADCOFFSET + 2*i + 1] = (ppmint & 0xFF00)>>8; // Hi
-               }
-               if (i == 1)
-               {
-                  //Serial.printf("\n");
-               }
-               //Serial.printf("pot0 %d pot1 %d\n",pot0, pot1);
+         // expoquot = (ppmhi - ppmlo)/2/0x200; // umrechnen der max expo (512) auf PPM  
+      
+          //     expo  = expoarray[0][ppmabs] * expoquot;
+               
+
+               // expowert   faktor
+               //    0             8/8
+               //    1             7/8
+               //    2             6/8
+               //    3             5/8
+               //    4             4/8
+               
+               
+                //Serial.printf("pot0 %d pot1 %d\n",pot0, pot1);
                uint16_t expo  = 0;  
                uint16_t ppmabs  = 0;  
                uint16_t expoint  = 0;  
                
-               if (i < 2)
+               uint8_t expowert = kanalsettingarray[model][i][2]; // element2, expoarray
+               uint8_t expowerta = expowert & 0x07;
+               uint8_t expowertb = (expowert & 0x70)>>4;
+            
+               
+               
+               if (i < 4)
                {
                   uint16_t mitteint  =  servomittearray[i];
                   float mittefloat = float( servomittearray[i]);
@@ -1533,25 +1643,44 @@ void loop()
                      ppmabs = 0x200;
                   }
                   
-                  expo  = expoarray[0][ppmabs] * expoquot;
-                  
+                     
                   if (ppmint < servomittearray[i])
                   {
-                     expoint = servomittearray[i] - expo;
+                     diffa = servomittearray[i] - ppmint; // aktuelle differenz zur mitte
+                     // diff umrechnen
+                     diffa *= (8-expowerta);
+                     diffa /= 8;
+                     ppmint = servomittearray[i] - diffa;
+
+                     //expoint = servomittearray[i] - expowerta;
                   }
                   else
                   {
-                     expoint = servomittearray[i] + expo;
+                     diffb = ppmint - servomittearray[i];
+                     // diff umrechnen
+                     diffb *= (8-expowertb);
+                     diffb /= 8;
+                     ppmint = servomittearray[i] + diffb;
+
+                     //expoint = servomittearray[i] + expowertb;
                   }
                   
                   if (displaycounter == 14)
                   {
+                     //Serial.printf("servo \t%d\t levelwerta: %d\t levelwertb: %d\n",levelwerta,levelwertb);
+                     
+     //                Serial.printf("servo \t%d\t potwert: \t%d \t",i,potwert);
+                     if (i == 1)
+                     {
+                        //Serial.printf("\n");
+                     }
                      //Serial.printf("displaycounter: %d\n", displaycounter);
-                     Serial.printf("servo %d potwert: %d  ppmint: %d mitteint: %d ppmabs: %d expo: %d expoint: %d quot: %.3f quotarray[i]: %.2f\n",i,potwert,ppmint,mitteint, ppmabs, expo, expoint, quot, quotarray[i]);
+         //            Serial.printf("servo %d potwert: %d  ppmint: %d mitteint: %d ppmabs: %d expo: %d expoint: %d quot: %.3f quotarray[i]: %.2f\n",i,potwert,ppmint,mitteint, ppmabs, expo, expoint, quot, quotarray[i]);
                   }
                   {
                     // if (i<2)
                      {
+                        
                       //  Serial.printf("servo %d potwert: %d    ppmint: %d ppmabs: %d expo: %d expoint: %d displaycounter: %d\n",i,potwert,ppmint,ppmabs, expo, expoint,displaycounter);
                      }
                   }
@@ -1561,12 +1690,19 @@ void loop()
                //Serial.printf("pot0 %d pot1 %d\n",impulstimearray[0], impulstimearray[1]);
                //impulstimearray[i] = ppmint;
                //impulstimearray[i] = potwert;
+               if (i < 4)
+               {
+               //Serial.printf("pot %d ppmint %d\t",i, ppmint);
+               sendbuffer[ADCOFFSET + 2*i] = (ppmint & 0x00FF); // LO
+               sendbuffer[ADCOFFSET + 2*i + 1] = (ppmint & 0xFF00)>>8; // Hi
+               }
+
             }
          }
          
          //Serial.printf("C\n");
       } // for i
-      
+      //Serial.printf("\n");
     //  impulstimearray[7] = POTLO; // keine taste
       
       if (displaycounter == 50)
@@ -1599,7 +1735,7 @@ void loop()
             
             if ((displaycounter == 20) )
                {
-                 //Serial.printf("mix on mix0: %d mix1: %d \n",mix0,mix1 );
+                              //Serial.printf("mix on mix0: %d mix1: %d \n",mix0,mix1 );
                
                }
           
@@ -1607,6 +1743,7 @@ void loop()
             {
                case 1: // V-Mix
                {
+ 
                   // Originalwert fuer jeden Kanal lesen
                   uint16_t kanalwerta = impulstimearray[kanala];// Wert fuer ersten Kanal
                   uint16_t kanalwertb = impulstimearray[kanalb];// Wert fuer zweiten Kanal
@@ -1619,7 +1756,7 @@ void loop()
                   
                   if ((displaycounter == 20) )
                      {
-                  Serial.printf("mixindex: %d mix0: %d mix1: %d kanalwerta: %d kanalwertb: %d mittea: %d mitteb: %d\n",mixindex,mix0, mix1, kanalwerta,kanalwertb, mittea, mitteb); 
+                  //Serial.printf("mixindex: %d mix0: %d mix1: %d kanalwerta: %d kanalwertb: %d mittea: %d mitteb: %d\n",mixindex,mix0, mix1, kanalwerta,kanalwertb, mittea, mitteb); 
                      }
                   uint16_t diffa = 0;
                   if(kanalwerta > mittea)
