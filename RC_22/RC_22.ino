@@ -1551,17 +1551,37 @@ void loop()
                
                uint8_t expowert = kanalsettingarray[model][i][2]; // element2, expoarray
                uint8_t expowerta = expowert & 0x07;
+               /*
+               if (expowerta > 3)
+               {
+                  Serial.printf("i: %d expowerta: %d\n",expowerta);
+                  //expowerta = 3;
+                  
+               }
+                */
                uint8_t expowertb = (expowert & 0x70)>>4;
-               
+               /*
+               if (expowertb > 3)
+               {
+                  Serial.printf("i: %d expowertb: %d\n",expowertb);
+                  expowertb = 3;
+                  
+               }
+               */
  
                uint16_t ppmint = uint16_t(ppmfloat);
                uint16_t ppmintvor = uint16_t(ppmfloat);
                
-               if ((displaycounter == 14) && (i==0))
+               if ((displaycounter == 14) && (i<2))
                {
-   //               Serial.printf("servo \t%d\t levelwert: %d \tlevelwerta: %d levelwertb: %d \t ppmint: %d\n",i,levelwert, levelwerta,levelwertb,ppmint);
+                  //Serial.printf("servo \t%d\t levelwert: %d levelwerta: %d levelwertb: %d\n",i,levelwert, levelwerta,levelwertb);
+
+                   Serial.printf("servo \t%d\t expowert: %d expowerta: %d expowertb: %d\n",i,expowert, expowerta,expowertb);
+
                }
                
+ 
+
                
                
                // levelwert   faktor
@@ -1571,30 +1591,76 @@ void loop()
                //    3             5/8
                //    4             4/8
                
+               uint16_t expoint  = 0;  
+               
                uint16_t diffa = 0;
                uint16_t diffb = 0;
+               
+               float expofloat = 0;
+               float diff = 0;
+    
+               
                if (ppmint < servomittearray[i]) // Seite A
                {
                   diffa = servomittearray[i] - ppmint; 
+                  diff = (servomittearray[i] - ppmfloat) ;//* expoquot; // Differenz zu mitte umgerechnent auf 0x200
+                  
+                  
+                  
+                  diff /= expoquot;// Differenz zu mitte umgerechnent auf 0x200
+ 
+                  // expo von diffa zu wert von expowerta bestimmen: array [512]
+                  uint16_t expopos = diff;
+                  if (expopos > 0x200)
+                  {
+                     expopos = 0x200;
+                  }
+ 
+                  expofloat = expoarray[expowerta][expopos] * expoquot;
+                  diffa = uint16_t(expofloat);
+
+                  expoint = servomittearray[i] - expoarray[expowerta][expopos] * expoquot;
+  
                   // diff umrechnen
                   diffa *= (8-levelwerta);
                   diffa /= 8;
                   ppmint = servomittearray[i] - diffa;
-                   
+              
+               
                }
                else // Seite B
                {
                   diffb = ppmint - servomittearray[i];
-                  // diff umrechnen
+                  diff = (ppmfloat - servomittearray[i]) ;//* expoquot;
+                  diffb = uint16_t(diff);
+                  
+                  diff /= expoquot;// Differenz zu mitte umgerechnent auf 0x200
+                  
+                  // expo von diffa zu wert von expowerta bestimmen: array [512]
+                  uint16_t expopos = diff;
+                  if (expopos > 0x200)
+                  {
+                     expopos = 0x200;
+                  }
+                  expofloat = expoarray[expowertb][expopos] * expoquot;
+                  diffb = uint16_t(expofloat);
+
+                  expoint = servomittearray[i] + expoarray[expowertb][expopos] * expoquot ;
+                  
+                   // diff umrechnen
                   diffb *= (8-levelwertb);
                   diffb /= 8;
                   ppmint = servomittearray[i] + diffb;
+                  
                  
                }
 
-               if ((displaycounter == 14) && (i==0))
+               if ((displaycounter == 14) && (i<2))
                {
-                  Serial.printf("servo \t%d\t diffa: \t%d \tdiffb:\t %d \tppmintvor: \t%d \tppmint mod:\t %d\n",i,diffa, diffb,ppmintvor,ppmint);
+                 // Serial.printf("servo \t%d\t diffa: \t%d \tdiffb:\t %d \tppmintvor: \t%d \tppmint mod:\t %d expoint: %d\n",i,diffa, diffb,ppmintvor,ppmint, expoint);
+
+      //            Serial.printf("servo \t%d  ppmint:\t %d expoint: %d\n",i,ppmint, expoint);
+
                }
  
                
@@ -1617,8 +1683,13 @@ void loop()
                //Serial.printf("pot0 %d pot1 %d\n",pot0, pot1);
                uint16_t expo  = 0;  
                uint16_t ppmabs  = 0;  
-               uint16_t expoint  = 0;  
                
+               //impulstimearray[i] = expoint;
+                  
+                  
+               impulstimearray[i] = ppmint;
+               
+               /*
                if (i < 2)
                {
                   uint16_t mitteint  =  servomittearray[i];
@@ -1640,11 +1711,11 @@ void loop()
                   
                   if (ppmint < servomittearray[i])
                   {
-                     expoint = servomittearray[i] - expo;
+  //                   expoint = servomittearray[i] - expo;
                   }
                   else
                   {
-                     expoint = servomittearray[i] + expo;
+ //                    expoint = servomittearray[i] + expo;
                   }
                   
                   if (displaycounter == 14)
@@ -1668,7 +1739,8 @@ void loop()
                   }
                   impulstimearray[i] = expoint;
                   
-                }                 
+                }  // if (i < 2) 
+                */
                //Serial.printf("pot0 %d pot1 %d\n",impulstimearray[0], impulstimearray[1]);
                //impulstimearray[i] = ppmint;
                //impulstimearray[i] = potwert;
