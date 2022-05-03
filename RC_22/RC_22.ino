@@ -166,6 +166,8 @@ volatile float quotarray[NUM_SERVOS] = {}; // Umrechnungsfaktor pro Pot
 
 uint16_t tipptastenstufe = (POTHI - POTLO)/13;
 
+uint16_t timeoutcounter = 0;
+
 // display
 
 volatile uint8_t                 startcounter=0; // timeout-counter beim Start von Settings, schneller als manuellcounter. Ermoeglicht Dreifachklick auf Taste 5
@@ -907,6 +909,61 @@ void displayinit()
    
 }
 
+void updatemitte(void)
+{
+   Serial.printf("updatemitte Mitte lesen quot: %.4f expoquot:  %.4f\n",quot, expoquot);
+   for (uint8_t i=0;i<NUM_SERVOS;i++)
+   {
+      if (adcpinarray[i] < 0xFF) // PIN belegt
+      {
+         //Pot 0
+         uint16_t potwert = adc->adc0->analogRead(adcpinarray[i]);
+         
+         // potgrenzen vor:
+         Serial.printf("i: potgrenzen vor: %d potgrenzearray[i][0]: %d potgrenzearray[i][1]: %d quotarray[]: %.3f\n",i,potgrenzearray[i][0],potgrenzearray[i][1],quotarray[i]);
+         
+         // Abstand von Mittestellung zu oberer Grenze des Pot
+         uint16_t deltahi = potgrenzearray[i][1] - potwert; 
+         
+         // Abstand von Mittestellung zu oberer Grenze des Pot
+         uint16_t deltalo = potwert - potgrenzearray[i][0];
+         
+         // kleinere Abweichung bestimmen
+         uint16_t delta = 0;
+         if (deltahi > deltalo)
+         {
+            delta = deltalo;
+         }
+         else 
+         {
+            delta = deltahi;
+         }
+         // potgrenzen anpassen
+         potgrenzearray[i][0] = potwert - delta; // untere Grenze
+         potgrenzearray[i][1] = potwert + delta; // obere Grenze
+         
+         // quotwert neu berechnen
+  //       quotarray[i] = (PPMHI - PPMLO)/(potgrenzearray[i][1] - potgrenzearray[i][0]);
+         
+      //   float potmitte = (potgrenzearray[i][1] + potgrenzearray[i][0])/2;
+         
+        // float ppmfloat = PPMLO + quotarray[i] *(float(potwert)-POTLO);
+         
+         float ppmfloat = PPMLO + quotarray[i] *(float(potwert)-potgrenzearray[i][0]);
+      
+  
+         uint16_t ppmint = uint16_t(ppmfloat);
+         Serial.printf("i: %d potwert: %d ppmint: %d  potgrenzearray[i][0]: %d potgrenzearray[i][1]: %d quotarray[i]: %.3f\n",i,potwert,ppmint,potgrenzearray[i][0],potgrenzearray[i][1],quotarray[i]);
+         //Serial.printf("i: %d potgrenzearray[i][0]: %d potgrenzearray[i][1]: %d quotarray[]: %.3f\n",i,potgrenzearray[i][0],potgrenzearray[i][1],quotarray[i]);
+
+         servomittearray[i] = ppmint;
+
+         
+      }
+      
+   }
+}
+
 void akkupresent(void)
 {
    if (digitalRead(AKKU_OFF_PIN))
@@ -1265,8 +1322,10 @@ void loop()
     // MARK:  -  sinc > 500
    if (zeitintervall > 500) 
    {   
-      if ((eepromsavestatus) || (masterstatus & (1<<AKKU_LOW_BIT)))
+      //Serial.printf("eepromsavestatus: %d masterstatus: %d \n",eepromsavestatus,masterstatus);
+      if ((eepromsavestatus) || (masterstatus & (1<<AKKU_LOW_BIT)) || (masterstatus & (1<<TIMEOUT_BIT)))
       {
+         
          tone(BEEP_PIN, 600, 100);
       }
       sendbuffer[0] = 0xA0;
@@ -1294,14 +1353,31 @@ void loop()
          float batteriefloat = akkuwert / 300.0;
          
          batteriespannung =  akkuwert / 3.0; // Wert * 100
-         if ((batteriespannung < 650) && digitalReadFast(AKKU_OFF_PIN))
+         if ((batteriespannung < 650) &&  (digitalRead(AKKU_OFF_PIN)))
          {
+            
             masterstatus |= (1<<AKKU_LOW_BIT);
          }
          else
          {
             masterstatus &= ~(1<<AKKU_LOW_BIT);
          }
+         
+         if ((timeoutcounter > TIMEOUT) )
+         {
+            // Test
+            //masterstatus |= (1<<TIMEOUT_BIT);
+            
+            if (digitalRead(AKKU_OFF_PIN)) // Akku ist ON,timeout ist relevant
+            {
+               masterstatus |= (1<<TIMEOUT_BIT);
+            }
+            else
+            {
+               timeoutcounter = 0;
+            }
+         }
+             
 
          uint8_t levelwert0 = kanalsettingarray[0][0][1]; // levelarray
          uint8_t levelwert1 = kanalsettingarray[0][1][1];
@@ -1320,7 +1396,7 @@ void loop()
          uint8_t saveexpowertarray1 = kanalsettingarray[0][1][2];
   //       Serial.printf("saveexpowertarray0 0: %d, 1: %d\n",saveexpowertarray0, saveexpowertarray1);
        
-         
+ //        Serial.printf("timeoutcounter: %d\n",timeoutcounter);
          
          //Serial.printf("akkuwert: \t%d \tbatteriefloat: \t%2.2f \tbatteriespannung: \t%d\t masterstatus: %d\n",akkuwert, batteriefloat,batteriespannung, masterstatus);
         //    Serial.printf("quot0: %2.3f\tpot0: %d\tquot1: %2.3f\tpot1: %d \n",quotarray[0],potwertarray[0],quotarray[1],potwertarray[1]);
@@ -1515,11 +1591,13 @@ void loop()
    // Zuerst potis lesen
    if (servostatus & (1<<ADC_OK)) //     20us pro kanal ohne printf
    {
+      timeoutcounter++; // 2800/minute
       adccounter++;
       //manuellcounter++;
       //Serial.printf("+A+");
       //OSZI_C_LO();
       uint8_t model = 0;
+      uint16_t diffsumme = 0;
       displaycounter++;
       for (uint8_t i=0;i<NUM_SERVOS;i++)
       {
@@ -1534,9 +1612,12 @@ void loop()
             }
             else 
             {
-               
+               uint8_t device = (kanalsettingarray[model][i][3] & 0x70) >> 4;
+               uint8_t funktion = (kanalsettingarray[model][i][3] & 0x07) ;
+               uint8_t richtung = (kanalsettingarray[model][i][0] & 0x80) >> 7; // bit 7 von status
                //Serial.printf("+B+");
                uint16_t potwert = adc->adc0->analogRead(adcpinarray[i]);
+               
                potwertarray[i] = potwert;
                //uint16_t potwert = adc->adc0->analogRead(14);
                //float ppmfloat = PPMLO + quot *(float(potwert) - POTLO);
@@ -1551,6 +1632,8 @@ void loop()
                
                uint8_t expowert = kanalsettingarray[model][i][2]; // element2, expoarray
                uint8_t expowerta = expowert & 0x07;
+               
+               
                /*
                if (expowerta > 3)
                {
@@ -1576,8 +1659,8 @@ void loop()
                {
                   //Serial.printf("servo \t%d\t levelwert: %d levelwerta: %d levelwertb: %d\n",i,levelwert, levelwerta,levelwertb);
 
-                   Serial.printf("servo \t%d\t expowert: %d expowerta: %d expowertb: %d\n",i,expowert, expowerta,expowertb);
-
+   //                Serial.printf("servo \t%d\t expowert: %d expowerta: %d expowertb: %d\n",i,expowert, expowerta,expowertb);
+                  Serial.printf("servo \t%d\tdevice: %d funktion: %d ppmint: %d\n",i,device,funktion,  ppmint);
                }
                
  
@@ -1602,7 +1685,7 @@ void loop()
                
                if (ppmint < servomittearray[i]) // Seite A
                {
-                  diffa = servomittearray[i] - ppmint; 
+                  //diffa = servomittearray[i] - ppmint; 
                   diff = (servomittearray[i] - ppmfloat) ;//* expoquot; // Differenz zu mitte umgerechnent auf 0x200
                   
                   
@@ -1616,7 +1699,7 @@ void loop()
                      expopos = 0x200;
                   }
  
-                  expofloat = expoarray[expowerta][expopos] * expoquot;
+                  expofloat = expoarray[expowerta][expopos] * expoquot; // Wert wieder auf urspruenglichen Bereich bringen
                   diffa = uint16_t(expofloat);
 
                   expoint = servomittearray[i] - expoarray[expowerta][expopos] * expoquot;
@@ -1624,6 +1707,7 @@ void loop()
                   // diff umrechnen
                   diffa *= (8-levelwerta);
                   diffa /= 8;
+                  
                   ppmint = servomittearray[i] - diffa;
               
                
@@ -1654,7 +1738,10 @@ void loop()
                   
                  
                }
-
+               if (i < 2) // nur linker Steuerknüppel
+               {
+                  diffsumme += diff;
+               }
                if ((displaycounter == 14) && (i<2))
                {
                  // Serial.printf("servo \t%d\t diffa: \t%d \tdiffb:\t %d \tppmintvor: \t%d \tppmint mod:\t %d expoint: %d\n",i,diffa, diffb,ppmintvor,ppmint, expoint);
@@ -1749,12 +1836,18 @@ void loop()
          
          //Serial.printf("C\n");
       } // for i
+      
+      if (diffsumme > 100)
+      {
+         timeoutcounter = 0;
+         masterstatus &= ~(1<<TIMEOUT_BIT);
+      }
       //Serial.printf("\n");
     //  impulstimearray[7] = POTLO; // keine taste
       
       if (displaycounter == 50)
       {
-         
+         //Serial.printf("diffsumme: %d\n",diffsumme);
          displaycounter=0;
          //Serial.printf("-\n");
       }
@@ -2048,6 +2141,9 @@ void loop()
       //tastaturstatus &= ~(1<<TASTEOK);
       //Tastenindex = 0;
       
+      timeoutcounter = 0;
+      masterstatus &= ~(1<<TIMEOUT_BIT);
+
       
       switch (Tastenindex)
       {

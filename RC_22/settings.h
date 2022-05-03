@@ -49,10 +49,12 @@
 
 
 // Bits von masterstatus
-#define  USBPRESENT_BIT             4 // USB eingesteckt
-#define  AKKU_LOW_BIT      5 // Sub soll EEPROM lesen
-#define  DOGM_BIT                6 // Master soll EE lesen nach Aenderungen im DOGM
-#define  HALT_BIT                7 //Bit 7
+#define  USBPRESENT_BIT             4 //  USB eingesteckt
+#define  AKKU_LOW_BIT               5 //  Sub soll EEPROM lesen
+#define  TIMEOUT_BIT                6 //  Beep nach ablauf des Timeout
+#define  HALT_BIT                   7 //  Bit 7
+
+#define TIMEOUT   2800 // 2800/minute
 
 // Bits von eepromstatus
 #define READ_EEPROM_START        0  // Beim Start gesetzt. Soll einmaliges Lesen der Settings beim Update des Masters ausloesen
