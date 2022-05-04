@@ -1660,7 +1660,7 @@ void loop()
                   //Serial.printf("servo \t%d\t levelwert: %d levelwerta: %d levelwertb: %d\n",i,levelwert, levelwerta,levelwertb);
 
    //                Serial.printf("servo \t%d\t expowert: %d expowerta: %d expowertb: %d\n",i,expowert, expowerta,expowertb);
-                  Serial.printf("servo \t%d\tdevice: %d funktion: %d ppmint: %d\n",i,device,funktion,  ppmint);
+                  Serial.printf("servo \t%d\tdevice: %d funktion: %d richtung: %d ppmint: %d\n",i,device,funktion,  richtung, ppmint );
                }
                
  
@@ -1707,8 +1707,19 @@ void loop()
                   // diff umrechnen
                   diffa *= (8-levelwerta);
                   diffa /= 8;
+                  if (richtung) // 1 ist default
+                  {
+                   // diffa von mitte sub
+                     ppmint = servomittearray[i] - diffa;
+                  }
+                  else 
+                  {
+                     // diffa zu mitte add
+                     ppmint = servomittearray[i] + diffa;
+                  }
                   
-                  ppmint = servomittearray[i] - diffa;
+                  
+   //               ppmint = servomittearray[i] - diffa;
               
                
                }
@@ -1734,7 +1745,19 @@ void loop()
                    // diff umrechnen
                   diffb *= (8-levelwertb);
                   diffb /= 8;
-                  ppmint = servomittearray[i] + diffb;
+                  
+                  if (richtung) // 1 ist default
+                  {
+                   // diffa zu mitte add
+                     ppmint = servomittearray[i] + diffb;
+                  }
+                  else 
+                  {
+                     // diffa von mitte sub
+                     ppmint = servomittearray[i] - diffb;
+                  }
+                  
+  //                ppmint = servomittearray[i] + diffb;
                   
                  
                }
