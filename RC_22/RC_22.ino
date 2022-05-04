@@ -376,6 +376,7 @@ void write_eeprom_zeit(void);
 void write_eeprom_status(void);
 */
 
+void updatemitte(void);
 
 void kanalimpulsfunktion(void) // kurze HI-Impulse beenden
 {
@@ -407,7 +408,6 @@ void servoimpulsfunktion(void) //
       OSZI_D_LO();
       servostatus |= (1<<IMPULS);
   //    sinceimpulsstart = 0;
-
    }
    else  // Paket beenden
    {
@@ -852,6 +852,8 @@ uint8_t  decodeUSBChannelSettings(uint8_t buffer[USB_DATENBREITE])
       }
       pos += KANALSETTINGBREITE;
    }
+   
+   updatemitte();
    //uint8_t mixpos = USB_DATA_OFFSET + MODELSETTINGBREITE;
    //Serial.printf("*** pos nach for kanal: %d mixpos: %d\n",pos , mixpos);
    
@@ -879,6 +881,8 @@ uint8_t  decodeUSBChannelSettings(uint8_t buffer[USB_DATENBREITE])
    
    // Test: rueckwaerts
   // uint8_t* eepromarray = encodeEEPROMChannelSettings(0);
+   
+   
    sendbuffer[0] = 0xF5;
    
    Serial.printf("USB \n");
@@ -916,17 +920,20 @@ void updatemitte(void)
    {
       if (adcpinarray[i] < 0xFF) // PIN belegt
       {
+         uint16_t ppmint_old = servomittearray[i];
          //Pot 0
          uint16_t potwert = adc->adc0->analogRead(adcpinarray[i]);
          
          // potgrenzen vor:
-         Serial.printf("i: potgrenzen vor: %d potgrenzearray[i][0]: %d potgrenzearray[i][1]: %d quotarray[]: %.3f\n",i,potgrenzearray[i][0],potgrenzearray[i][1],quotarray[i]);
+         //Serial.printf("i: potgrenzen vor: %d potgrenzearray[i][0]: %d potgrenzearray[i][1]: %d quotarray[]: %.3f\n",i,potgrenzearray[i][0],potgrenzearray[i][1],quotarray[i], ppmint_old);
          
          // Abstand von Mittestellung zu oberer Grenze des Pot
          uint16_t deltahi = potgrenzearray[i][1] - potwert; 
          
          // Abstand von Mittestellung zu oberer Grenze des Pot
          uint16_t deltalo = potwert - potgrenzearray[i][0];
+         
+         
          
          // kleinere Abweichung bestimmen
          uint16_t delta = 0;
@@ -942,6 +949,8 @@ void updatemitte(void)
          potgrenzearray[i][0] = potwert - delta; // untere Grenze
          potgrenzearray[i][1] = potwert + delta; // obere Grenze
          
+         quotarray[i] = float((PPMHI - PPMLO))/float((potgrenzearray[i][1] - potgrenzearray[i][0]));
+         
          // quotwert neu berechnen
   //       quotarray[i] = (PPMHI - PPMLO)/(potgrenzearray[i][1] - potgrenzearray[i][0]);
          
@@ -953,10 +962,11 @@ void updatemitte(void)
       
   
          uint16_t ppmint = uint16_t(ppmfloat);
-         Serial.printf("i: %d potwert: %d ppmint: %d  potgrenzearray[i][0]: %d potgrenzearray[i][1]: %d quotarray[i]: %.3f\n",i,potwert,ppmint,potgrenzearray[i][0],potgrenzearray[i][1],quotarray[i]);
+         Serial.printf("i: %d potwert: %d ppmint_old: %d ppmint: %d  potgrenzearray[i][0]: %d potgrenzearray[i][1]: %d quotarray[i]: %.3f\n",i,potwert, ppmint_old, ppmint,potgrenzearray[i][0],potgrenzearray[i][1],quotarray[i]);
          //Serial.printf("i: %d potgrenzearray[i][0]: %d potgrenzearray[i][1]: %d quotarray[]: %.3f\n",i,potgrenzearray[i][0],potgrenzearray[i][1],quotarray[i]);
 
          servomittearray[i] = ppmint;
+         //Serial.printf("i: potgrenzen nach: %d potgrenzearray[i][0]: %d potgrenzearray[i][1]: %d quotarray[]: %.3f ppmint: %d\n",i,potgrenzearray[i][0],potgrenzearray[i][1],quotarray[i]);
 
          
       }
@@ -1248,7 +1258,7 @@ void loop()
          if (adcpinarray[i] < 0xFF) // PIN belegt
          {
             
-            
+            uint16_t ppmint_old = servomittearray[i];
             //Pot 0
             uint16_t potwert = adc->adc0->analogRead(adcpinarray[i]);
             
@@ -1274,7 +1284,9 @@ void loop()
             // potgrenzen anpassen
             potgrenzearray[i][0] = potwert - delta; // untere Grenze
             potgrenzearray[i][1] = potwert + delta; // obere Grenze
-            
+  
+            quotarray[i] = float((ppmhi - ppmlo))/float((potgrenzearray[i][1] - potgrenzearray[i][0]));
+
             // quotwert neu berechnen
      //       quotarray[i] = (PPMHI - PPMLO)/(potgrenzearray[i][1] - potgrenzearray[i][0]);
             
@@ -1291,7 +1303,8 @@ void loop()
 
             servomittearray[i] = ppmint;
 
-            
+            Serial.printf("i: %d potwert: %d ppmint_old: %d ppmint: %d  potgrenzearray[i][0]: %d potgrenzearray[i][1]: %d quotarray[i]: %.3f\n",i,potwert, ppmint_old, ppmint,potgrenzearray[i][0],potgrenzearray[i][1],quotarray[i]);
+
          }
          
       } // for servo
@@ -1660,7 +1673,7 @@ void loop()
                   //Serial.printf("servo \t%d\t levelwert: %d levelwerta: %d levelwertb: %d\n",i,levelwert, levelwerta,levelwertb);
 
    //                Serial.printf("servo \t%d\t expowert: %d expowerta: %d expowertb: %d\n",i,expowert, expowerta,expowertb);
-                  Serial.printf("servo \t%d\tdevice: %d funktion: %d richtung: %d ppmint: %d\n",i,device,funktion,  richtung, ppmint );
+                  Serial.printf("servo \t%d\tdevice: %d funktion: %d richtung: %d ppmint: %d servomitte: %d\n",i,device,funktion,  richtung, ppmint ,servomittearray[i]);
                }
                
  
