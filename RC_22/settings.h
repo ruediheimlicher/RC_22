@@ -54,7 +54,7 @@
 #define  TIMEOUT_BIT                6 //  Beep nach ablauf des Timeout
 #define  HALT_BIT                   7 //  Bit 7
 
-#define TIMEOUT   2800 // 2800/minute
+#define TIMEOUT   6000 // 2800/minute
 
 // Bits von eepromstatus
 #define READ_EEPROM_START        0  // Beim Start gesetzt. Soll einmaliges Lesen der Settings beim Update des Masters ausloesen

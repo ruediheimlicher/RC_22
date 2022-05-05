@@ -795,6 +795,7 @@ void saveSettings(uint8_t model)
       EEPROM.update(((model) * EEPROM_MODELSETTINGBREITE + MODELSETTINGBREITE  + 2 * mixindex + 1),mixingsettingarray[model][mixindex][1]);
 
    }
+   updatemitte();
    Serial.printf("saveSettings kontrolle mixingsettingarray\n");
    for (uint8_t mixindex = 0;mixindex < 3;mixindex++)
    {
@@ -1107,6 +1108,14 @@ void setup()
    // Servo 1
    potgrenzearray[1][0] = POT1LO;
    potgrenzearray[1][1] = POT1HI;
+   
+   potgrenzearray[2][0] = POT1LO;
+   potgrenzearray[2][1] = POT1HI;
+   potgrenzearray[3][0] = POT1LO;
+   potgrenzearray[3][1] = POT1HI;
+
+   
+   
    pinMode(pot1_PIN, INPUT);
    adcpinarray[1] = pot1_PIN;
    quotarray[1] = (ppmhi - ppmlo)/(potgrenzearray[1][1] - potgrenzearray[1][0]);
@@ -1253,6 +1262,8 @@ void loop()
       servostatus |= (1<<RUN);
       // Mitte lesen
       Serial.printf("Mitte lesen quot: %.4f expoquot:  %.4f\n",quot, expoquot);
+      updatemitte();
+      /*
       for (uint8_t i=0;i<NUM_SERVOS;i++)
       {
          if (adcpinarray[i] < 0xFF) // PIN belegt
@@ -1308,7 +1319,7 @@ void loop()
          }
          
       } // for servo
-      
+      */
       /*
       for (uint8_t i=0;i<8;i++)
       {
@@ -3564,6 +3575,8 @@ void loop()
                            }break;
                               
                         }// switch curr_cursorspalte
+                        
+                        
                         
                         display_clear();
                         curr_screen = 0;
