@@ -1922,7 +1922,7 @@ void loop()
             
             if ((displaycounter == 20) )
                {
-                              //Serial.printf("mix on mix0: %d mix1: %d \n",mix0,mix1 );
+                  Serial.printf("mix on mix0: %d mix1: %d kanala: %d kanalb: %d\n",mix0,mix1, kanala, kanalb );
                
                }
           
@@ -1943,7 +1943,7 @@ void loop()
                   
                   if ((displaycounter == 20) )
                      {
-                  //Serial.printf("mixindex: %d mix0: %d mix1: %d kanalwerta: %d kanalwertb: %d mittea: %d mitteb: %d\n",mixindex,mix0, mix1, kanalwerta,kanalwertb, mittea, mitteb); 
+                        Serial.printf("mixindex: %d mix0: %d mix1: %d kanalwerta: %d kanalwertb: %d mittea: %d mitteb: %d\n",mixindex,mix0, mix1, kanalwerta,kanalwertb, mittea, mitteb); 
                      }
                   uint16_t diffa = 0;
                   if(kanalwerta > mittea)
