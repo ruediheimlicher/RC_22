@@ -677,6 +677,7 @@ uint8_t decodeUSBMixingSettings(uint8_t buffer[USB_DATENBREITE])
       
       curr_mixstatusarray[mixindex] = mix0;
       curr_mixkanalarray[mixindex] = mix1;
+      
 
       EEPROM.update(((modelindex)* EEPROM_MODELSETTINGBREITE + MODELSETTINGBREITE + 2 * mixindex),mix0); // 
       EEPROM.update(((modelindex) * EEPROM_MODELSETTINGBREITE + MODELSETTINGBREITE  + 2 * mixindex + 1),mix1);
@@ -948,7 +949,7 @@ void updatemitte(void)
       
   
          uint16_t ppmint = uint16_t(ppmfloat);
-         Serial.printf("i: %d potwert: %d ppmint_old: %d ppmint: %d  potgrenzearray[i][0]: %d potgrenzearray[i][1]: %d quotarray[i]: %.3f\n",i,potwert, ppmint_old, ppmint,potgrenzearray[i][0],potgrenzearray[i][1],quotarray[i]);
+ //        Serial.printf("i: %d potwert: %d ppmint_old: %d ppmint: %d  potgrenzearray[i][0]: %d potgrenzearray[i][1]: %d quotarray[i]: %.3f\n",i,potwert, ppmint_old, ppmint,potgrenzearray[i][0],potgrenzearray[i][1],quotarray[i]);
          //Serial.printf("i: %d potgrenzearray[i][0]: %d potgrenzearray[i][1]: %d quotarray[]: %.3f\n",i,potgrenzearray[i][0],potgrenzearray[i][1],quotarray[i]);
 
          servomittearray[i] = ppmint;
@@ -1217,8 +1218,8 @@ void setup()
    
    for (uint8_t i=0;i<4;i++)
    {
-      mixingsettingarray[0][i][0] = curr_mixstatusarray[0];
-      mixingsettingarray[0][i][1] = curr_mixkanalarray[0];
+      mixingsettingarray[0][i][0] = curr_mixstatusarray[i];
+      mixingsettingarray[0][i][1] = curr_mixkanalarray[i];
    }
    // Tastatur
    
@@ -1823,62 +1824,7 @@ void loop()
                
                // impulstimearray[device] = ppmint;
                
-               
-               /*
-               if (i < 4)
-               {
-                  uint16_t mitteint  =  servomittearray[i];
-                  float mittefloat = float( servomittearray[i]);
-                  
-                  float ppmapsfloat = (abs(ppmfloat - mittefloat))/expoquot;
-                  int16_t ppmabs = uint16_t(ppmapsfloat);
-                  //int16_t ppmabs = abs( ppmint - servomittearray[i]); // Abweichung PPM von mitte
-                  
-                  if (ppmabs > 0x200) // 512
-                  {
-                     //Serial.printf("servo %d ppmabs zu gross: %d\n",ppmabs);
-                     ppmabs = 0x200;
-                  }
-                  uint8_t expowert = curr_expoarray[i];
-                  
-                  
-                  expo  = expoarray[0][ppmabs] * expoquot;
-                  
-                  if (ppmint < servomittearray[i])
-                  {
-  //                   expoint = servomittearray[i] - expo;
-                  }
-                  else
-                  {
- //                    expoint = servomittearray[i] + expo;
-                  }
-                  
-                  if (displaycounter == 14)
-                  {
-                     //Serial.printf("servo \t%d\t levelwerta: %d\t levelwertb: %d\n",levelwerta,levelwertb);
-                     
-     //                Serial.printf("servo \t%d\t potwert: \t%d \t",i,potwert);
-                     if (i == 1)
-                     {
-                        //Serial.printf("\n");
-                     }
-                     //Serial.printf("displaycounter: %d\n", displaycounter);
-         //            Serial.printf("servo %d potwert: %d  ppmint: %d mitteint: %d ppmabs: %d expo: %d expoint: %d quot: %.3f quotarray[i]: %.2f\n",i,potwert,ppmint,mitteint, ppmabs, expo, expoint, quot, quotarray[i]);
-                  }
-                  {
-                    // if (i<2)
-                     {
-                        
-                      //  Serial.printf("servo %d potwert: %d    ppmint: %d ppmabs: %d expo: %d expoint: %d displaycounter: %d\n",i,potwert,ppmint,ppmabs, expo, expoint,displaycounter);
-                     }
-                  }
-                  impulstimearray[i] = expoint;
-                  
-                }  // if (i < 2) 
-                */
-               //Serial.printf("pot0 %d pot1 %d\n",impulstimearray[0], impulstimearray[1]);
-               //impulstimearray[i] = ppmint;
-               //impulstimearray[i] = potwert;
+ 
             }
          }
          
@@ -1903,35 +1849,28 @@ void loop()
 // Mixing abarbeiten
       for (uint8_t mixindex=0;mixindex<4;mixindex++) // 50 us
       {
-         uint8_t mix00 = mixingsettingarray[0][mixindex][0];
-         uint8_t on00 = mix00 & 0x30;
+          
+         //uint8_t mix0wert = curr_mixstatusarray[mixindex];
+         uint8_t mix0wert = mixingsettingarray[0][mixindex][0];
          
-         uint8_t mix0 = curr_mixstatusarray[mixindex];
-         uint8_t on0 = mix0 & 0x30;
          //mix0 = 24;
          if ((mixindex < 1) && (displaycounter == 20))
          {
-            
-            Serial.printf("ADC mixindex: %d: mix0 : %d mix00: %d on0: %d on00: %d\n",mixindex, mix0, mix00,on0, on00);
-
-            Serial.printf("ADC mixindex: %d: mixingsettingarray0 : %d curr_mixstatusarray: %d\n",mixindex, mixingsettingarray[0][mixindex][0], curr_mixstatusarray[mixindex]);
-            Serial.printf("ADC mixindex: %d: mixingsettingarray1 : %d curr_mixkanalarray: %d\n",mixindex, mixingsettingarray[0][mixindex][1], curr_mixkanalarray[mixindex]);
-
+  
          }
          
-         
-         if (mix0 & 0x08) // ON
+         if (mix0wert & 0x08) // ON
          {
-             uint8_t mixart = (mix0 & 0x30) >> 4;
-            uint8_t mix1 = mixingsettingarray[0][mixindex][1];
+             uint8_t mixart = (mix0wert & 0x30) >> 4;
+            uint8_t mix1wert = mixingsettingarray[0][mixindex][1];
             //uint8_t mix1 = curr_mixkanalarray[mixindex];
             
-            uint8_t kanala = (mix1 & 0x03);
-            uint8_t kanalb = (mix1 & 0x30) >> 4;
+            uint8_t kanala = (mix1wert & 0x03);
+            uint8_t kanalb = (mix1wert & 0x30) >> 4;
             
             if ((displaycounter == 20) )
                {
-                  Serial.printf("mix on index: %d mix0: %d mix1: %d kanala: %d kanalb: %d\n",mixindex,mix0,mix1, kanala, kanalb );
+                  //Serial.printf("mix on index: %d mix0: %d mix1: %d kanala: %d kanalb: %d\n",mixindex,mix0wert,mix1wert, kanala, kanalb );
                
                }
           
