@@ -1347,13 +1347,23 @@ void loop()
  //        lcd_gotoxy(14,0);
  //        lcd_put_spannung(batteriespannung);
          sendesekunde++;
-         
+         Serial.printf("\n");
          for (uint8_t k = 0;k<4;k++)
          {
-  //          Serial.printf("servo \t%d\tdevice: %d funktion: %d \n",k,(kanalsettingarray[0][k][3] & 0x70) >> 4, (kanalsettingarray[0][k][3] & 0x07));
-  //          Serial.printf("servo \t%d impulstimearray: %d potwertarray: %d\n",k, impulstimearray[k],potwertarray[k]);
+            Serial.printf("servo \t%d\tdevice: %d funktion: %d \n",k,(kanalsettingarray[curr_model][k][3] & 0x70) >> 4, (kanalsettingarray[curr_model][k][3] & 0x07));
+            
+           //          Serial.printf("servo \t%d impulstimearray: %d potwertarray: %d\n",k, impulstimearray[k],potwertarray[k]);
                           
          }
+
+         uint8_t mix0wert = mixingsettingarray[curr_model][0][0];
+         uint8_t mix1wert = mixingsettingarray[curr_model][0][1];
+         uint8_t kanala = (mix1wert & 0x03);
+         uint8_t kanalb = (mix1wert & 0x30) >> 4;
+
+         
+         Serial.printf("mix0wert: %d mix1wert: %d kanala: %d kanalb: %d\n",mix0wert,mix1wert,kanala,kanalb );
+
 
          if (manuellcounter && (blink_cursorpos < 0xFFFF))
          {
@@ -1396,21 +1406,21 @@ void loop()
          }
              
 
-         uint8_t levelwert0 = kanalsettingarray[0][0][1]; // levelarray
-         uint8_t levelwert1 = kanalsettingarray[0][1][1];
+         uint8_t levelwert0 = kanalsettingarray[curr_model][0][1]; // levelarray
+         uint8_t levelwert1 = kanalsettingarray[curr_model][1][1];
   //       Serial.printf("curr_levelarray 0: %d, 1: %d\t",curr_levelarray[0], curr_levelarray[1]);
-         uint8_t expowert0 = kanalsettingarray[0][0][2]; // expoarray
-         uint8_t expowert1 = kanalsettingarray[0][1][2];
+         uint8_t expowert0 = kanalsettingarray[curr_model][0][2]; // expoarray
+         uint8_t expowert1 = kanalsettingarray[curr_model][1][2];
    //      Serial.printf("curr_expoarray 0: %d, 1: %d\n",curr_expoarray[0], curr_expoarray[1]);
          
          // kanalsettingarray[model][kanal][1] = curr_levelarray[kanal];
-         uint8_t savelevelarray0 = kanalsettingarray[0][0][1];
-         uint8_t savelevelarray1 = kanalsettingarray[0][1][1];
+         uint8_t savelevelarray0 = kanalsettingarray[curr_model][0][1];
+         uint8_t savelevelarray1 = kanalsettingarray[curr_model][1][1];
  //        Serial.printf("savelevelarray 0: %d, 1: %d\t",savelevelarray0, savelevelarray1);
 
          //kanalsettingarray[model][kanal][2] = curr_expoarray[kanal];
-         uint8_t saveexpowertarray0 = kanalsettingarray[0][0][2];
-         uint8_t saveexpowertarray1 = kanalsettingarray[0][1][2];
+         uint8_t saveexpowertarray0 = kanalsettingarray[curr_model][0][2];
+         uint8_t saveexpowertarray1 = kanalsettingarray[curr_model][1][2];
   //       Serial.printf("saveexpowertarray0 0: %d, 1: %d\n",saveexpowertarray0, saveexpowertarray1);
        
  //        Serial.printf("timeoutcounter: %d\n",timeoutcounter);
@@ -1613,7 +1623,7 @@ void loop()
       //manuellcounter++;
       //Serial.printf("+A+");
       //OSZI_C_LO();
-      uint8_t model = 0;
+ //     uint8_t model = 0;
       uint16_t diffsumme = 0;
       displaycounter++;
       
@@ -1632,9 +1642,9 @@ void loop()
             }
             else 
             {
-               uint8_t device = (kanalsettingarray[model][i][3] & 0x70) >> 4;
-               uint8_t funktion = (kanalsettingarray[model][i][3] & 0x07) ;
-               uint8_t richtung = (kanalsettingarray[model][i][0] & 0x80) >> 7; // bit 7 von status
+               uint8_t device = (kanalsettingarray[curr_model][i][3] & 0x70) >> 4;
+               uint8_t funktion = (kanalsettingarray[curr_model][i][3] & 0x07) ;
+               uint8_t richtung = (kanalsettingarray[curr_model][i][0] & 0x80) >> 7; // bit 7 von status
                //Serial.printf("+B+");
                
                uint16_t potwert = adc->adc0->analogRead(adcpinarray[i]);
@@ -1647,12 +1657,12 @@ void loop()
                float ppmfloat = PPMLO + quotarray[i] *(float(potwert - potgrenzearray[i][0]));
 
                
-               uint8_t levelwert = kanalsettingarray[model][i][1]; // element 1, levelarray
+               uint8_t levelwert = kanalsettingarray[curr_model][i][1]; // element 1, levelarray
                uint8_t levelwerta = levelwert & 0x07;
                uint8_t levelwertb = (levelwert & 0x70)>>4;
  
                
-               uint8_t expowert = kanalsettingarray[model][i][2]; // element2, expoarray
+               uint8_t expowert = kanalsettingarray[curr_model][i][2]; // element2, expoarray
                uint8_t expowerta = expowert & 0x07;
                
                
@@ -1815,14 +1825,11 @@ void loop()
                }
                //Serial.printf("pot0 %d pot1 %d\n",pot0, pot1);
                uint16_t expo  = 0;  
-               uint16_t ppmabs  = 0;  
+               uint16_t ppmabs  = 0; 
                
-               //impulstimearray[i] = expoint;
-                  
-                  
-               impulstimearray[i] = ppmint;
+                //impulstimearray[i] = ppmint;
                
-               // impulstimearray[device] = ppmint;
+               impulstimearray[device] = ppmint;
                
  
             }
@@ -1851,7 +1858,7 @@ void loop()
       {
           
          //uint8_t mix0wert = curr_mixstatusarray[mixindex];
-         uint8_t mix0wert = mixingsettingarray[0][mixindex][0];
+         uint8_t mix0wert = mixingsettingarray[curr_model][mixindex][0];
          
          //mix0 = 24;
          if ((mixindex < 1) && (displaycounter == 20))
@@ -1862,7 +1869,7 @@ void loop()
          if (mix0wert & 0x08) // ON
          {
              uint8_t mixart = (mix0wert & 0x30) >> 4;
-            uint8_t mix1wert = mixingsettingarray[0][mixindex][1];
+            uint8_t mix1wert = mixingsettingarray[curr_model][mixindex][1];
             //uint8_t mix1 = curr_mixkanalarray[mixindex];
             
             uint8_t kanala = (mix1wert & 0x03);
