@@ -1642,6 +1642,7 @@ void loop()
       
       uint8_t mix1on = 0;
       uint8_t mix2on = 0;
+      
       for (uint8_t i=0;i<NUM_SERVOS;i++)
       {
          //Serial.printf("A\n");
@@ -1658,8 +1659,10 @@ void loop()
                uint8_t device = (kanalsettingarray[curr_model][i][3] & 0x70) >> 4;
                uint8_t funktion = (kanalsettingarray[curr_model][i][3] & 0x07) ;
                uint8_t richtung = (kanalsettingarray[curr_model][i][0] & 0x80) >> 7; // bit 7 von status
-               
+               uint8_t kanal = (kanalsettingarray[curr_model][i][0] & 0x70) >> 4; 
                //uint8_t mix1on = (kanalsettingarray[curr_model][i][3] & 0x08) >> 3;
+               
+               uint8_t impulsposition = (kanalsettingarray[curr_model][i][0] & 0x70) >> 4; //  Pos im Impulspaket
                
                 
                //Serial.printf("+B+");
@@ -1848,10 +1851,19 @@ void loop()
                 //impulstimearray[i] = ppmint;
                
                impulstimearray[device] = ppmint;
+    //           impulstimearray[impulsposition] = ppmint;
+               
+               
+               
                // mix-kanal markieren
                if (kanalsettingarray[curr_model][i][3] & 0x08)
                {
                   mix1on |= (1<<i);
+                  if ((displaycounter == 20) )
+                     {
+                        Serial.printf("mix1on kanal: %d  \n",kanal);
+                     }
+
                }
                
               if (kanalsettingarray[curr_model][i][3] & 0x80) 
@@ -1961,8 +1973,12 @@ void loop()
         // Serial.printf("mixindex: %d kanalwerta : \t%d \tkanalwertb : \t%d\t mixkanalwerta: \t%d\t mixkanalwertb: \t%d\t diffa: \t%d\t diffb: \t%d\t \n",mixindex,kanalwerta ,kanalwerta , mixkanalwerta, mixkanalwertb, diffa, diffb); 
             }
 
-         impulstimearray[mix1kanal[0]] = mixkanalwerta;
-         impulstimearray[mix1kanal[1]] = mixkanalwertb;
+ //        impulstimearray[mix1kanal[0]] = mixkanalwerta;
+ //        impulstimearray[mix1kanal[1]] = mixkanalwertb;
+
+         // provisorisch: Fix auf kanal 0,1
+         impulstimearray[0] = mixkanalwerta;
+         impulstimearray[1] = mixkanalwertb;
 
          
       }// if mix1count == 2
