@@ -1351,7 +1351,8 @@ void loop()
  //        Serial.printf("\n");
          for (uint8_t k = 0;k<4;k++)
          {
-    //        Serial.printf("servo \t%d\tdevice: %d funktion: %d \n",k,(kanalsettingarray[curr_model][k][3] & 0x70) >> 4, (kanalsettingarray[curr_model][k][3] & 0x07));
+            
+            Serial.printf("k \t%d\tdevice: %d funktion: %d impulsposition: %d \n",k,(kanalsettingarray[curr_model][k][3] & 0x70) >> 4, (kanalsettingarray[curr_model][k][3] & 0x07), ((kanalsettingarray[curr_model][k][0] & 0x70) >> 4));
             
            //          Serial.printf("servo \t%d impulstimearray: %d potwertarray: %d\n",k, impulstimearray[k],potwertarray[k]);
                           
@@ -1849,11 +1850,13 @@ void loop()
                uint16_t ppmabs  = 0; 
                
                 //impulstimearray[i] = ppmint;
+   
+               // ******************
+ 
+ //              impulstimearray[device] = ppmint;
+               impulstimearray[impulsposition] = ppmint;
                
-               impulstimearray[device] = ppmint;
-    //           impulstimearray[impulsposition] = ppmint;
-               
-               
+               // ******************
                
                // mix-kanal markieren
                if (kanalsettingarray[curr_model][i][3] & 0x08)
@@ -1861,7 +1864,7 @@ void loop()
                   mix1on |= (1<<i);
                   if ((displaycounter == 20) )
                      {
-                        Serial.printf("mix1on kanal: %d  \n",kanal);
+                        //Serial.printf("mix1on kanal: %d  \n",kanal);
                      }
 
                }
@@ -1933,7 +1936,7 @@ void loop()
          uint16_t mitteb = servomittearray[mix1kanal[1]];
          if ((displaycounter == 20) )
             {
-               Serial.printf("kanalwerta: %d kanalwertb: %d mittea: %d mitteb: %d\n", kanalwerta,kanalwertb, mittea, mitteb); 
+//               Serial.printf("kanalwerta: %d kanalwertb: %d mittea: %d mitteb: %d\n", kanalwerta,kanalwertb, mittea, mitteb); 
             }
 
          uint16_t diffa = 0;
