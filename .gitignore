@@ -6,4 +6,4 @@ teensy*
 /Transfer/*
 digi*
 *.xcodeproj*
-
+SdFat/*

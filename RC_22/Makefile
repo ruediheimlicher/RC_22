@@ -43,7 +43,7 @@
 #   [W] WS2812Serial Wire [X] XBee XPT2046_Touchscreen 
 #   [i] i2c_t3 [k] ks0108 [s] ssd1351 [x] x10 
 #
-APP_LIBS_LIST = ADC SPI EEPROM  #SD #SdFat 
+APP_LIBS_LIST = ADC SPI EEPROM   # SD #
 
 # List user's libraries here
 # !!! Help: http://bit.ly/2AEscDx
@@ -52,7 +52,7 @@ APP_LIBS_LIST = ADC SPI EEPROM  #SD #SdFat
 # USER = [L] LiquidCrystal_I2C [S] StepperDriver [T] TeensyStep 
 #   [j] jm_LiquidCrystal_I2C 
 #
-USER_LIBS_LIST = 0
+USER_LIBS_LIST = SdFat
 
 # List local libraries here
 # !!! Help: http://bit.ly/2juEP91

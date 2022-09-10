@@ -27,13 +27,14 @@
 #include "display.h"
 #include "expo.h"
 
-#include "eeprom.h"
+//#include "eeprom.h"
 
 #include <EEPROM.h>
 // Display
 
-//#include <SdFat.h>
+#include <SdFat.h>
 //#include <SD.h>
+//#include <SdFat.h>
 
 extern const char *FunktionTable[];
 
@@ -116,6 +117,7 @@ volatile uint8_t           adcpinarray[NUM_SERVOS] = {};
 volatile uint16_t          servomittearray[NUM_SERVOS] = {}; // Werte fuer Mitte
 
 volatile uint16_t          potwertarray[NUM_SERVOS] = {}; // Werte fuer Mitte
+volatile uint16_t          externpotwertarray[NUM_SERVOS] = {}; // Werte fuer Mitte
 
 // Prototypes
 ADC *adc = new ADC(); // adc object
@@ -295,10 +297,16 @@ uint8_t readdata=0xaa;
 
 
 //
-//SdFatSdioEX sd;
+#if USE_SDIO
+// Use faster SdioCardEX
+SdFatSdioEX sd;
+// SdFatSdio sd;
+#else // USE_SDIO
+SdFat sd;
+#endif  // USE_SDIO
 
 // Log file.
-//SdFile myFile;
+SdFile myFile;
 
 
 // USB
@@ -1047,6 +1055,7 @@ void setup()
  //   yield();
  // }
   //
+ //  SD.begin(BUILTIN_SDCARD);
    
    pinMode(BEEP_PIN, OUTPUT);
    pinMode(BLINK_PIN, OUTPUT);
@@ -1103,7 +1112,7 @@ void setup()
    adcpinarray[0] = pot0_PIN;
    
    quotarray[0] = float((ppmhi - ppmlo))/float((potgrenzearray[0][1] - potgrenzearray[0][0]));
-   Serial.printf("potgrenzearray[0][0]: %d potgrenzearray[0][1]: %d  quotarray[0]: %.3f quot: %.3f\n",potgrenzearray[0][0],potgrenzearray[0][1],quotarray[0],quot);
+//   Serial.printf("potgrenzearray[0][0]: %d potgrenzearray[0][1]: %d  quotarray[0]: %.3f quot: %.3f\n",potgrenzearray[0][0],potgrenzearray[0][1],quotarray[0],quot);
    // Servo 1
    potgrenzearray[1][0] = POT1LO;
    potgrenzearray[1][1] = POT1HI;
@@ -1129,7 +1138,15 @@ void setup()
    pinMode(pot3_PIN, INPUT);
    adcpinarray[3] = pot3_PIN;
    //adcpinarray[3] = 0xFF;
-   
+ 
+   /*
+   // Servo 4
+   pinMode(pot4_PIN, INPUT);
+   adcpinarray[4] = pot4_PIN;
+   // Servo 5
+   pinMode(pot5_PIN, INPUT);
+   adcpinarray[5] = pot5_PIN;
+*/
    adcpinarray[NUM_SERVOS-1] = 0xEF;// letzten Puls kennzeichnen
    
    //AKKU_PIN
@@ -1248,7 +1265,7 @@ void setup()
    
    //lcd_gotoxy(0,0);
    //lcd_puts("RC");
-
+   programmstatus |= (1<<LOCALTASK);
 }
 
 // Add loop code
@@ -1357,11 +1374,23 @@ void loop()
       sekundencounter++;
       if (sekundencounter%2)
       {
+         //Serial.printf("blinkvor: %d",digitalRead(BLINK_PIN));
+         if (digitalRead(BLINK_PIN))
+         {
+            digitalWrite(BLINK_PIN,0);
+         }
+         else
+         {
+            digitalWrite(BLINK_PIN,1);
+         }
+         //digitalWriteFast(BLINK_PIN, !(digitalRead(BLINK_PIN)));
+         
+        // Serial.printf(" blinknach: %d\n",digitalRead(BLINK_PIN));
          //lcd_puts("RC");
  //        lcd_gotoxy(14,0);
  //        lcd_put_spannung(batteriespannung);
          sendesekunde++;
- //        Serial.printf("\n");
+ //      Serial.printf("\n");
          for (uint8_t k = 0;k<4;k++)
          {
             
@@ -1371,7 +1400,7 @@ void loop()
                           
          }
 /*
-         uint8_t mix0wert = mixingsettingarray[curr_model][0][0];
+         uint8_t mix0wert = mixingsettingarray[curr_model][0][0];∫
          uint8_t mix1wert = mixingsettingarray[curr_model][0][1];
          uint8_t kanala = (mix1wert & 0x03);
          uint8_t kanalb = (mix1wert & 0x30) >> 4;
@@ -1380,6 +1409,9 @@ void loop()
   //       Serial.printf("mix0wert: %d mix1wert: %d kanala: %d kanalb: %d\n",mix0wert,mix1wert,kanala,kanalb );
          //Serial.printf("mix1on: %d mix2on: %d \n",(kanalsettingarray[curr_model][i][3] & 0x08),(kanalsettingarray[curr_model][i][3] & 0x80));
 
+         Serial.printf("extern: 0: %d 1: %d lokal: %d %d\n",externpotwertarray[0],externpotwertarray[0], potwertarray[0],potwertarray[1]);
+         
+         
          if (manuellcounter && (blink_cursorpos < 0xFFFF))
          {
             display_setcursorblink(sendesekunde);
@@ -1552,15 +1584,18 @@ void loop()
          //startcounter = 0;
       }
 
+      
+      
+     
       if (digitalRead(LOOPLED) == 1)
       {
-         digitalWriteFast(LOOPLED, 0);
-         digitalWriteFast(BLINK_PIN, 0);
+      //   digitalWriteFast(LOOPLED, 0);
+      //   digitalWriteFast(BLINK_PIN, 0);
       }
       else
       {
-         digitalWriteFast(LOOPLED, 1);
-         digitalWriteFast(BLINK_PIN, 1);
+      //   digitalWriteFast(LOOPLED, 1);
+     //    digitalWriteFast(BLINK_PIN, 1);
          
         // Serial.printf("display_data %d\n",testdata);
          /*
@@ -1680,8 +1715,18 @@ void loop()
                
                 
                //Serial.printf("+B+");
+               uint16_t potwert=0;
+               if (programmstatus & (1<<LOCALTASK))
+               {
+                  potwert = adc->adc0->analogRead(adcpinarray[i]);
+               }
+               else
+               {
+                  potwert =   externpotwertarray[i];                 
+
+               }
                
-               uint16_t potwert = adc->adc0->analogRead(adcpinarray[i]);
+               
                
                potwertarray[i] = potwert;
                
@@ -1867,7 +1912,7 @@ void loop()
                // ******************
                if ((displaycounter == 20) )
                   {
-                     Serial.printf("impulstimearray setzen:  device: %d  impulsposition: %d\n",device,impulsposition);
+                    // Serial.printf("impulstimearray setzen:  device: %d  impulsposition: %d\n",device,impulsposition);
                   }
 
  //              impulstimearray[device] = ppmint;
@@ -4431,6 +4476,7 @@ void loop()
             //lcd_gotoxy(14,2);
             //lcd_puts("*7*");
             //Serial.printf("*** T7 ***\n");
+            digitalWriteFast(BLINK_PIN,0);
             if (curr_screen) // nicht homescreen
             {
                servostatus &=  ~(1<<RUN);
@@ -5629,7 +5675,7 @@ void loop()
                Serial.printf("%d\t",buffer[i]);
             }
             */
-            Serial.printf("\n***************************************  --->    rawhid_recv begin code HEX: %02X\n",code);
+            //Serial.printf("\n***************************************  --->    rawhid_recv begin code HEX: %02X\n",code);
             //Serial.printf("code: %d\n",code);
             usb_recv_counter++;
           //  uint8_t device = buffer[32];
@@ -5648,10 +5694,45 @@ void loop()
                   
                }break;
                   
-               case 0xF0: // Data
+               case 0xF0: // Data von Sender
                {
+                  //Serial.printf("0xF0 %d %d %d %d \n",buffer[USB_DATA_OFFSET],buffer[USB_DATA_OFFSET+1],buffer[USB_DATA_OFFSET+2],buffer[USB_DATA_OFFSET+3]);
+                  Serial.printf("0xF0 task: %d\n",buffer[USB_DATA_OFFSET]);
+                  
+                  
+                  if (buffer[USB_DATA_OFFSET + 32] == 1)
+                  {
+                     programmstatus &= ~(1<<LOCALTASK);
+                     programmstatus |= (1<<EXTERNTASK);
+                     for (uint8_t i = 0;i<4;i++)
+                     {
+                        cli();
+                        externpotwertarray[i] = (buffer[USB_DATA_OFFSET + 2*i] <<8) | buffer[USB_DATA_OFFSET + 2*i+1];
+                        sei();
+                     }
+
+                   }
+                  else
+                  {
+                     programmstatus &= ~(1<<EXTERNTASK);
+                     programmstatus |= (1<<LOCALTASK);
+                  }
+               
+               }break;
+
+               case 0xF1: // Data von Sender
+               {
+                  //Serial.printf("0xF0 %d %d %d %d \n",buffer[USB_DATA_OFFSET],buffer[USB_DATA_OFFSET+1],buffer[USB_DATA_OFFSET+2],buffer[USB_DATA_OFFSET+3]);
+                  for (uint8_t i = 0;i<4;i++)
+                  {
+                     cli();
+                     externpotwertarray[i] = (buffer[USB_DATA_OFFSET + 2*i] <<8) | buffer[USB_DATA_OFFSET + 2*i+1];
+                     sei();
+                  }
                   
                }break;
+                  
+                  
                   
                // MARK: F4 Fix Sendersettings
                case 0xF4: // Fix Sendersettings

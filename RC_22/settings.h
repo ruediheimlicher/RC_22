@@ -33,6 +33,8 @@
 #define pot1_PIN   15
 #define pot2_PIN   16
 #define pot3_PIN   17
+#define pot4_PIN   18
+#define pot5_PIN   19
 
 
 
@@ -43,21 +45,20 @@
 
 #define MOTOR_ON        1
 #define STOP_ON         2
-#define EEPROM_TASK     3  // Daten in EEPROM sichern
-#define USB_ATTACH_TASK  4  // USB initiieren
-
+#define LOCALTASK       3
+#define EXTERNTASK      4
 
 
 // Bits von masterstatus
 #define  USBPRESENT_BIT             4 //  USB eingesteckt
-#define  AKKU_LOW_BIT               5 //  Sub soll EEPROM lesen
+#define  AKKU_LOW_BIT               5 //  Akku ist low
 #define  TIMEOUT_BIT                6 //  Beep nach ablauf des Timeout
 #define  HALT_BIT                   7 //  Bit 7
 
-#define TIMEOUT   12000 // 2800/minute
+#define TIMEOUT   12000             // 2800 ticks fuer 1 minute
 
 // Bits von eepromstatus
-#define READ_EEPROM_START        0  // Beim Start gesetzt. Soll einmaliges Lesen der Settings beim Update des Masters ausloesen
+
 
 
 // Bits von displaystatus
@@ -96,7 +97,7 @@
 
 #define SETTINGBREITE      4 // 0x100; // 256 Bytes, Breite des Settingblocks fuer ein model
 
-#define  ANZAHLMODELLE        3
+#define  ANZAHLMODELLE        5
 #define  KANALSETTINGBREITE   4
 #define  MODELSETTINGBREITE   32 // nur Kanalsettings. Anschliessend MixingSettings
 
