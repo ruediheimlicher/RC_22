@@ -16,6 +16,8 @@
 
 #define TIMER0_STARTWERT   0x40
 
+
+#define PAKETBREITE           20
 // Stepper A
 
 #define BEEP_PIN 25
