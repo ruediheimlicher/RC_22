@@ -6,7 +6,7 @@
 
   Project RC_22
   Created by Ruedi Heimlicher on 04.02.2022
-  Copyright © 2022 ___ORGANIZATIONNAME___
+  Copyright © 2022 ruediheimlicher
   Licence GNU General Public Licence
 
 

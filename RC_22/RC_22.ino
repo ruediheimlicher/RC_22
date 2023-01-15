@@ -122,12 +122,12 @@ ADC *adc = new ADC(); // adc object
 //#define POT0LO 920
 //#define POT0HI 3230
 
-#define POT0LO 830
-#define POT0HI 3200
+#define POT0LO 620  // Min wert vom ADC Pot 0
+#define POT0HI 3400 // Max wert vom ADC Pot 0
 
 
-#define POT1LO 830
-#define POT1HI 3280
+#define POT1LO 620  // Min wert vom ADC Pot 1
+#define POT1HI 3480 // Max wert vom ADC Pot 1
 
 
 
@@ -136,8 +136,8 @@ ADC *adc = new ADC(); // adc object
 
 
 //Impulslaenge, ms
-#define PPMLO  850
-#define PPMHI  2150
+#define PPMLO  850  // Minwert ms fuer Impulslaenge
+#define PPMHI  2150 // Maxwert ms fur Impulslaenge
 
 // ****************************
 // von robotauto_t
@@ -146,9 +146,10 @@ ADC *adc = new ADC(); // adc object
 
 #define NULLBAND 30 // nichts tun bei kleineren Kanalwerten
 
-#define MAX_TICKS 2150 // Maxwert ms fur Impulslaenge
-#define MIN_TICKS 850  // Minwert ms fuer Impulslaenge
+#define PPMHI 2150 // Maxwert ms fur Impulslaenge
+#define PPMLO 850  // Minwert ms fuer Impulslaenge
 
+#define MAX_AUSSCHLAG (PPMHI - PPMLO)/2 - 20
 // ****************************
 
 #define SHIFT 0xFFFFF
@@ -1138,8 +1139,11 @@ void displayinit()
 
 void updatemitte(void)
 {
-   Serial.printf("updatemitte Mitte lesen quot: %.4f expoquot:  %.4f\n",quot, expoquot);
-   for (uint8_t i=0;i<NUM_SERVOS;i++)
+//   Serial.printf("\nupdatemitte Mitte lesen quot: %.4f expoquot:  %.4f\n",quot, expoquot);
+  // for (uint8_t i=0;i<NUM_SERVOS;i++)
+   Serial.printf("\n");
+   // 2 servos
+   for (uint8_t i=0;i<2;i++) // NUM_SERVOS
    {
       if (adcpinarray[i] < 0xFF) // PIN belegt
       {
@@ -1148,15 +1152,16 @@ void updatemitte(void)
          uint16_t potwert = adc->adc0->analogRead(adcpinarray[i]); // Mittelstellung
          
          // potgrenzen vor:
-         //Serial.printf("i: potgrenzen vor: %d potgrenzearray[i][0]: %d potgrenzearray[i][1]: %d quotarray[]: %.3f\n",i,potgrenzearray[i][0],potgrenzearray[i][1],quotarray[i], ppmint_old);
+         Serial.printf("updatemitte servo: potgrenzen vor: %d potgrenzearray[i][0]: %d potgrenzearray[i][1]: %d quotarray[]: %.3f servomittearray[i];: %d\n",i,potgrenzearray[i][0],potgrenzearray[i][1],quotarray[i], ppmint_old);
          
          
          // Ausschlag symmetrieren:
          // Abstand von Mittestellung zu oberer Grenze des Pot
          uint16_t deltahi = potgrenzearray[i][1] - potwert; 
          
-         // Abstand von Mittestellung zu oberer Grenze des Pot
-         uint16_t deltalo = potwert - potgrenzearray[i][0];
+         // Abstand von Mittestellung zu unterer Grenze des Pot
+         
+         int16_t deltalo = potwert - potgrenzearray[i][0];
          
          
          // kleinere Abweichung bestimmen
@@ -1169,14 +1174,14 @@ void updatemitte(void)
          {
             delta = deltahi;
          }
+         Serial.printf("updatemitte i: %d  deltalo: %d deltahi: %d delta: %d\n",i,deltalo, deltahi, delta);
          // potgrenzen anpassen
          potgrenzearray[i][0] = potwert - delta; // untere Grenze
          potgrenzearray[i][1] = potwert + delta; // obere Grenze
          
-         quotarray[i] = float((PPMHI - PPMLO))/float((potgrenzearray[i][1] - potgrenzearray[i][0]));
-         
          // quotwert neu berechnen
-         
+         quotarray[i] = float((PPMHI - PPMLO))/float((potgrenzearray[i][1] - potgrenzearray[i][0]));
+          
          float ppmfloat = PPMLO + quotarray[i] *(float(potwert)-potgrenzearray[i][0]);
   
          uint16_t ppmint = uint16_t(ppmfloat);
@@ -1186,9 +1191,7 @@ void updatemitte(void)
 
          servomittearray[i] = ppmint; // angepasster Wert
          
-         //Serial.printf("i: potgrenzen nach: %d potgrenzearray[i][0]: %d potgrenzearray[i][1]: %d quotarray[]: %.3f ppmint: %d\n",i,potgrenzearray[i][0],potgrenzearray[i][1],quotarray[i]);
-
-         
+         Serial.printf("updatemitte  potgrenzen korrigiert: \ni: %d potwert: %d ppmint: %d  potgrenzearray[i][0]: %d potgrenzearray[i][1]: %d quotarray[i]: %.3f ppmint: %d\n",i,potwert, ppmint, potgrenzearray[i][0],potgrenzearray[i][1],quotarray[i]);
       }
       
    }
@@ -1272,7 +1275,7 @@ uint16_t mapADC(uint16_t inADC)
       raw_in = MIN_ADC;
    }
    // adc-wert(Ausgabe des ADC) auf Tick-Bereich (ms, Impulslaenge) umsetzen
-   return map(raw_in, MIN_ADC, MAX_ADC, MIN_TICKS, MAX_TICKS);
+   return map(raw_in, MIN_ADC, MAX_ADC, PPMLO, PPMHI);
 }
 float floatADCmap(float inADC)
 {
@@ -1287,12 +1290,14 @@ float floatADCmap(float inADC)
       raw_in = MIN_ADC;
    }
 
-   if ((MAX_ADC - MIN_ADC) > (MIN_TICKS - MAX_TICKS)) {
-      return (raw_in - MIN_ADC) * (MAX_TICKS - MIN_TICKS+1) / (MAX_ADC - MIN_ADC+1) + MIN_TICKS;
+   if ((MAX_ADC - MIN_ADC) > (PPMLO - PPMHI)) {
+      return (raw_in - MIN_ADC) * (PPMHI - PPMLO+1) / (MAX_ADC - MIN_ADC+1) + PPMLO;
    } else {
-      return (raw_in - MIN_ADC) * (MAX_TICKS - MIN_TICKS) / (MAX_ADC - MIN_ADC) + MIN_TICKS;
+      return (raw_in - MIN_ADC) * (PPMHI - PPMLO) / (MAX_ADC - MIN_ADC) + PPMLO;
    }
 }
+
+
 // ****************************
 
 // Add setup code
@@ -1325,7 +1330,7 @@ void setup()
    adc->adc0->setSamplingSpeed(ADC_SAMPLING_SPEED::MED_SPEED);
    adc->adc0->setReference(ADC_REFERENCE::REF_3V3);
 
-   adc->adc1->setAveraging(4); // set number of averages 
+   adc->adc1->setAveraging(8); // set number of averages 
    adc->adc1->setResolution(12); // set bits of resolution
    adc->adc1->setConversionSpeed(ADC_CONVERSION_SPEED::MED_SPEED);
    adc->adc1->setSamplingSpeed(ADC_SAMPLING_SPEED::MED_SPEED);
@@ -1336,13 +1341,14 @@ void setup()
    uint32_t shiftquot = uint32_t(quot * SHIFT);
    Serial.printf("quot: %.6f shiftquot: %d\n",quot, shiftquot);
    
-                  
+  // Pot 0, 1 vorher eingestellt  
+   
    for (int i=0;i<NUM_SERVOS;i++)
    {
     int wert = 500 + i * 50;
       wert = 750;
        impulstimearray[i] = wert; // mittelwert
-      
+
       potgrenzearray[i][0] = potlo;
       potgrenzearray[i][1] = pothi;
       quotarray[i] = quot;
@@ -1364,6 +1370,8 @@ void setup()
    // Servo 0
    potgrenzearray[0][0] = POT0LO; // Unterster Wert des Poti
    potgrenzearray[0][1] = POT0HI; // Oberster Wert des Poti
+   
+   
    pinMode(pot0_PIN, INPUT);
    adcpinarray[0] = pot0_PIN;
    
@@ -1589,9 +1597,20 @@ void loop()
       
       servostatus |= (1<<RUN);
       // Mitte lesen
-      Serial.printf("Mitte lesen quot: %.4f expoquot:  %.4f\n",quot, expoquot);
+      //Serial.printf("First Run Mitte lesen quot: %.4f expoquot:  %.4f\n",quot, expoquot);
+      Serial.printf("\nFirst Run  setup VOR updatemitte \n");
+      for (uint8_t i=0;i<2;i++)
+      {
+         
+         Serial.printf("\ti: %d potgrenzearray[i][0]: %d potgrenzearray[i][1]: %d quotarray[i]: %.3f \n",i,potgrenzearray[i][0],potgrenzearray[i][1],quotarray[i]);
+      }
       updatemitte();
-    
+      Serial.printf("\nFirst Run  setup NACH updatemitte \n");
+      for (uint8_t i=0;i<2;i++)
+      {
+         
+         Serial.printf("\ti: %d potgrenzearray[i][0]: %d potgrenzearray[i][1]: %d quotarray[i]: %.3f\n", i,potgrenzearray[i][0],potgrenzearray[i][1],quotarray[i]);
+      }
       
       /*
        for (uint8_t i=0;i<8;i++)
@@ -1667,7 +1686,7 @@ void loop()
          //       Serial.printf("mix0wert: %d mix1wert: %d kanala: %d kanalb: %d\n",mix0wert,mix1wert,kanala,kanalb );
          //Serial.printf("mix1on: %d mix2on: %d \n",(kanalsettingarray[curr_model][i][3] & 0x08),(kanalsettingarray[curr_model][i][3] & 0x80));
          
-         Serial.printf("lokal: pot0: \t%d \tpot1: \t%d\n", potwertarray[0],potwertarray[1]);
+      //   Serial.printf("lokal: pot0: \t%d \tpot1: \t%d\n", potwertarray[0],potwertarray[1]);
          
          //Serial.printf("extern: 0: %d 1: %d lokal: %d %d\n",externpotwertarray[0],externpotwertarray[0], potwertarray[0],potwertarray[1]);
          
@@ -1991,14 +2010,14 @@ void loop()
                //float ppmfloat = PPMLO + quot *(float(potwert) - POTLO);
 
                // Impulslaenge
-   //            float ppmfloat = PPMLO + quotarray[i] *(float(potwert - potgrenzearray[i][0]));  // [i][0] ist untergrenze
-               uint16_t ppmmap = mapADC(potwert);
-               float ppmfloat = floatADCmap((float)potwert);
+               float ppmfloat = PPMLO + quotarray[i] *(float(potwert - potgrenzearray[i][0]));  // [i][0] ist untergrenze
+               //uint16_t ppmmap = mapADC(potwert);
+               //float ppmfloat = floatADCmap((float)potwert);
                
                uint16_t mitte = servomittearray[i];
                if ((displaycounter == 14) && (i<2))
                {
-                    //Serial.printf("servo \t%d  \tpotwert:\t %d \tppmmap: \t%d \tfloatppmmap: \t%2.4f\n",i,potwert, ppmfloat,floatppmmap);
+                  Serial.printf("servo \t%d  \tpotwert:\t %d \tppmfloat: \t%2.2f mitte: %d\n",i,potwert, ppmfloat,mitte);
          //         Serial.printf("servo \t%d \tmitte: %d\tpotwert: \t%d  \tppmfloat:\t %2.4f \tfloatppmmap: \t%2.4f\n",i,mitte, potwert, ppmfloat,floatppmmap);
 
                }
@@ -2096,7 +2115,6 @@ void loop()
                      // diffa zu mitte add
                      ppmint = servomittearray[i] + diffa;
                   }
-   //               ppmint = servomittearray[i] - diffa;
                              
                }
                else                          // Seite B
@@ -2133,7 +2151,7 @@ void loop()
                      ppmint = servomittearray[i] - diffb;
                   }
                   
-  //                ppmint = servomittearray[i] + diffb;
+  
                   
                  
                }
@@ -2252,6 +2270,11 @@ void loop()
          //   Serial.printf("mix1count: %d mix1kanal0: %d mix1kanal1: %d \n",mix1count,mix1kanal[0],mix1kanal[1]);
          }
       
+      // test
+      mix1count = 2;
+      mix1kanal[0] = 0;
+      mix1kanal[1] = 1;
+      
       if (mix1count == 2) // mixing korrekt
       {
          // position der Impulse im Impulspaket
@@ -2276,28 +2299,34 @@ void loop()
          float faktora = float(kanalwerta  - mittea)/float(0x200); // > 1 wenn diff zu gross > werte reduzieren
          float faktorb = float(kanalwertb - mitteb)/float(0x200);
 
-         if ((displaycounter == 20) )
-         {
-            //Serial.printf("impulspositiona: %d impulspositionb: %d \n",impulspositiona,impulspositionb);
-            //               Serial.printf("kanalwerta: %d kanalwertb: %d mittea: %d mitteb: %d\n", kanalwerta,kanalwertb, mittea, mitteb); 
-            Serial.printf("faktora: %2.2f faktorb: %2.2f",faktora,faktorb);
-         }
-         
+           
          float diffa = 0;
          diffa = kanalwerta - mittea;
          float diffb = 0;
          diffb = kanalwertb - mitteb;
          float diffsumme = abs(diffa) + abs(diffb);
          float korrfaktor = 1.0;
-         if (diffsumme > 0x200) // summe zu gross> anpassen
+         if (diffsumme > (PPMHI - PPMLO)/2) // summe zu gross > anpassen
          {
-            korrfaktor = 0x200/diffsumme;
+            korrfaktor = (PPMHI - PPMLO)/2/diffsumme;
+            if ((displaycounter == 20) )
+            {
+               Serial.printf("diffsumme: %2.2f  korrfaktor: %2.2f\n",diffsumme,korrfaktor);
+            }
             diffa *= korrfaktor;
-            diffb += korrfaktor;
+            diffb *= korrfaktor;
          }
 
          mixkanalwerta = mittea + diffa + diffb;
-         mixkanalwertb = mitteb + diffa + diffb;
+         mixkanalwertb = mitteb + diffa - diffb;
+         
+         if ((displaycounter == 20) )
+         {
+            //Serial.printf("impulspositiona: %d impulspositionb: %d \n",impulspositiona,impulspositionb);
+            //               Serial.printf("kanalwerta: %d kanalwertb: %d mittea: %d mitteb: %d\n", kanalwerta,kanalwertb, mittea, mitteb); 
+            Serial.printf("pot0: %d mittea: %d pot1: %d mitteb: %d faktora: %2.4f faktorb: %2.4f korrfaktor: %2.2f diffa: %2.2f diffb: %2.2f mixkanalwerta: %d mixkanalwertb: %d\n",kanalwerta,mittea,kanalwertb,mitteb, faktora,faktorb, korrfaktor,diffa,diffb,mixkanalwerta,mixkanalwertb );
+         }
+  
  
          /*
          if(kanalwerta > mittea)
