@@ -24,6 +24,7 @@
 #include <SPI.h>
 #include "lcd.h"
 #include "settings.h"
+#include "potgrenzen.h"
 #include "display.h"
 #include "expo.h"
 
@@ -119,6 +120,7 @@ volatile uint16_t          externpotwertarray[NUM_SERVOS] = {}; // Werte fuer Mi
 // Prototypes
 ADC *adc = new ADC(); // adc object
 
+/* > in potgrenzen.h
 //#define POT0LO 920
 //#define POT0HI 3230
 
@@ -138,7 +140,7 @@ ADC *adc = new ADC(); // adc object
 //Impulslaenge, ms
 #define PPMLO  850  // Minwert ms fuer Impulslaenge
 #define PPMHI  2150 // Maxwert ms fur Impulslaenge
-
+*/
 // ****************************
 // von robotauto_t
 #define MAX_ADC 3200 // Max wert vom ADC
@@ -156,7 +158,7 @@ ADC *adc = new ADC(); // adc object
 
 #define IMPULSBREITE 20
 // Pot
-/*
+/* 
 volatile uint16_t potlo = POTLO; // min pot
 volatile uint16_t pothi = POTHI; // max pot
 volatile uint16_t ppmlo = PPMLO; // min ppm
@@ -1191,7 +1193,7 @@ void updatemitte(void)
 
          servomittearray[i] = ppmint; // angepasster Wert
          
-         Serial.printf("updatemitte  potgrenzen korrigiert: \ni: %d potwert: %d ppmint: %d  potgrenzearray[i][0]: %d potgrenzearray[i][1]: %d quotarray[i]: %.3f ppmint: %d\n",i,potwert, ppmint, potgrenzearray[i][0],potgrenzearray[i][1],quotarray[i]);
+         Serial.printf("updatemitte  potgrenzen korrigiert: \ni: %d potwert: %d ppmint: %d  potgrenzearray[i][0]: %d potgrenzearray[i][1]: %d quotarray[i]: %.3f ppmint: %d\texpoquot: %.3f \n ",i,potwert, ppmint, potgrenzearray[i][0],potgrenzearray[i][1],quotarray[i], expoquot);
       }
       
    }
@@ -2022,17 +2024,36 @@ void loop()
 
                }
 
+               if (abs(mitte - ppmfloat) < NULLBAND)
+               {
+                  ppmfloat = mitte;
+               }
+
                
                uint8_t levelwert = kanalsettingarray[curr_model][i][1]; // element 1, levelarray
                
-               // ???
-               levelwert = 1;
-               
+               // levelwert   faktor
+              //    0             8/8
+              //    1             7/8
+              //    2             6/8
+              //    3             5/8
+              //    4             4/8
+
+               // eventuell ungleiche werte 
                
                uint8_t levelwerta = levelwert & 0x07;
                uint8_t levelwertb = (levelwert & 0x70)>>4;
- 
                
+               // test
+               levelwerta = 0;
+               levelwertb = 0;
+               if (i==1) // speed
+               {
+      //            levelwertb = 3; // speed ev. ungleich fuer richtung
+               }
+               
+               
+               // expowert ev. ungleich fuer richtung
                uint8_t expowert = kanalsettingarray[curr_model][i][2]; // element2, expoarray
                uint8_t expowerta = expowert & 0x07;
                
@@ -2055,17 +2076,24 @@ void loop()
                }
                */
  
+               // test
+               
+               expowerta = 0;
+               expowertb = 0;
+               
+               
+               
                uint16_t ppmint = uint16_t(ppmfloat);
                uint16_t ppmintvor = uint16_t(ppmfloat);
                
-               if ((displaycounter < 8 )  && (i<2))
+               if ((displaycounter ==20 )  && (i<2))
                {
                   //Serial.printf("servo \t%d\t potwert: \t%d \tppmint: \t%d\n",i,potwert,ppmint);
-                  //Serial.printf("servo \t%d\t levelwert: %d levelwerta: %d levelwertb: %d\n",i,levelwert, levelwerta,levelwertb);
-
-   //             Serial.printf("servo \t%d\t expowert: %d expowerta: %d expowertb: %d\n",i,expowert, expowerta,expowertb);
+                  Serial.printf("servo \t%d\t levelwert: %d levelwerta: %d levelwertb: %d\n",i,levelwert, levelwerta,levelwertb);
                   
-                   //Serial.printf("servo \t%d\tdevice: %d funktion: %d richtung: %d ppmint: %d servomitte: %d\n",i,device, funktion, richtung, ppmint ,servomittearray[i]);
+                  Serial.printf("servo \t%d\t expowert: %d expowerta: %d expowertb: %d expoquot: %.3f\n",i,expowert, expowerta,expowertb,expoquot);
+                  
+                  //Serial.printf("servo \t%d\tdevice: %d funktion: %d richtung: %d ppmint: %d servomitte: %d\n",i,device, funktion, richtung, ppmint ,servomittearray[i]);
                }
                 // levelwert   faktor
                //    0             8/8
@@ -2100,6 +2128,7 @@ void loop()
                   expofloat = expoarray[expowerta][expopos] * expoquot; // Wert wieder auf urspruenglichen Bereich bringen
                   diffa = uint16_t(expofloat);
 
+ 
                   expoint = servomittearray[i] - expoarray[expowerta][expopos] * expoquot;
   
                   // diff umrechnen
@@ -2120,6 +2149,8 @@ void loop()
                else                          // Seite B
                {
                   diffb = ppmint - servomittearray[i];
+                  
+                    
                   diff = (ppmfloat - servomittearray[i]) ;//* expoquot;
                   diffb = uint16_t(diff);
                   
@@ -2133,7 +2164,7 @@ void loop()
                   }
                   expofloat = expoarray[expowertb][expopos] * expoquot;
                   diffb = uint16_t(expofloat);
-
+   
                   expoint = servomittearray[i] + expoarray[expowertb][expopos] * expoquot ;
                   
                    // diff umrechnen
@@ -2317,6 +2348,8 @@ void loop()
             diffb *= korrfaktor;
          }
 
+         
+         
          mixkanalwerta = mittea + diffa + diffb;
          mixkanalwertb = mitteb + diffa - diffb;
          
