@@ -1145,7 +1145,7 @@ uint8_t  decodeUSBChannelSettings(uint8_t buffer[USB_DATENBREITE])
    uint8_t kanalindex =  buffer[USB_DATA_OFFSET + modelindex * KANALSETTINGBREITE] & 0x70; // Bits 4,5,6
    
    uint8_t on = (buffer[USB_DATA_OFFSET + modelindex * KANALSETTINGBREITE] & 0x08) >>8; // Bit 3
-   uint8_t pos = USB_DATA_OFFSET; Beginn data    
+   uint8_t pos = USB_DATA_OFFSET; //Beginn data    
    
    // Byte 0: Modell 3b, ON 1b, Kanalindex 3b, RI 1b
 
@@ -1157,7 +1157,7 @@ uint8_t  decodeUSBChannelSettings(uint8_t buffer[USB_DATENBREITE])
          // kanalsettingarray[ANZAHLMODELLE][NUM_SERVOS][KANALSETTINGBREITE] 
          uint8_t tempdata = buffer[pos + dataindex];
          Serial.printf("kanal: %d dataindex: %d **  data: %d tempdata: %d\n",kanal, dataindex, buffer[pos + dataindex],tempdata);
-
+         
          // data in kanalsettingarray schreiben
          kanalsettingarray[modelindex][kanal][dataindex] = buffer[pos + dataindex];
          
@@ -1166,7 +1166,7 @@ uint8_t  decodeUSBChannelSettings(uint8_t buffer[USB_DATENBREITE])
          {
             if (dataindex == 0) // byte 0: device
             {
-               Serial.printf("dataindex: %d **  kanalindex: %d on: %d \n", dataindex,((tempdata&0x30)>>4),((tempdata&0x08)));
+               Serial.printf("dataindex: %d **  kanalindex: %d on: %d ri: %d\n", dataindex,((tempdata&0x30)>>4),((tempdata&0x08)>>3), ((tempdata&0x80)>>7));
                
             }
             if (dataindex == 3) // byte 3: status 
@@ -1174,29 +1174,30 @@ uint8_t  decodeUSBChannelSettings(uint8_t buffer[USB_DATENBREITE])
                Serial.printf("dataindex: %d **  mixon1: %d\n", dataindex,((tempdata&0x08)>>3));
             }
             
-             
+            
             
          } // kanal < 4
       }// for dataindex
       
       //Serial.printf("curr-arrays : %d\n",buffer[pos + 3]);
       
-   Serial.printf("\ncurr-arrays von kanal: %d\n");
-     if (kanal<2)
+      Serial.printf("\ncurr-arrays von kanal: %d\n", kanal);
+      if (kanal<2)
       {
          // aktuelle Werte setzen
-         Serial.printf("curr_statusarray: %d\t",buffer[pos] );
+         Serial.printf("\tbuffer: %d\tcurr_statusarray vor: %d\t",buffer[pos],curr_statusarray[kanal] );
          curr_statusarray[kanal] = buffer[pos ]; // Modell, ON, Kanal, RI
+         Serial.printf("\tcurr_statusarray nach: %d\n",curr_statusarray[kanal] );
          
-         Serial.printf("curr_levelarray: %d\t",buffer[pos+ 1]);
+         Serial.printf("\tcurr_levelarray: %d\t",buffer[pos+ 1]);
          curr_levelarray[kanal] = buffer[pos + 1]; // level A, level B
          
-         Serial.printf("curr_expoarray: %d\t",buffer[pos + 2]);
+         Serial.printf("\tcurr_expoarray: %d\t",buffer[pos + 2]);
          curr_expoarray[kanal] = buffer[pos + 2]; // expo A, expo B
          
-         Serial.printf("curr_funktionarray: %d\n",buffer[pos + 3]);
+         Serial.printf("\tcurr_funktionarray: %d\n",buffer[pos + 3]);
          curr_devicearray[kanal] = buffer[pos + 3]; // funktion, device, mix
-                  
+         
       }
       pos += KANALSETTINGBREITE;
    }// for kanal
@@ -2127,10 +2128,12 @@ void loop()
                uint16_t mitte = servomittearray[i];
                if ((displaycounter == 20) && (i<2))
                {
-                  Serial.printf("\n*******************\nservo \t%d  \tpotwert:\t %d \tppmfloat: \t%2.2f mitte: %d\n",i,potwert, ppmfloat,mitte);
+    //              Serial.printf("\n*******************\nservo \t%d  \tpotwert:\t %d \tppmfloat: \t%2.2f mitte: %d\n",i,potwert, ppmfloat,mitte);
          //         Serial.printf("servo \t%d \tmitte: %d\tpotwert: \t%d  \tppmfloat:\t %2.4f \tfloatppmmap: \t%2.4f\n",i,mitte, potwert, ppmfloat,floatppmmap);
 
                }
+               
+               
 
                if (abs(mitte - ppmfloat) < NULLBAND)
                {
@@ -2153,8 +2156,8 @@ void loop()
                uint8_t levelwertb = (levelwert & 0x70)>>4;
                
                // test
-               levelwerta = 1;
-               levelwertb = 1;
+               //levelwerta = 1;
+               //levelwertb = 1;
                if (i==1) // speed
                {
       //            levelwertb = 3; // speed ev. ungleich fuer richtung
@@ -2186,8 +2189,8 @@ void loop()
  
                // test
                
-               expowerta = 1;
-               expowertb = 1;
+               //expowerta = 1;
+               //expowertb = 1;
                
                
                
@@ -2289,11 +2292,9 @@ void loop()
                      // diffa von mitte sub
                      ppmint = servomittearray[i] - diffb;
                   }
-                  
-  
-                  
+                   
                  
-               }
+               }// end Seite B
                if (i < 2) // nur linker Steuerknüppel
                {
                   diffsumme += diff;
@@ -2301,9 +2302,10 @@ void loop()
                if ((displaycounter == 20) && (i<2))
                {
                  // Serial.printf("servo \t%d\t diffa: \t%d \tdiffb:\t %d \tppmintvor: \t%d \tppmint mod:\t %d expoint: %d\n",i,diffa, diffb,ppmintvor,ppmint, expoint);
-
-                  //Serial.printf("servo \t%d  potwert:\t %d ppmmap: %d\n",i,potwert, ppmfloat);
-
+if (i == 0)
+{
+   //Serial.printf("servo \t%d  potwert:\t %d ppmint: %d richtung: %d\n",i,potwert, ppmint, richtung);
+}
                }
  
                
@@ -2338,7 +2340,7 @@ void loop()
                if ((displaycounter == 20) )
                   {
                     // Serial.printf("impulstimearray setzen:  device: %d  impulsposition: %d\n",device,impulsposition);
-                     Serial.printf("impulstimearray setzen:  impulsposition: %d  ppmint: %d\n",impulsposition,ppmint);
+                     //Serial.printf("impulstimearray setzen:  impulsposition: %d  ppmint: %d\n",impulsposition,ppmint);
                   }
 
              
@@ -2366,7 +2368,7 @@ void loop()
          }
          
          //Serial.printf("C\n");
-      } // for i
+      } // for i NUM_SERVOS
       if (displaycounter == 64)
       {
          //Serial.printf("mix1on: %d mix2on: %d \n",mix1on, mix2on);
@@ -2470,7 +2472,7 @@ void loop()
          {
             //Serial.printf("impulspositiona: %d impulspositionb: %d \n",impulspositiona,impulspositionb);
             //               Serial.printf("kanalwerta: %d kanalwertb: %d mittea: %d mitteb: %d\n", kanalwerta,kanalwertb, mittea, mitteb); 
-            Serial.printf("pot0: %d mittea: %d pot1: %d mitteb: %d faktora: %2.4f faktorb: %2.4f korrfaktor: %2.2f diffa: %2.2f diffb: %2.2f mixkanalwerta: %d mixkanalwertb: %d\n",kanalwerta,mittea,kanalwertb,mitteb, faktora,faktorb, korrfaktor,diffa,diffb,mixkanalwerta,mixkanalwertb );
+            //Serial.printf("pot0: %d mittea: %d pot1: %d mitteb: %d faktora: %2.4f faktorb: %2.4f korrfaktor: %2.2f diffa: %2.2f diffb: %2.2f mixkanalwerta: %d mixkanalwertb: %d\n",kanalwerta,mittea,kanalwertb,mitteb, faktora,faktorb, korrfaktor,diffa,diffb,mixkanalwerta,mixkanalwertb );
          }
   
  
