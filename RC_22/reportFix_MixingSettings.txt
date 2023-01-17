@@ -1,0 +1,96 @@
+: modelindex: 0 Settings: (
+        {
+        canala = 0;
+        canalb = 1;
+        go = 1;
+        mixart = 1;
+        mixing = "Mix 0";
+        mixnummer = 0;
+        state = 1;
+    },
+        {
+        canala = 8;
+        canalb = 8;
+        go = 1;
+        mixart = 2;
+        mixing = "Mix 0";
+        mixnummer = 1;
+        state = 1;
+    },
+        {
+        canala = 8;
+        canalb = 8;
+        go = 1;
+        mixart = 0;
+        mixing = "Mix 0";
+        mixnummer = 2;
+        state = 1;
+    },
+        {
+        canala = 8;
+        canalb = 8;
+        go = 1;
+        mixart = 0;
+        mixing = "Mix 0";
+        mixnummer = 3;
+        state = 1;
+    }
+)
+
+reportFix_MixingSettings modelindex: 0  count: 4
+
+Mix modelindex: 0 changecode: 15
+*0*	*1*	*2*	*3*	
+2023-01-16 18:51:22.320372+0100 RC_Interface[15576:27244240] reportFix_MixingSettings Data: (
+        {
+        canala = 0;
+        canalb = 1;
+        go = 1;
+        mixart = 1;
+        mixing = "Mix 0";
+        mixnummer = 0;
+        state = 1;
+    },
+        {
+        canala = 8;
+        canalb = 8;
+        go = 1;
+        mixart = 2;
+        mixing = "Mix 0";
+        mixnummer = 1;
+        state = 1;
+    },
+        {
+        canala = 8;
+        canalb = 8;
+        go = 1;
+        mixart = 0;
+        mixing = "Mix 0";
+        mixnummer = 2;
+        state = 1;
+    },
+        {
+        canala = 8;
+        canalb = 8;
+        go = 1;
+        mixart = 0;
+        mixing = "Mix 0";
+        mixnummer = 3;
+        state = 1;
+    }
+) changecode: 15
+MixingSettings:
+mixa:	00	mixb:	01	mixwert:	10 *	 16
+mixwert:	10	artwert:	01 *
+mixa:	08	mixb:	08	mixwert:	88 *	 136
+mixwert:	88	artwert:	02 *
+mixa:	08	mixb:	08	mixwert:	88 *	 136
+mixwert:	88	artwert:	00 *
+mixa:	08	mixb:	08	mixwert:	88 *	 136
+mixwert:	88	artwert:	00 *
+
+reportFix_MixingSettings bytebuffer ready: 
+	
+	FA	40	20	0F	00	00	00	00		48	00	FF	FF	FF	FF	FF	FF	
+	10	01	88	02	88	00	88	00		00	00	00	00	00	00	00	00
+reportFix_MixingSettings senderfolg: 64

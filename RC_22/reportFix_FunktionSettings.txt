@@ -1,0 +1,66 @@
+reportFix_FunktionSettings Funktion_Startadresse: 2060
+
+reportFix_FunktionSettings modelindex: 0 changecode: 15
+*0*	*1*	*2*	*3*	
+2023-01-16 18:52:59.987764+0100 RC_Interface[15576:27244240] reportFix_FunktionSettings Data: (
+        {
+        canalnummer = 0;
+        device = "L_H";
+        "device_funktion" = 7;
+        devicenummer = 0;
+        funktion = Seite;
+        funktionnummer = 0;
+        go = 1;
+        nummer = 0;
+        state = 1;
+    },
+        {
+        canalnummer = 1;
+        device = "L_V";
+        "device_funktion" = 22;
+        devicenummer = 1;
+        funktion = Hoehe;
+        funktionnummer = 1;
+        go = 1;
+        nummer = 1;
+        state = 1;
+    },
+        {
+        canalnummer = 2;
+        device = "R_H";
+        "device_funktion" = 37;
+        devicenummer = 2;
+        funktion = Quer;
+        funktionnummer = 2;
+        go = 1;
+        nummer = 2;
+        state = 1;
+    },
+        {
+        canalnummer = 3;
+        device = "R_V";
+        "device_funktion" = 52;
+        devicenummer = 3;
+        funktion = Motor;
+        funktionnummer = 3;
+        go = 1;
+        nummer = 3;
+        state = 1;
+    }
+) changecode: 15
+FunktionSettings:
+funktionnummer:	00	 devicenummer:	00	 funktionwert:	00  	 0
+funktionwert:	00
+funktionnummer:	01	 devicenummer:	01	 funktionwert:	11  	 17
+funktionwert:	11
+funktionnummer:	02	 devicenummer:	02	 funktionwert:	22  	 34
+funktionwert:	22
+funktionnummer:	03	 devicenummer:	03	 funktionwert:	33  	 51
+funktionwert:	33
+
+reportFix_FunktionSettings bytebuffer ready: 
+	
+	E6	60	20	0F	00	00	00	00		FB	07	00	00	00	00	00	00	
+	00	11	22	33	00	60	00	00		01	CA	1F	01	00	60	00	00
+
+reportFix_FunktionSettings senderfolg: 64
