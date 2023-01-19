@@ -146,7 +146,7 @@ ADC *adc = new ADC(); // adc object
 #define MAX_ADC 3200 // Max wert vom ADC
 #define MIN_ADC 830 // Min wert vom ADC
 
-#define NULLBAND 30 // nichts tun bei kleineren Kanalwerten
+#define NULLBAND 100 // nichts tun bei kleineren Kanalwerten
 
 #define PPMHI 2150 // Maxwert ms fur Impulslaenge
 #define PPMLO 850  // Minwert ms fuer Impulslaenge
@@ -1423,7 +1423,7 @@ void setup()
    
    pinMode(BEEP_PIN, OUTPUT);
    pinMode(BLINK_PIN, OUTPUT);
-   pinMode(LOOPLED, OUTPUT);
+   //pinMode(LOOPLED, OUTPUT);
 //   dog_7565R DOG;
    
    
@@ -1750,6 +1750,7 @@ void loop()
     // MARK:  -  sinc > 500
    if (zeitintervall > 500) 
    {   
+      
       //Serial.printf("eepromsavestatus: %d masterstatus: %d \n",eepromsavestatus,masterstatus);
       if ((eepromsavestatus) || (masterstatus & (1<<AKKU_LOW_BIT)) || (masterstatus & (1<<TIMEOUT_BIT)))
       {
@@ -1762,14 +1763,9 @@ void loop()
       if (sekundencounter%2)
       {
          //Serial.printf("blinkvor: %d",digitalRead(BLINK_PIN));
-         if (digitalRead(BLINK_PIN))
-         {
-            digitalWrite(BLINK_PIN,0);
-         }
-         else
-         {
-            digitalWrite(BLINK_PIN,1);
-         }
+         
+         digitalWrite(BLINK_PIN,!(digitalRead(BLINK_PIN)));
+      
          //digitalWriteFast(BLINK_PIN, !(digitalRead(BLINK_PIN)));
          
          // Serial.printf(" blinknach: %d\n",digitalRead(BLINK_PIN));
@@ -2137,7 +2133,7 @@ void loop()
 
                if (abs(mitte - ppmfloat) < NULLBAND)
                {
-                //  ppmfloat = mitte;
+                  //ppmfloat = mitte;
                }
 
                
