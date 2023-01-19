@@ -115,7 +115,7 @@ volatile uint8_t           adcpinarray[NUM_SERVOS] = {};
 volatile uint16_t          servomittearray[NUM_SERVOS] = {}; // Werte fuer Mitte
 
 volatile uint16_t          potwertarray[NUM_SERVOS] = {}; // Werte fuer Mitte
-volatile uint16_t          externpotwertarray[NUM_SERVOS] = {}; // Werte fuer Mitte
+volatile uint16_t          externpotwertarray[NUM_SERVOS] = {}; // Werte von extern  pro servo
 
 // Prototypes
 ADC *adc = new ADC(); // adc object
@@ -2100,13 +2100,14 @@ void loop()
                
                //Serial.printf("+B+");
                uint16_t potwert=0;
-               programmstatus |= (1<<LOCALTASK);
+               //programmstatus |= (1<<LOCALTASK);
                if (programmstatus & (1<<LOCALTASK))
                {
                   potwert = adc->adc0->analogRead(adcpinarray[i]);
                }
                else
                {
+                  
                   potwert =   externpotwertarray[i];                 
 
                }
@@ -6042,25 +6043,38 @@ if (i == 0)
             
             switch (code)
             {   
+               case 0xB0:
+               {
+                  Serial.printf("B0 Pot 0\n");
+                  
+               }break;
+                  
                case 0xA4:
                {
                   Serial.printf("A4 clear\n");
                }break;
                   
-#pragma mark A5  GO HOME         
+#pragma mark A5  GO HOME   
+                  
                case 0xA5: //  go home
                {
                   
                }break;
                   
-               case 0xF0: // Data von Sender
+               case 0xF0: // switch extern von Sender
                {
-                  //Serial.printf("0xF0 %d %d %d %d \n",buffer[USB_DATA_OFFSET],buffer[USB_DATA_OFFSET+1],buffer[USB_DATA_OFFSET+2],buffer[USB_DATA_OFFSET+3]);
-                  Serial.printf("0xF0 task: %d\n",buffer[USB_DATA_OFFSET]);
-                  
+                  Serial.printf("0xF0 %d %d %d %d \n",buffer[USB_DATA_OFFSET],buffer[USB_DATA_OFFSET+1],buffer[USB_DATA_OFFSET+2],buffer[USB_DATA_OFFSET+3]);
+                  Serial.printf("0xF0 task: %d code: %d\n",buffer[USB_DATA_OFFSET + 32]);
+                  for (uint8_t i=0;i<32;i++)
+                  {
+                     Serial.printf("\t%d",buffer[i]);
+  
+                  }
+                  Serial.printf("\n");
                   
                   if (buffer[USB_DATA_OFFSET + 32] == 1)
                   {
+                     Serial.printf("extern on\n");
                      programmstatus &= ~(1<<LOCALTASK);
                      programmstatus |= (1<<EXTERNTASK);
                      for (uint8_t i = 0;i<4;i++)
@@ -6073,13 +6087,14 @@ if (i == 0)
                    }
                   else
                   {
+                     Serial.printf("extern off\n");
                      programmstatus &= ~(1<<EXTERNTASK);
                      programmstatus |= (1<<LOCALTASK);
                   }
-               
+                  Serial.printf("extern programmstatus: %2X\n",programmstatus);
                }break;
 
-               case 0xF1: // Data von Sender
+               case 0xF1: // Kanaldata von Sender
                {
                   //Serial.printf("0xF0 %d %d %d %d \n",buffer[USB_DATA_OFFSET],buffer[USB_DATA_OFFSET+1],buffer[USB_DATA_OFFSET+2],buffer[USB_DATA_OFFSET+3]);
                   for (uint8_t i = 0;i<4;i++)
