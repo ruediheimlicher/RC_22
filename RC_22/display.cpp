@@ -199,7 +199,7 @@ const volatile char DISPLAY_INIT[] =
    0x00, // ...
    0x27, //
    0x81, // Contrast set
-   0x18,
+   0x10, // war 0x18
    0xAC, // Static indicator set --> no indicator
    0x00, // ...
    0xAF
