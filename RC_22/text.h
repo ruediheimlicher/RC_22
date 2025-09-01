@@ -30,7 +30,7 @@ const char model3[]  = "Motor A     ";
 const char model4[]  = "Motor B     ";
 const char model5[]  = "AA\0        ";
 const char model6[]  = "BB\0        ";
-const char model7[]  = "CC\0        ";
+const char model7[]  = "Flight Sim  ";
 
 char *ModelTable[]  = {model0, model1, model2, model3, model4, model5, model6, model7};
 

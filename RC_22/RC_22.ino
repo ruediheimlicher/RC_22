@@ -892,7 +892,7 @@ uint8_t* encodeEEPROMChannelSettings(uint8_t modelindex)
       } // for dataindex
    } // for kanal
    
-   // Mixing-Settings
+   // Channel-Settings
    
    
    return usbarray;

@@ -20,6 +20,7 @@
 #include "text.h"
 #include "settings.h"
 
+
 #include "Arduino.h"
 extern volatile uint8_t levelwert;
 extern volatile uint8_t levelb;
@@ -60,7 +61,7 @@ extern volatile uint8_t itemtab[10] = {itemtab0,itemtab1,itemtab2,itemtab3,itemt
 
 extern volatile uint16_t      motorsekunde;
 
-//extern volatile uint8_t       curr_settingarray[8][2];
+//extern volatile uint8_t      curr_settingarray[8][2];
 extern volatile uint8_t       curr_levelarray[8];
 extern volatile uint8_t       curr_expoarray[8];
 extern volatile uint8_t       curr_mixarray[8];
@@ -327,7 +328,6 @@ void sethomescreen(void)
    char_y= (posregister[4][2] & 0xFF00)>> 10;
    char_x = posregister[4][2] & 0x00FF;
    display_write_int(curr_setting,2);
-   
    
    
    char_height_mul = 1;
